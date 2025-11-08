@@ -19,10 +19,9 @@ class DonacionesRepository {
                 firestore.collection("transacciones").document(transaccion.id)
             }
 
-            // Aseguramos que la fecha se guarde correctamente
             val transaccionToSave = transaccion.copy(
                 id = transaccionRef.id,
-                fecha = transaccion.fecha // Mantenemos la fecha original si ya existe
+                fecha = transaccion.fecha
             )
 
             transaccionRef.set(transaccionToSave).await()
@@ -50,8 +49,6 @@ class DonacionesRepository {
 
     suspend fun getTransaccionesByTipo(tipo: TipoTransaccion): Result<List<Transaccion>> {
         return try {
-            // Firestore guarda los enums como Strings por defecto.
-            // Usamos tipo.name para obtener "DONACION" o "GASTO"
             val snapshot = firestore.collection("transacciones")
                 .whereEqualTo("tipo", tipo.name)
                 .orderBy("fecha", Query.Direction.DESCENDING)
@@ -127,7 +124,6 @@ class DonacionesRepository {
                 it.toObject(Transaccion::class.java)
             }
 
-            // CORRECCIÓN AQUÍ: Usar '==' y el enum correcto
             val ingresos = transacciones
                 .filter { it.tipo == TipoTransaccion.DONACION }
                 .sumOf { it.monto }

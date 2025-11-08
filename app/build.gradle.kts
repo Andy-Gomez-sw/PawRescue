@@ -5,6 +5,7 @@ plugins {
     id("kotlin-kapt")
     id("kotlin-parcelize")
     id("androidx.navigation.safeargs.kotlin")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -77,15 +78,19 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.6")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.6")
 
-    // Room Database (para modo offline)
+    // Room Database
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
 
-    // Gson (para los Type Converters de Room)
+    // Hilt
+    implementation("com.google.dagger:hilt-android:2.48")
+    kapt("com.google.dagger:hilt-android-compiler:2.48")
+
+    // Gson
     implementation("com.google.code.gson:gson:2.10.1")
 
-    // WorkManager (para sincronización)
+    // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
     // Image Loading
@@ -99,5 +104,8 @@ dependencies {
 
     // Permissions
     implementation("com.guolindev.permissionx:permissionx:1.7.1")
-}
 
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+}

@@ -10,9 +10,10 @@ enum class TipoTransaccion {
 data class Transaccion(
     val id: String = UUID.randomUUID().toString(),
     val tipo: TipoTransaccion,
-    val monto: Double,
-    val descripcion: String,
+    val concepto: String = "",
+    val monto: Double = 0.0,
     val fecha: Date = Date(),
-    // Puedes agregar más campos si es necesario, como 'categoria', 'metodoPago', etc.
-    val donante: String? = null // Opcional, solo para donaciones
+    val categoria: String = "",
+    val descripcion: String = "",
+    val donante: String? = null
 )

@@ -3,6 +3,7 @@ package com.refugio.pawrescue.data.model.local
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.refugio.pawrescue.data.model.EstadoSolicitud
 import java.util.Date
 
 class Converters {
@@ -28,5 +29,15 @@ class Converters {
     @TypeConverter
     fun toStringList(list: List<String>?): String {
         return gson.toJson(list)
+    }
+
+    @TypeConverter
+    fun fromEstadoSolicitud(value: EstadoSolicitud?): String? {
+        return value?.name
+    }
+
+    @TypeConverter
+    fun toEstadoSolicitud(value: String?): EstadoSolicitud? {
+        return value?.let { EstadoSolicitud.valueOf(it) }
     }
 }
