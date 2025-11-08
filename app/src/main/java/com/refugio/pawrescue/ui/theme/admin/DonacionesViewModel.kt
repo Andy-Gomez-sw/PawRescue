@@ -1,147 +1,71 @@
 package com.refugio.pawrescue.ui.theme.admin
 
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
-import com.refugio.pawrescue.ui.theme.admin.TipoTransaccion
-import com.refugio.pawrescue.ui.theme.admin.Transaccion
-import kotlinx.coroutines.tasks.await
-import java.util.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.refugio.pawrescue.data.model.repository.DonacionesRepository // Asegúrate de que este import sea correcto según donde tengas tu repositorio
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class DonacionesRepository {
-    private val firestore = FirebaseFirestore.getInstance()
+@HiltViewModel // <-- ESTA ANOTACIÓN ES CLAVE
+class DonacionesViewModel @Inject constructor( // <-- EL CONSTRUCTOR DEBE SER INYECTADO
+    private val repository: DonacionesRepository // Hilt inyectará esto automáticamente
+) : ViewModel() {
 
-    suspend fun guardarTransaccion(transaccion: Transaccion): Result<String> {
-        return try {
-            val transaccionRef = if (transaccion.id.isEmpty()) {
-                firestore.collection("transacciones").document()
-            } else {
-                firestore.collection("transacciones").document(transaccion.id)
+    private val _transacciones = MutableLiveData<List<Transaccion>>()
+    val transacciones: LiveData<List<Transaccion>> = _transacciones
+
+    private val _balance = MutableLiveData<Map<String, Double>>()
+    val balance: LiveData<Map<String, Double>> = _balance
+
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
+
+    init {
+        cargarTransacciones()
+    }
+
+    fun cargarTransacciones() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            // Aquí asumo que tu repositorio tiene métodos suspendidos que devuelven Result
+            val result = repository.getTransacciones()
+            result.onSuccess { lista ->
+                _transacciones.value = lista
+                actualizarBalance()
+            }.onFailure { e ->
+                _error.value = e.message
             }
-
-            val transaccionToSave = transaccion.copy(
-                id = transaccionRef.id,
-                fecha = transaccion.fecha
-            )
-
-            transaccionRef.set(transaccionToSave).await()
-            Result.success(transaccionRef.id)
-        } catch (e: Exception) {
-            Result.failure(e)
+            _isLoading.value = false
         }
     }
 
-    suspend fun getTransacciones(): Result<List<Transaccion>> {
-        return try {
-            val snapshot = firestore.collection("transacciones")
-                .orderBy("fecha", Query.Direction.DESCENDING)
-                .get()
-                .await()
-
-            val transacciones = snapshot.documents.mapNotNull {
-                it.toObject(Transaccion::class.java)
+    private fun actualizarBalance() {
+        viewModelScope.launch {
+            val result = repository.getBalance()
+            result.onSuccess { bal ->
+                _balance.value = bal
             }
-            Result.success(transacciones)
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 
-    suspend fun getTransaccionesByTipo(tipo: TipoTransaccion): Result<List<Transaccion>> {
-        return try {
-            val snapshot = firestore.collection("transacciones")
-                .whereEqualTo("tipo", tipo.name)
-                .orderBy("fecha", Query.Direction.DESCENDING)
-                .get()
-                .await()
-
-            val transacciones = snapshot.documents.mapNotNull {
-                it.toObject(Transaccion::class.java)
+    fun eliminarTransaccion(id: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val result = repository.eliminarTransaccion(id)
+            result.onSuccess {
+                cargarTransacciones() // Recargar la lista
+            }.onFailure { e ->
+                _error.value = "Error al eliminar: ${e.message}"
             }
-            Result.success(transacciones)
-        } catch (e: Exception) {
-            Result.failure(e)
+            _isLoading.value = false
         }
     }
 
-    suspend fun getTransaccionesByPeriodo(
-        fechaInicio: Date,
-        fechaFin: Date
-    ): Result<List<Transaccion>> {
-        return try {
-            val snapshot = firestore.collection("transacciones")
-                .whereGreaterThanOrEqualTo("fecha", fechaInicio)
-                .whereLessThanOrEqualTo("fecha", fechaFin)
-                .orderBy("fecha", Query.Direction.DESCENDING)
-                .get()
-                .await()
-
-            val transacciones = snapshot.documents.mapNotNull {
-                it.toObject(Transaccion::class.java)
-            }
-            Result.success(transacciones)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun eliminarTransaccion(transaccionId: String): Result<Unit> {
-        return try {
-            firestore.collection("transacciones")
-                .document(transaccionId)
-                .delete()
-                .await()
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun actualizarTransaccion(
-        transaccionId: String,
-        updates: Map<String, Any>
-    ): Result<Unit> {
-        return try {
-            firestore.collection("transacciones")
-                .document(transaccionId)
-                .update(updates)
-                .await()
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getBalance(): Result<Map<String, Double>> {
-        return try {
-            val snapshot = firestore.collection("transacciones")
-                .get()
-                .await()
-
-            val transacciones = snapshot.documents.mapNotNull {
-                it.toObject(Transaccion::class.java)
-            }
-
-            val ingresos = transacciones
-                .filter { it.tipo == TipoTransaccion.DONACION }
-                .sumOf { it.monto }
-
-            val egresos = transacciones
-                .filter { it.tipo == TipoTransaccion.GASTO }
-                .sumOf { it.monto }
-
-            val balance = ingresos - egresos
-
-            Result.success(
-                mapOf(
-                    "ingresos" to ingresos,
-                    "egresos" to egresos,
-                    "balance" to balance
-                )
-            )
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
+    // Agrega aquí otros métodos que necesites, como guardarTransaccion si la lógica está aquí
 }

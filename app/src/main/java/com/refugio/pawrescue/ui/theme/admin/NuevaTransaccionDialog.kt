@@ -18,7 +18,8 @@ class NuevaTransaccionDialog : BottomSheetDialogFragment() {
 
     private val firestore = FirebaseFirestore.getInstance()
     private var onTransaccionCreatedListener: (() -> Unit)? = null
-    private var tipoTransaccion: String = "ingreso"
+    // CORRECCIÓN: Usar el enum TipoTransaccion en lugar de String
+    private var tipoTransaccion: TipoTransaccion = TipoTransaccion.DONACION
 
     companion object {
         private const val ARG_TIPO = "tipo"
@@ -48,7 +49,9 @@ class NuevaTransaccionDialog : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        tipoTransaccion = arguments?.getString(ARG_TIPO) ?: "ingreso"
+        // CORRECCIÓN: Convertir el String recibido en argumentos al enum TipoTransaccion
+        val tipoString = arguments?.getString(ARG_TIPO) ?: "ingreso"
+        tipoTransaccion = if (tipoString == "ingreso") TipoTransaccion.DONACION else TipoTransaccion.GASTO
 
         setupUI()
         setupCategoriasDropdown()
@@ -56,7 +59,8 @@ class NuevaTransaccionDialog : BottomSheetDialogFragment() {
     }
 
     private fun setupUI() {
-        binding.tvTitulo.text = if (tipoTransaccion == "ingreso") {
+        // CORRECCIÓN: Comparar con el enum
+        binding.tvTitulo.text = if (tipoTransaccion == TipoTransaccion.DONACION) {
             "💰 Nueva Donación"
         } else {
             "💸 Nuevo Gasto"
@@ -64,7 +68,8 @@ class NuevaTransaccionDialog : BottomSheetDialogFragment() {
     }
 
     private fun setupCategoriasDropdown() {
-        val categorias = if (tipoTransaccion == "ingreso") {
+        // CORRECCIÓN: Comparar con el enum
+        val categorias = if (tipoTransaccion == TipoTransaccion.DONACION) {
             arrayOf("Donación individual", "Donación empresarial", "Evento", "Otros ingresos")
         } else {
             arrayOf("Alimentación", "Veterinaria", "Medicamentos", "Limpieza", "Mantenimiento", "Otros gastos")
@@ -125,7 +130,7 @@ class NuevaTransaccionDialog : BottomSheetDialogFragment() {
 
         val transaccion = Transaccion(
             id = transaccionId,
-            tipo = tipoTransaccion,
+            tipo = tipoTransaccion, // Ahora 'tipoTransaccion' es del tipo correcto (enum)
             concepto = binding.etConcepto.text.toString(),
             monto = binding.etMonto.text.toString().toDoubleOrNull() ?: 0.0,
             fecha = Date(),

@@ -38,17 +38,20 @@ class TransaccionesAdapter(
             val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
             binding.apply {
-                tvIcono.text = if (transaccion.tipo == "ingreso") "💰" else "💸"
+                // CORRECCIÓN: Comparar con el enum TipoTransaccion
+                tvIcono.text = if (transaccion.tipo == TipoTransaccion.DONACION) "💰" else "💸"
 
                 tvConcepto.text = transaccion.concepto
                 tvCategoria.text = transaccion.categoria
                 tvFecha.text = transaccion.fecha?.let { dateFormat.format(it) } ?: "Sin fecha"
 
                 val montoFormateado = formatter.format(transaccion.monto)
-                tvMonto.text = if (transaccion.tipo == "ingreso") "+$montoFormateado" else "-$montoFormateado"
+                // CORRECCIÓN: Comparar con el enum TipoTransaccion
+                tvMonto.text = if (transaccion.tipo == TipoTransaccion.DONACION) "+$montoFormateado" else "-$montoFormateado"
 
                 tvMonto.setTextColor(
-                    if (transaccion.tipo == "ingreso")
+                    // CORRECCIÓN: Comparar con el enum TipoTransaccion
+                    if (transaccion.tipo == TipoTransaccion.DONACION)
                         itemView.context.getColor(android.R.color.holo_green_dark)
                     else
                         itemView.context.getColor(android.R.color.holo_red_dark)

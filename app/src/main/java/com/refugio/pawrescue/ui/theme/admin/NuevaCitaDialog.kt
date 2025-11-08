@@ -8,9 +8,9 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.firebase.firestore.FirebaseFirestore
-import com.refugio.pawrescue.R
 import com.refugio.pawrescue.databinding.DialogNuevaCitaBinding
 import com.refugio.pawrescue.data.model.SolicitudAdopcion
+import com.refugio.pawrescue.data.model.EstadoSolicitud // Asegúrate de importar el enum
 import java.util.*
 
 class NuevaCitaDialog : BottomSheetDialogFragment() {
@@ -149,7 +149,7 @@ class NuevaCitaDialog : BottomSheetDialogFragment() {
             hayNinos = binding.cbHayNinos.isChecked,
             experienciaMascotas = binding.etExperiencia.text.toString(),
             motivoAdopcion = binding.etMotivo.text.toString(),
-            estado = "pendiente",
+            estado = EstadoSolicitud.PENDIENTE, // <-- CORRECCIÓN AQUÍ: Usar el enum, no un String
             fechaSolicitud = Date(),
             puntuacionAutomatica = calcularPuntuacion()
         )

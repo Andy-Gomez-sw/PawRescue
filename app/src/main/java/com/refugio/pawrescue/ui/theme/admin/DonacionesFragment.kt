@@ -46,7 +46,7 @@ class DonacionesFragment : Fragment() {
             onDeleteClick = { transaccion -> eliminarTransaccion(transaccion) }
         )
 
-        binding.rvTransacciones.apply {
+        binding.rvTransacciones.apply { // <-- AQUÍ PUEDE ESTAR EL ERROR SI EL ID NO ES CORRECTO EN EL XML
             layoutManager = LinearLayoutManager(requireContext())
             adapter = transaccionesAdapter
         }
