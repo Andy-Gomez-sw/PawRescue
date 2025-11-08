@@ -1,25 +1,28 @@
 package com.refugio.pawrescue.ui.theme.admin
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import com.refugio.pawrescue.databinding.FragmentVoluntariosBinding
 import com.refugio.pawrescue.data.model.Usuario
+import com.refugio.pawrescue.ui.theme.utils.Constants
 
 class VoluntariosFragment : Fragment() {
 
     private var _binding: FragmentVoluntariosBinding? = null
     private val binding get() = _binding!!
 
+    private val viewModel: VoluntariosViewModel by viewModels()
     private lateinit var voluntariosAdapter: VoluntariosAdapter
     private val voluntariosList = mutableListOf<Usuario>()
-    private val firestore = FirebaseFirestore.getInstance()
+    private lateinit var prefs: SharedPreferences
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -32,9 +35,13 @@ class VoluntariosFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        prefs = requireContext().getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
+
         setupRecyclerView()
         setupButtons()
-        loadVoluntariosFromFirebase()
+        observeViewModel()
+        loadVoluntarios()
     }
 
     private fun setupRecyclerView() {
@@ -69,68 +76,70 @@ class VoluntariosFragment : Fragment() {
         }
     }
 
-    private fun loadVoluntariosFromFirebase() {
-        binding.progressBar.visibility = View.VISIBLE
+    private fun observeViewModel() {
+        viewModel.voluntarios.observe(viewLifecycleOwner) { voluntarios ->
+            voluntariosList.clear()
+            voluntariosList.addAll(voluntarios)
+            voluntariosAdapter.notifyDataSetChanged()
+            updateEmptyState()
+            updateStats()
+        }
 
-        firestore.collection("usuarios")
-            .orderBy("nombre", Query.Direction.ASCENDING)
-            .addSnapshotListener { snapshot, error ->
-                binding.progressBar.visibility = View.GONE
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        }
 
-                if (error != null) {
-                    Toast.makeText(requireContext(), "Error: ${error.message}", Toast.LENGTH_SHORT).show()
-                    return@addSnapshotListener
-                }
-
-                voluntariosList.clear()
-                snapshot?.documents?.forEach { doc ->
-                    val voluntario = doc.toObject(Usuario::class.java)
-                    voluntario?.let { voluntariosList.add(it) }
-                }
-
-                voluntariosAdapter.notifyDataSetChanged()
-                updateEmptyState()
-                updateStats()
+        viewModel.error.observe(viewLifecycleOwner) { error ->
+            error?.let {
+                Toast.makeText(requireContext(), "Error: $it", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun loadVoluntarios() {
+        val refugioId = prefs.getString(Constants.KEY_REFUGIO_ID, "") ?: ""
+        if (refugioId.isNotEmpty()) {
+            viewModel.cargarVoluntarios(refugioId)
+        }
     }
 
     private fun filtrarVoluntarios(activo: Boolean?) {
-        val filtrados = if (activo == null) {
-            voluntariosList
-        } else {
-            voluntariosList.filter { it.activo == activo }
-        }
+        val refugioId = prefs.getString(Constants.KEY_REFUGIO_ID, "") ?: ""
 
-        voluntariosAdapter.updateList(filtrados)
-        updateEmptyState()
+        if (activo == null) {
+            viewModel.cargarVoluntarios(refugioId)
+        } else if (activo) {
+            viewModel.cargarVoluntariosActivos(refugioId)
+        } else {
+            // Filtrar inactivos del lado del cliente
+            val filtrados = voluntariosList.filter { !it.activo }
+            voluntariosAdapter.updateList(filtrados)
+        }
     }
 
     private fun mostrarDialogoNuevoVoluntario() {
         val dialog = NuevoVoluntarioDialog()
         dialog.setOnVoluntarioCreatedListener {
             Toast.makeText(requireContext(), "Voluntario creado exitosamente", Toast.LENGTH_SHORT).show()
+            loadVoluntarios()
         }
         dialog.show(childFragmentManager, "NuevoVoluntarioDialog")
     }
 
     private fun editarVoluntario(voluntario: Usuario) {
         val dialog = EditarVoluntarioDialog.newInstance(voluntario)
+        dialog.setOnVoluntarioEditedListener {
+            loadVoluntarios()
+        }
         dialog.show(childFragmentManager, "EditarVoluntarioDialog")
     }
 
     private fun toggleActivo(voluntario: Usuario) {
         val nuevoEstado = !voluntario.activo
+        viewModel.toggleEstadoVoluntario(voluntario.id, nuevoEstado)
 
-        firestore.collection("usuarios")
-            .document(voluntario.id)
-            .update("activo", nuevoEstado)
-            .addOnSuccessListener {
-                val mensaje = if (nuevoEstado) "Voluntario activado" else "Voluntario desactivado"
-                Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show()
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
+        val mensaje = if (nuevoEstado) "Voluntario activado" else "Voluntario desactivado"
+        Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show()
     }
 
     private fun verDetalles(voluntario: Usuario) {

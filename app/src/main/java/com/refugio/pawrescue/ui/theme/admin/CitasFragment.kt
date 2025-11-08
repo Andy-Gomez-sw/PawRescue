@@ -1,25 +1,28 @@
 package com.refugio.pawrescue.ui.theme.admin
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import com.refugio.pawrescue.databinding.FragmentCitasBinding
 import com.refugio.pawrescue.data.model.SolicitudAdopcion
+import com.refugio.pawrescue.ui.theme.utils.Constants
 
 class CitasFragment : Fragment() {
 
     private var _binding: FragmentCitasBinding? = null
     private val binding get() = _binding!!
 
+    private val viewModel: CitasViewModel by viewModels()
     private lateinit var citasAdapter: CitasAdapter
     private val citasList = mutableListOf<SolicitudAdopcion>()
-    private val firestore = FirebaseFirestore.getInstance()
+    private lateinit var prefs: SharedPreferences
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -32,9 +35,13 @@ class CitasFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        prefs = requireContext().getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
+
         setupRecyclerView()
         setupButtons()
-        loadCitasFromFirebase()
+        observeViewModel()
+        loadCitas()
     }
 
     private fun setupRecyclerView() {
@@ -57,61 +64,49 @@ class CitasFragment : Fragment() {
         }
     }
 
-    private fun loadCitasFromFirebase() {
-        binding.progressBar.visibility = View.VISIBLE
+    private fun observeViewModel() {
+        viewModel.solicitudes.observe(viewLifecycleOwner) { solicitudes ->
+            citasList.clear()
+            citasList.addAll(solicitudes)
+            citasAdapter.notifyDataSetChanged()
+            updateEmptyState()
+            updateStats()
+        }
 
-        firestore.collection("solicitudes_adopcion")
-            .orderBy("fechaSolicitud", Query.Direction.DESCENDING)
-            .addSnapshotListener { snapshot, error ->
-                binding.progressBar.visibility = View.GONE
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        }
 
-                if (error != null) {
-                    Toast.makeText(requireContext(), "Error: ${error.message}", Toast.LENGTH_SHORT).show()
-                    return@addSnapshotListener
-                }
-
-                citasList.clear()
-                snapshot?.documents?.forEach { doc ->
-                    val cita = doc.toObject(SolicitudAdopcion::class.java)
-                    cita?.let { citasList.add(it) }
-                }
-
-                citasAdapter.notifyDataSetChanged()
-                updateEmptyState()
-                updateStats()
+        viewModel.error.observe(viewLifecycleOwner) { error ->
+            error?.let {
+                Toast.makeText(requireContext(), "Error: $it", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun loadCitas() {
+        viewModel.cargarSolicitudes()
     }
 
     private fun mostrarDialogoNuevaCita() {
         val dialog = NuevaCitaDialog()
         dialog.setOnCitaCreatedListener {
             Toast.makeText(requireContext(), "Cita creada exitosamente", Toast.LENGTH_SHORT).show()
+            loadCitas()
         }
         dialog.show(childFragmentManager, "NuevaCitaDialog")
     }
 
     private fun aprobarCita(cita: SolicitudAdopcion) {
-        firestore.collection("solicitudes_adopcion")
-            .document(cita.id)
-            .update("estado", "aprobada")
-            .addOnSuccessListener {
-                Toast.makeText(requireContext(), "Cita aprobada", Toast.LENGTH_SHORT).show()
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
+        val userId = prefs.getString(Constants.KEY_USER_ID, "") ?: ""
+        viewModel.aprobarSolicitud(cita.id, userId)
+        Toast.makeText(requireContext(), "Cita aprobada", Toast.LENGTH_SHORT).show()
     }
 
     private fun rechazarCita(cita: SolicitudAdopcion) {
-        firestore.collection("solicitudes_adopcion")
-            .document(cita.id)
-            .update("estado", "rechazada")
-            .addOnSuccessListener {
-                Toast.makeText(requireContext(), "Cita rechazada", Toast.LENGTH_SHORT).show()
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
+        val userId = prefs.getString(Constants.KEY_USER_ID, "") ?: ""
+        viewModel.rechazarSolicitud(cita.id, userId, "Rechazada por el administrador")
+        Toast.makeText(requireContext(), "Cita rechazada", Toast.LENGTH_SHORT).show()
     }
 
     private fun verDetalles(cita: SolicitudAdopcion) {
@@ -130,9 +125,9 @@ class CitasFragment : Fragment() {
     }
 
     private fun updateStats() {
-        val pendientes = citasList.count { it.estado == "pendiente" }
-        val aprobadas = citasList.count { it.estado == "aprobada" }
-        val rechazadas = citasList.count { it.estado == "rechazada" }
+        val pendientes = citasList.count { it.estado == Constants.ADOPCION_PENDIENTE }
+        val aprobadas = citasList.count { it.estado == Constants.ADOPCION_APROBADA }
+        val rechazadas = citasList.count { it.estado == Constants.ADOPCION_RECHAZADA }
 
         binding.tvPendientes.text = pendientes.toString()
         binding.tvAprobadas.text = aprobadas.toString()

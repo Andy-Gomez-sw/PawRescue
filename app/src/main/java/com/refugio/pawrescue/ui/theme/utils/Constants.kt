@@ -6,9 +6,9 @@ object Constants {
     const val COLLECTION_USUARIOS = "usuarios"
     const val COLLECTION_CUIDADOS = "cuidados"
     const val COLLECTION_RESCATES = "rescates"
-    const val COLLECTION_ADOPCIONES = "adopciones"
+    const val COLLECTION_ADOPCIONES = "solicitudes_adopcion"
     const val COLLECTION_SEGUIMIENTOS = "seguimientos"
-    const val COLLECTION_DONACIONES = "donaciones"
+    const val COLLECTION_DONACIONES = "transacciones"
     const val COLLECTION_REFUGIOS = "refugios"
 
     // Storage Paths
@@ -29,7 +29,6 @@ object Constants {
     const val ROL_VOLUNTARIO = "voluntario"
     const val ROL_COORDINADOR = "coordinador"
     const val ROL_ADMIN = "admin"
-
 
     // Animal Types
     const val TIPO_PERRO = "perro"
@@ -52,6 +51,12 @@ object Constants {
     const val ADOPCION_EN_PROCESO = "en_proceso"
     const val ADOPCION_ADOPTADO = "adoptado"
 
+    // Solicitud Adopcion Estados
+    const val ADOPCION_PENDIENTE = "pendiente"
+    const val ADOPCION_APROBADA = "aprobada"
+    const val ADOPCION_RECHAZADA = "rechazada"
+    const val ADOPCION_EN_REVISION = "en_revision"
+
     // Priority Levels
     const val PRIORIDAD_BAJA = "baja"
     const val PRIORIDAD_MEDIA = "media"
@@ -64,12 +69,9 @@ object Constants {
     const val CUIDADO_REVISION = "revision"
     const val CUIDADO_LIMPIEZA = "limpieza"
 
-    // Request Codes
-    const val REQUEST_CAMERA_PERMISSION = 100
-    const val REQUEST_LOCATION_PERMISSION = 101
-    const val REQUEST_STORAGE_PERMISSION = 102
-    const val REQUEST_IMAGE_CAPTURE = 103
-    const val REQUEST_IMAGE_PICK = 104
+    // Transaction Types
+    const val TRANSACCION_INGRESO = "ingreso"
+    const val TRANSACCION_EGRESO = "egreso"
 
     // WorkManager Tags
     const val WORK_TAG_SYNC = "sync_work"
@@ -83,6 +85,4 @@ object Constants {
     const val IMAGE_QUALITY = 80
     const val MAX_IMAGE_WIDTH = 1920
     const val MAX_IMAGE_HEIGHT = 1080
-
-
 }
