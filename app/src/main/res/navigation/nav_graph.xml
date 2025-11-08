@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/dashboardFragment">
+
+    <!-- Destino Principal (Común para ambos) -->
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="com.refugio.pawrescue.ui.theme.dashboard.DashboardFragment"
+        android:label="Dashboard"
+        tools:layout="@layout/fragment_dashboard">
+        <!-- Acción para ir del Dashboard al Perfil del Animal -->
+        <action
+            android:id="@+id/actionDashboardFragmentToPerfilAnimalFragment"
+            app:destination="@id/perfilAnimalFragment" />
+    </fragment>
+
+    <!-- Destino Común -->
+    <fragment
+        android:id="@+id/listaAnimalesFragment"
+        android:name="com.refugio.pawrescue.ui.theme.animales.ListaAnimalesFragment"
+        android:label="Mis Animales"
+        tools:layout="@layout/fragment_lista_animales">
+        <!-- Acción para ir de la Lista al Perfil del Animal -->
+        <action
+            android:id="@+id/actionListaAnimalesFragmentToPerfilAnimalFragment"
+            app:destination="@id/perfilAnimalFragment" />
+    </fragment>
+
+    <!-- Destino Común -->
+    <fragment
+        android:id="@+id/perfilAnimalFragment"
+        android:name="com.refugio.pawrescue.ui.theme.animales.PerfilAnimalFragment"
+        android:label="Perfil Animal"
+        tools:layout="@layout/fragment_perfil_animal">
+        <argument
+            android:name="animalId"
+            app:argType="string"/>
+    </fragment>
+
+    <!-- Destino Voluntario -->
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.refugio.pawrescue.ui.theme.profile.ProfileFragment"
+        android:label="Perfil"
+        tools:layout="@layout/fragment_profile"/>
+
+    <!--
+      NUEVOS FRAGMENTOS DE ADMIN
+      (Asegúrate de crear los archivos .kt y .xml para estos)
+    -->
+    <fragment
+        android:id="@+id/citasFragment"
+        android:name="com.refugio.pawrescue.ui.theme.admin.CitasFragment"
+        android:label="Citas de Adopción"
+        tools:layout="@layout/fragment_citas" />
+
+    <fragment
+        android:id="@+id/donacionesFragment"
+        android:name="com.refugio.pawrescue.ui.theme.admin.DonacionesFragment"
+        android:label="Donaciones y Gastos"
+        tools:layout="@layout/fragment_donaciones" />
+
+    <fragment
+        android:id="@+id/voluntariosFragment"
+        android:name="com.refugio.pawrescue.ui.theme.admin.VoluntariosFragment"
+        android:label="Gestión de Voluntarios"
+        tools:layout="@layout/fragment_voluntarios" />
+
+    <fragment
+        android:id="@+id/statsFragment"
+        android:name="com.refugio.pawrescue.ui.theme.stats.StatsFragment"
+        android:label="Estadísticas"
+        tools:layout="@layout/fragment_stats"/>
+
+</navigation>
+

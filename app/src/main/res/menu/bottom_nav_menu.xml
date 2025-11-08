@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/dashboardFragment"
+        android:icon="@drawable/ic_home"
+        android:title="Panel"/>
+
+    <item
+        android:id="@+id/listaAnimalesFragment"
+        android:icon="@drawable/ic_list"
+        android:title="Animales"/>
+
+    <item
+        android:id="@+id/citasFragment"
+        android:icon="@drawable/ic_calendar"
+        android:title="Citas"/>
+
+    <item
+        android:id="@+id/donacionesFragment"
+        android:icon="@drawable/ic_donate"
+        android:title="Fondos"/>
+
+    <item
+        android:id="@+id/voluntariosFragment"
+        android:icon="@drawable/ic_people"
+        android:title="Voluntarios"/>
+
+</menu>
