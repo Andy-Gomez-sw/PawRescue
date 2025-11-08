@@ -2,6 +2,7 @@ package com.refugio.pawrescue.data.model.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.refugio.pawrescue.ui.theme.admin.TipoTransaccion
 import com.refugio.pawrescue.ui.theme.admin.Transaccion
 import kotlinx.coroutines.tasks.await
 import java.util.*
@@ -18,9 +19,10 @@ class DonacionesRepository {
                 firestore.collection("transacciones").document(transaccion.id)
             }
 
+            // Aseguramos que la fecha se guarde correctamente
             val transaccionToSave = transaccion.copy(
                 id = transaccionRef.id,
-                fecha = Date()
+                fecha = transaccion.fecha // Mantenemos la fecha original si ya existe
             )
 
             transaccionRef.set(transaccionToSave).await()
@@ -46,10 +48,12 @@ class DonacionesRepository {
         }
     }
 
-    suspend fun getTransaccionesByTipo(tipo: String): Result<List<Transaccion>> {
+    suspend fun getTransaccionesByTipo(tipo: TipoTransaccion): Result<List<Transaccion>> {
         return try {
+            // Firestore guarda los enums como Strings por defecto.
+            // Usamos tipo.name para obtener "DONACION" o "GASTO"
             val snapshot = firestore.collection("transacciones")
-                .whereEqualTo("tipo", tipo)
+                .whereEqualTo("tipo", tipo.name)
                 .orderBy("fecha", Query.Direction.DESCENDING)
                 .get()
                 .await()
@@ -123,12 +127,13 @@ class DonacionesRepository {
                 it.toObject(Transaccion::class.java)
             }
 
+            // CORRECCIÓN AQUÍ: Usar '==' y el enum correcto
             val ingresos = transacciones
-                .filter { it.tipo == "ingreso" }
+                .filter { it.tipo == TipoTransaccion.DONACION }
                 .sumOf { it.monto }
 
             val egresos = transacciones
-                .filter { it.tipo == "egreso" }
+                .filter { it.tipo == TipoTransaccion.GASTO }
                 .sumOf { it.monto }
 
             val balance = ingresos - egresos

@@ -1,7 +1,5 @@
 package com.refugio.pawrescue.ui.theme.admin
 
-package com.refugio.pawrescue.ui.theme.admin
-
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View

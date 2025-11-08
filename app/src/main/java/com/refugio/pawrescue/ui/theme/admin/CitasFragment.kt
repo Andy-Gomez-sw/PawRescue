@@ -11,17 +11,19 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.refugio.pawrescue.databinding.FragmentCitasBinding
+import com.refugio.pawrescue.data.model.EstadoSolicitud // Importamos el Enum
 import com.refugio.pawrescue.data.model.SolicitudAdopcion
 import com.refugio.pawrescue.ui.theme.utils.Constants
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint // Importante si usas Hilt para inyectar el ViewModel
 class CitasFragment : Fragment() {
 
     private var _binding: FragmentCitasBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: CitasViewModel by viewModels()
+    private val viewModel: SolicitudesAdopcionViewModel by viewModels() // Usamos el ViewModel correcto
     private lateinit var citasAdapter: CitasAdapter
-    private val citasList = mutableListOf<SolicitudAdopcion>()
     private lateinit var prefs: SharedPreferences
 
     override fun onCreateView(
@@ -39,74 +41,56 @@ class CitasFragment : Fragment() {
         prefs = requireContext().getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
 
         setupRecyclerView()
-        setupButtons()
+        // setupButtons() // Ya no parece haber un botón de "Nueva Cita" en el XML nuevo, pero si lo hay, descomenta esto.
         observeViewModel()
-        loadCitas()
+        // loadCitas() // El ViewModel ya debería cargar las citas al iniciarse o al observar.
     }
 
     private fun setupRecyclerView() {
         citasAdapter = CitasAdapter(
-            citas = citasList,
             onAprobarClick = { cita -> aprobarCita(cita) },
             onRechazarClick = { cita -> rechazarCita(cita) },
             onVerDetallesClick = { cita -> verDetalles(cita) }
         )
 
-        binding.rvCitas.apply {
+        binding.rvSolicitudes.apply { // Asegúrate de que el ID en tu XML sea rvSolicitudes o cámbialo aquí
             layoutManager = LinearLayoutManager(requireContext())
             adapter = citasAdapter
         }
     }
 
+    /* Si tienes botones de filtro o agregar nueva cita, configúralos aquí
     private fun setupButtons() {
         binding.btnNuevaCita.setOnClickListener {
             mostrarDialogoNuevaCita()
         }
     }
+    */
 
     private fun observeViewModel() {
         viewModel.solicitudes.observe(viewLifecycleOwner) { solicitudes ->
-            citasList.clear()
-            citasList.addAll(solicitudes)
-            citasAdapter.notifyDataSetChanged()
-            updateEmptyState()
-            updateStats()
+            citasAdapter.submitList(solicitudes)
+            updateEmptyState(solicitudes.isEmpty())
+            updateStats(solicitudes)
         }
 
+        // Si tu ViewModel tiene LiveData para loading/error, obsérvalos aquí.
+        // Por ejemplo:
+        /*
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
             binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
-
-        viewModel.error.observe(viewLifecycleOwner) { error ->
-            error?.let {
-                Toast.makeText(requireContext(), "Error: $it", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun loadCitas() {
-        viewModel.cargarSolicitudes()
-    }
-
-    private fun mostrarDialogoNuevaCita() {
-        val dialog = NuevaCitaDialog()
-        dialog.setOnCitaCreatedListener {
-            Toast.makeText(requireContext(), "Cita creada exitosamente", Toast.LENGTH_SHORT).show()
-            loadCitas()
-        }
-        dialog.show(childFragmentManager, "NuevaCitaDialog")
+        */
     }
 
     private fun aprobarCita(cita: SolicitudAdopcion) {
-        val userId = prefs.getString(Constants.KEY_USER_ID, "") ?: ""
-        viewModel.aprobarSolicitud(cita.id, userId)
-        Toast.makeText(requireContext(), "Cita aprobada", Toast.LENGTH_SHORT).show()
+        viewModel.actualizarEstado(cita.id, EstadoSolicitud.APROBADA)
+        Toast.makeText(requireContext(), "Solicitud aprobada", Toast.LENGTH_SHORT).show()
     }
 
     private fun rechazarCita(cita: SolicitudAdopcion) {
-        val userId = prefs.getString(Constants.KEY_USER_ID, "") ?: ""
-        viewModel.rechazarSolicitud(cita.id, userId, "Rechazada por el administrador")
-        Toast.makeText(requireContext(), "Cita rechazada", Toast.LENGTH_SHORT).show()
+        viewModel.actualizarEstado(cita.id, EstadoSolicitud.RECHAZADA)
+        Toast.makeText(requireContext(), "Solicitud rechazada", Toast.LENGTH_SHORT).show()
     }
 
     private fun verDetalles(cita: SolicitudAdopcion) {
@@ -114,24 +98,27 @@ class CitasFragment : Fragment() {
         dialog.show(childFragmentManager, "DetalleCitaDialog")
     }
 
-    private fun updateEmptyState() {
-        if (citasList.isEmpty()) {
-            binding.rvCitas.visibility = View.GONE
-            binding.llEmptyState.visibility = View.VISIBLE
+    private fun updateEmptyState(isEmpty: Boolean) {
+        if (isEmpty) {
+            binding.rvSolicitudes.visibility = View.GONE
+            // binding.llEmptyState.visibility = View.VISIBLE // Asegúrate de tener este view en tu XML si lo usas
         } else {
-            binding.rvCitas.visibility = View.VISIBLE
-            binding.llEmptyState.visibility = View.GONE
+            binding.rvSolicitudes.visibility = View.VISIBLE
+            // binding.llEmptyState.visibility = View.GONE
         }
     }
 
-    private fun updateStats() {
-        val pendientes = citasList.count { it.estado == Constants.ADOPCION_PENDIENTE }
-        val aprobadas = citasList.count { it.estado == Constants.ADOPCION_APROBADA }
-        val rechazadas = citasList.count { it.estado == Constants.ADOPCION_RECHAZADA }
+    private fun updateStats(solicitudes: List<SolicitudAdopcion>) {
+        // CORRECCIÓN PRINCIPAL: Usar el enum EstadoSolicitud para las comparaciones
+        val pendientes = solicitudes.count { it.estado == EstadoSolicitud.PENDIENTE }
+        val aprobadas = solicitudes.count { it.estado == EstadoSolicitud.APROBADA }
+        val rechazadas = solicitudes.count { it.estado == EstadoSolicitud.RECHAZADA }
 
-        binding.tvPendientes.text = pendientes.toString()
-        binding.tvAprobadas.text = aprobadas.toString()
-        binding.tvRechazadas.text = rechazadas.toString()
+        // Asegúrate de que estos TextView existan en tu fragment_citas.xml o fragment_solicitudes_adopcion.xml
+        // Si usas un TabLayout para filtrar, esta lógica podría cambiar.
+        // binding.tvPendientes.text = pendientes.toString()
+        // binding.tvAprobadas.text = aprobadas.toString()
+        // binding.tvRechazadas.text = rechazadas.toString()
     }
 
     override fun onDestroyView() {

@@ -3,20 +3,28 @@ package com.refugio.pawrescue.ui.theme.admin
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.refugio.pawrescue.databinding.ItemCitaBinding
+// CORRECCIÓN: Usar el Binding correcto generado a partir de item_solicitud_adopcion.xml
+import com.refugio.pawrescue.databinding.ItemSolicitudAdopcionBinding
+import com.refugio.pawrescue.data.model.EstadoSolicitud
 import com.refugio.pawrescue.data.model.SolicitudAdopcion
 import java.text.SimpleDateFormat
 import java.util.*
 
 class CitasAdapter(
-    private val citas: List<SolicitudAdopcion>,
+    private var citas: List<SolicitudAdopcion> = emptyList(),
     private val onAprobarClick: (SolicitudAdopcion) -> Unit,
     private val onRechazarClick: (SolicitudAdopcion) -> Unit,
     private val onVerDetallesClick: (SolicitudAdopcion) -> Unit
 ) : RecyclerView.Adapter<CitasAdapter.CitaViewHolder>() {
 
+    fun submitList(nuevasCitas: List<SolicitudAdopcion>) {
+        citas = nuevasCitas
+        notifyDataSetChanged()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CitaViewHolder {
-        val binding = ItemCitaBinding.inflate(
+        // CORRECCIÓN: Inflar el layout correcto
+        val binding = ItemSolicitudAdopcionBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
             false
@@ -31,49 +39,38 @@ class CitasAdapter(
     override fun getItemCount() = citas.size
 
     inner class CitaViewHolder(
-        private val binding: ItemCitaBinding
+        // CORRECCIÓN: Usar el tipo de Binding correcto
+        private val binding: ItemSolicitudAdopcionBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(cita: SolicitudAdopcion) {
             val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
             binding.apply {
-                tvSolicitante.text = cita.solicitanteNombre
-                tvAnimal.text = "Animal: ${cita.animalNombre}"
-                tvFecha.text = "Solicitado: ${cita.fechaSolicitud?.let { dateFormat.format(it) } ?: "Sin fecha"}"
-                tvTelefono.text = "📞 ${cita.solicitanteTelefono}"
-                tvPuntuacion.text = "⭐ Puntuación: ${cita.puntuacionAutomatica}/100"
+                tvNombreSolicitante.text = cita.nombreSolicitante
+                // Nota: Recuerda que animalId es solo el ID, idealmente deberías buscar el nombre del animal
+                tvNombreAnimal.text = "Interesado en ID: ${cita.animalId}"
+                tvFechaSolicitud.text = "Solicitado: ${dateFormat.format(cita.fechaSolicitud)}"
 
-                // Estado
                 when (cita.estado) {
-                    "pendiente" -> {
-                        tvEstado.text = "⏰ Pendiente"
-                        tvEstado.setBackgroundColor(
-                            itemView.context.getColor(android.R.color.holo_orange_light)
-                        )
-                        btnAprobar.visibility = android.view.View.VISIBLE
-                        btnRechazar.visibility = android.view.View.VISIBLE
+                    EstadoSolicitud.PENDIENTE -> {
+                        chipEstado.text = "Pendiente"
+                        chipEstado.setChipBackgroundColorResource(android.R.color.holo_orange_light)
                     }
-                    "aprobada" -> {
-                        tvEstado.text = "✅ Aprobada"
-                        tvEstado.setBackgroundColor(
-                            itemView.context.getColor(android.R.color.holo_green_light)
-                        )
-                        btnAprobar.visibility = android.view.View.GONE
-                        btnRechazar.visibility = android.view.View.GONE
+                    EstadoSolicitud.APROBADA -> {
+                        chipEstado.text = "Aprobada"
+                        chipEstado.setChipBackgroundColorResource(android.R.color.holo_green_light)
                     }
-                    "rechazada" -> {
-                        tvEstado.text = "❌ Rechazada"
-                        tvEstado.setBackgroundColor(
-                            itemView.context.getColor(android.R.color.holo_red_light)
-                        )
-                        btnAprobar.visibility = android.view.View.GONE
-                        btnRechazar.visibility = android.view.View.GONE
+                    EstadoSolicitud.RECHAZADA -> {
+                        chipEstado.text = "Rechazada"
+                        chipEstado.setChipBackgroundColorResource(android.R.color.holo_red_light)
+                    }
+                    EstadoSolicitud.ENTREVISTA_PROGRAMADA -> {
+                        chipEstado.text = "Entrevista"
+                        chipEstado.setChipBackgroundColorResource(android.R.color.holo_blue_light)
                     }
                 }
 
-                btnAprobar.setOnClickListener { onAprobarClick(cita) }
-                btnRechazar.setOnClickListener { onRechazarClick(cita) }
                 root.setOnClickListener { onVerDetallesClick(cita) }
             }
         }
