@@ -99,9 +99,14 @@ class LoginActivity : AppCompatActivity() {
             putString(Constants.KEY_USER_ROL, usuario.rol)
             putString(Constants.KEY_REFUGIO_ID, usuario.refugioId)
             putBoolean(Constants.KEY_REMEMBER_ME, binding.cbRememberMe.isChecked)
+
+            // Guardar email solo si está "recordarme" activado
             if (binding.cbRememberMe.isChecked) {
-                putString(Constants.KEY_USER_EMAIL, usuario.email)
+                putString(Constants.KEY_USER_EMAIL, binding.etEmail.text.toString())
+            } else {
+                remove(Constants.KEY_USER_EMAIL)
             }
+
             apply()
         }
     }

@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.refugio.pawrescue.R
 import com.refugio.pawrescue.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -27,7 +26,7 @@ class MainActivity : AppCompatActivity() {
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
 
-        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_nav_view)
-        bottomNav.setupWithNavController(navController)
+        // Conectar el BottomNavigationView con el NavController
+        binding.bottomNavigation.setupWithNavController(navController)
     }
 }

@@ -32,15 +32,36 @@ class SplashActivity : AppCompatActivity() {
 
     private fun checkAuthentication() {
         val currentUser = FirebaseAuth.getInstance().currentUser
-        val rememberMe = prefs.getBoolean(Constants.KEY_REMEMBER_ME, false)
+        val userId = prefs.getString(Constants.KEY_USER_ID, null)
 
-        val intent = if (currentUser != null && rememberMe) {
+        // Usuario autenticado Y con sesión guardada = ir directo a MainActivity
+        val intent = if (currentUser != null && !userId.isNullOrEmpty()) {
             Intent(this, MainActivity::class.java)
         } else {
+            // Si no hay sesión válida, cerrar Firebase Auth y limpiar prefs
+            if (currentUser == null || userId.isNullOrEmpty()) {
+                FirebaseAuth.getInstance().signOut()
+                clearUserPreferences()
+            }
             Intent(this, LoginActivity::class.java)
         }
 
         startActivity(intent)
         finish()
+    }
+
+    private fun clearUserPreferences() {
+        prefs.edit().apply {
+            remove(Constants.KEY_USER_ID)
+            remove(Constants.KEY_USER_ROL)
+            remove(Constants.KEY_REFUGIO_ID)
+            // Mantener el email si está "recordarme" activado
+            val rememberMe = prefs.getBoolean(Constants.KEY_REMEMBER_ME, false)
+            if (!rememberMe) {
+                remove(Constants.KEY_USER_EMAIL)
+                remove(Constants.KEY_REMEMBER_ME)
+            }
+            apply()
+        }
     }
 }

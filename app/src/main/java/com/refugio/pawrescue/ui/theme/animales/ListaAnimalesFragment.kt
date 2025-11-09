@@ -16,7 +16,9 @@ import com.refugio.pawrescue.databinding.FragmentListaAnimalesBinding
 import com.refugio.pawrescue.ui.theme.animales.adapters.AnimalesAdapter
 import com.refugio.pawrescue.ui.theme.rescate.NuevoRescateActivity
 import com.refugio.pawrescue.ui.theme.utils.Constants
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ListaAnimalesFragment : Fragment() {
 
     private var _binding: FragmentListaAnimalesBinding? = null
@@ -49,9 +51,15 @@ class ListaAnimalesFragment : Fragment() {
 
     private fun setupRecyclerView() {
         animalesAdapter = AnimalesAdapter { animal ->
-            val action = ListaAnimalesFragmentDirections
-                .actionListaAnimalesFragmentToPerfilAnimalFragment(animal.id)
-            findNavController().navigate(action)
+            // Verifica si existe la action en nav_graph
+            try {
+                val action = ListaAnimalesFragmentDirections
+                    .actionListaAnimalesFragmentToPerfilAnimalFragment(animal.id)
+                findNavController().navigate(action)
+            } catch (e: Exception) {
+                // Si no existe la navegación, puedes mostrar un Toast o log
+                android.util.Log.e("Navigation", "Error navegando: ${e.message}")
+            }
         }
 
         binding.rvAnimales.apply {

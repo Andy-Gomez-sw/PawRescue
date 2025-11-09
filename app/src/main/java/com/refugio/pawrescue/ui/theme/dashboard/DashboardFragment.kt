@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -16,13 +17,14 @@ import com.refugio.pawrescue.databinding.FragmentDashboardBinding
 import com.refugio.pawrescue.ui.theme.animales.adapters.AnimalesAdapter
 import com.refugio.pawrescue.ui.theme.rescate.NuevoRescateActivity
 import com.refugio.pawrescue.ui.theme.utils.Constants
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class DashboardFragment : Fragment() {
 
     private var _binding: FragmentDashboardBinding? = null
     private val binding get() = _binding!!
 
-    // Asegúrate de que el ViewModel exista y esté implementado
     private val viewModel: DashboardViewModel by viewModels()
     private lateinit var animalesAdapter: AnimalesAdapter
     private lateinit var prefs: SharedPreferences
@@ -41,63 +43,47 @@ class DashboardFragment : Fragment() {
 
         prefs = requireContext().getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
 
-        // --- ¡AQUÍ ESTÁ LA LÓGICA DE ROLES! ---
         setupUIBasedOnRole()
-        // ------------------------------------
-
         setupRecyclerView()
         observeViewModel()
         loadData()
     }
 
     private fun setupUIBasedOnRole() {
-        // 1. Leemos el rol que guardamos en el Login
         val userRole = prefs.getString(Constants.KEY_USER_ROL, Constants.ROL_VOLUNTARIO)
-
-        // 2. Leemos el nombre de usuario
         val userName = prefs.getString("user_name", "Usuario") ?: "Usuario"
 
-        // 3. Usamos un 'when' (como un 'if') para decidir qué mostrar
         when (userRole) {
             Constants.ROL_ADMIN -> {
-                // --- VISTA DE ADMIN ---
                 binding.tvGreeting.text = "Hola [Admin], $userName"
-
-                // Los admins pueden ver y usar todo
                 binding.cardNewRescue.visibility = View.VISIBLE
                 binding.cardChecklist.visibility = View.VISIBLE
                 binding.cardVetUrgent.visibility = View.VISIBLE
 
-                // Listeners para Admin
                 binding.cardNewRescue.setOnClickListener {
                     val intent = Intent(requireContext(), NuevoRescateActivity::class.java)
                     startActivity(intent)
                 }
                 binding.cardChecklist.setOnClickListener {
                     // TODO: Navigate to checklist
+                    Toast.makeText(requireContext(), "Checklist (próximamente)", Toast.LENGTH_SHORT).show()
                 }
                 binding.cardVetUrgent.setOnClickListener {
                     // TODO: Navigate to vet report
+                    Toast.makeText(requireContext(), "Veterinaria Urgente (próximamente)", Toast.LENGTH_SHORT).show()
                 }
             }
             Constants.ROL_VOLUNTARIO -> {
-                // --- VISTA DE VOLUNTARIO ---
                 binding.tvGreeting.text = "Hola [Voluntario], $userName"
-
-                // Los voluntarios NO pueden crear rescates (es un ejemplo)
                 binding.cardNewRescue.visibility = View.GONE
-
-                // Quizás sí pueden ver otras cosas
                 binding.cardChecklist.visibility = View.VISIBLE
-                binding.cardVetUrgent.visibility = View.GONE // Quizás tampoco ven esto
+                binding.cardVetUrgent.visibility = View.GONE
 
-                // Listeners para Voluntario
                 binding.cardChecklist.setOnClickListener {
-                    // TODO: Navigate to checklist
+                    Toast.makeText(requireContext(), "Checklist (próximamente)", Toast.LENGTH_SHORT).show()
                 }
             }
             else -> {
-                // Por si acaso, ocultamos todo si el rol es desconocido
                 binding.tvGreeting.text = "Hola, $userName"
                 binding.cardNewRescue.visibility = View.GONE
                 binding.cardChecklist.visibility = View.GONE
@@ -105,18 +91,20 @@ class DashboardFragment : Fragment() {
             }
         }
 
-        // Esto es común para ambos
         val refugioName = prefs.getString("refugio_name", "Refugio") ?: "Refugio"
         binding.tvRefugio.text = "Refugio: $refugioName"
     }
 
-
     private fun setupRecyclerView() {
         animalesAdapter = AnimalesAdapter { animal ->
-            // (Asumiendo que creaste esta acción en tu nav_graph.xml)
-            val action = DashboardFragmentDirections
-                .actionDashboardFragmentToPerfilAnimalFragment(animal.id)
-            findNavController().navigate(action)
+            try {
+                val action = DashboardFragmentDirections
+                    .actionDashboardFragmentToPerfilAnimalFragment(animal.id)
+                findNavController().navigate(action)
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Error al abrir perfil", Toast.LENGTH_SHORT).show()
+                android.util.Log.e("Navigation", "Error: ${e.message}")
+            }
         }
 
         binding.rvAnimales.apply {
@@ -165,4 +153,3 @@ class DashboardFragment : Fragment() {
         _binding = null
     }
 }
-

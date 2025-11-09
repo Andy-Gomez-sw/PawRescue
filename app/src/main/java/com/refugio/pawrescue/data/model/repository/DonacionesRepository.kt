@@ -6,9 +6,12 @@ import com.refugio.pawrescue.ui.theme.admin.TipoTransaccion
 import com.refugio.pawrescue.ui.theme.admin.Transaccion
 import kotlinx.coroutines.tasks.await
 import java.util.*
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class DonacionesRepository {
-
+@Singleton
+class DonacionesRepository @Inject constructor()
+{
     private val firestore = FirebaseFirestore.getInstance()
 
     suspend fun guardarTransaccion(transaccion: Transaccion): Result<String> {

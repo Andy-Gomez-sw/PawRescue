@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.refugio.pawrescue"> <!-- Asegúrate que este 'package' sea el correcto -->
+    package="com.refugio.pawrescue">
 
-    <!-- Permisos que probablemente necesitas para mapas y ubicación -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
     <application
+        android:name=".PawRescueApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -20,7 +20,6 @@
         android:theme="@style/Theme.PawRescue"
         tools:targetApi="31">
 
-        <!-- Agrega aquí tu clave de Google Maps -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="TU_API_KEY_DE_GOOGLE_MAPS_AQUI" />
@@ -28,7 +27,7 @@
         <activity
             android:name=".ui.theme.splash.SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.PawRescue"> <!-- Usando el tema principal -->
+            android:theme="@style/Theme.PawRescue">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -39,10 +38,6 @@
             android:name=".ui.theme.auth.LoginActivity"
             android:exported="false" />
 
-        <!--
-          LÍNEA CORREGIDA:
-          Añadí la ruta completa ".ui.theme.main" a MainActivity.
-        -->
         <activity
             android:name=".ui.theme.main.MainActivity"
             android:exported="false" />
@@ -54,4 +49,3 @@
     </application>
 
 </manifest>
-
