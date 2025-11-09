@@ -9,9 +9,11 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.refugio.pawrescue.databinding.FragmentDonacionesBinding
+import dagger.hilt.android.AndroidEntryPoint // <-- AÑADIR ESTE IMPORT
 import java.text.NumberFormat
 import java.util.*
 
+@AndroidEntryPoint // <-- AÑADIR ESTA ANOTACIÓN
 class DonacionesFragment : Fragment() {
 
     private var _binding: FragmentDonacionesBinding? = null

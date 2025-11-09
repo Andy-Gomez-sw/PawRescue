@@ -9,8 +9,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@HiltViewModel // <-- ESTA ANOTACIÓN ES CLAVE
-class DonacionesViewModel @Inject constructor( // <-- EL CONSTRUCTOR DEBE SER INYECTADO
+@HiltViewModel // <-- ESTO YA ESTABA CORRECTO
+class DonacionesViewModel @Inject constructor( // <-- ESTO YA ESTABA CORRECTO
     private val repository: DonacionesRepository // Hilt inyectará esto automáticamente
 ) : ViewModel() {
 

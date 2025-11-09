@@ -5,69 +5,63 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/dashboardFragment">
 
-    <!-- Dashboard -->
     <fragment
         android:id="@+id/dashboardFragment"
         android:name="com.refugio.pawrescue.ui.theme.dashboard.DashboardFragment"
         android:label="Panel"
         tools:layout="@layout/fragment_dashboard">
 
-        <!-- Navegación a Perfil Animal desde Dashboard -->
         <action
             android:id="@+id/action_dashboardFragment_to_perfilAnimalFragment"
             app:destination="@id/perfilAnimalFragment" />
 
-        <!-- Navegación a Lista Animales desde Dashboard -->
         <action
-            android:id="@+id/action_dashboardFragment_to_listaAnimalesFragment"
-            app:destination="@id/listaAnimalesFragment" />
+            android:id="@+id/action_dashboardFragment_to_perfilFragment"
+            app:destination="@id/profileFragment" />
     </fragment>
 
-    <!-- Lista de Animales -->
     <fragment
         android:id="@+id/listaAnimalesFragment"
         android:name="com.refugio.pawrescue.ui.theme.animales.ListaAnimalesFragment"
         android:label="Animales"
         tools:layout="@layout/fragment_lista_animales">
-
-        <!-- Navegación a Perfil Animal desde Lista -->
         <action
             android:id="@+id/action_listaAnimalesFragment_to_perfilAnimalFragment"
             app:destination="@id/perfilAnimalFragment" />
     </fragment>
 
-    <!-- Perfil del Animal -->
     <fragment
         android:id="@+id/perfilAnimalFragment"
         android:name="com.refugio.pawrescue.ui.theme.animales.PerfilAnimalFragment"
         android:label="Perfil Animal"
         tools:layout="@layout/fragment_perfil_animal">
-
-        <!-- Argumento requerido: ID del animal -->
         <argument
             android:name="animalId"
             app:argType="string" />
     </fragment>
 
-    <!-- Citas -->
     <fragment
         android:id="@+id/citasFragment"
         android:name="com.refugio.pawrescue.ui.theme.admin.CitasFragment"
         android:label="Citas"
         tools:layout="@layout/fragment_citas" />
 
-    <!-- Donaciones -->
     <fragment
         android:id="@+id/donacionesFragment"
         android:name="com.refugio.pawrescue.ui.theme.admin.DonacionesFragment"
         android:label="Fondos"
         tools:layout="@layout/fragment_donaciones" />
 
-    <!-- Voluntarios -->
     <fragment
         android:id="@+id/voluntariosFragment"
         android:name="com.refugio.pawrescue.ui.theme.admin.VoluntariosFragment"
         android:label="Voluntarios"
         tools:layout="@layout/fragment_voluntarios" />
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.refugio.pawrescue.ui.theme.profile.ProfileFragment"
+        android:label="Perfil de Usuario"
+        tools:layout="@layout/fragment_profile" />
 
 </navigation>
