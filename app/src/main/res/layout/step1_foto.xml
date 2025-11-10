@@ -15,7 +15,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="📸 Captura Foto del Animal"
+            android:text=" Captura Foto del Animal"
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="@color/text_primary"
@@ -46,7 +46,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="📷"
+                    android:text=" "
                     android:textSize="80sp"/>
 
                 <com.google.android.material.button.MaterialButton
@@ -80,7 +80,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|center"
                 android:layout_margin="16dp"
-                android:text="🔄 Tomar otra"
+                android:text="Tomar otra"
                 android:visibility="gone"
                 android:backgroundTint="@color/semi_transparent"/>
 
@@ -92,7 +92,7 @@
             style="@style/Widget.App.Button.Outlined"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="📁 Subir desde galería"
+            android:text="Subir desde galería"
             android:layout_marginBottom="20dp"/>
 
         <!-- Tip Card -->
@@ -112,7 +112,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="ℹ️"
+                    android:text="ℹ"
                     android:textSize="24sp"
                     android:layout_marginEnd="12dp"/>
 
