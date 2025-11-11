@@ -10,9 +10,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class DonacionesRepository @Inject constructor()
+class DonacionesRepository @Inject constructor(private val firestore: FirebaseFirestore)
 {
-    private val firestore = FirebaseFirestore.getInstance()
+    // --- LÍNEA ELIMINADA ---
+    // private val firestore = FirebaseFirestore.getInstance() // <-- ESTA LÍNEA ERA INCORRECTA Y REDUNDANTE
 
     suspend fun guardarTransaccion(transaccion: Transaccion): Result<String> {
         return try {
