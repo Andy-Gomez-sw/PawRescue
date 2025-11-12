@@ -47,6 +47,10 @@ class LoginActivity : AppCompatActivity() {
             // TODO: Implementar recuperación de contraseña
             Toast.makeText(this, "Función en desarrollo", Toast.LENGTH_SHORT).show()
         }
+
+        binding.tvRegistrarsePublico.setOnClickListener {
+            startActivity(Intent(this, PublicRegisterActivity::class.java))
+        }
     }
 
     private fun observeViewModel() {

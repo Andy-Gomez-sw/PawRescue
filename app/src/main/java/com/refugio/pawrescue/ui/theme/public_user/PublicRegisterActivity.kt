@@ -103,7 +103,7 @@ class PublicRegisterActivity : AppCompatActivity() {
                     showLoading(false)
                     Toast.makeText(
                         this,
-                        "Registro exitoso. Bienvenido!",
+                        "✅ Registro exitoso. ¡Bienvenido!",
                         Toast.LENGTH_LONG
                     ).show()
                     navigateToPublicMain()
