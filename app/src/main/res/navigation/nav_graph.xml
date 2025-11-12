@@ -18,6 +18,11 @@
         <action
             android:id="@+id/action_dashboardFragment_to_perfilFragment"
             app:destination="@id/profileFragment" />
+
+        <!-- AÑADIDO PARA CORREGIR NAVEGACIÓN DE VOLUNTARIO -->
+        <action
+            android:id="@+id/action_dashboardFragment_to_statsFragment"
+            app:destination="@id/statsFragment" />
     </fragment>
 
     <fragment
@@ -28,6 +33,11 @@
         <action
             android:id="@+id/action_listaAnimalesFragment_to_perfilAnimalFragment"
             app:destination="@id/perfilAnimalFragment" />
+
+        <!-- AÑADIDO PARA CORREGIR EL CRASH DEL LOG -->
+        <action
+            android:id="@+id/action_listaAnimalesFragment_to_statsFragment"
+            app:destination="@id/statsFragment" />
     </fragment>
 
     <fragment
@@ -63,5 +73,12 @@
         android:name="com.refugio.pawrescue.ui.theme.profile.ProfileFragment"
         android:label="Perfil de Usuario"
         tools:layout="@layout/fragment_profile" />
+
+    <!-- AÑADIDO: DEFINICIÓN DEL FRAGMENTO QUE FALTABA -->
+    <fragment
+        android:id="@+id/statsFragment"
+        android:name="com.refugio.pawrescue.ui.theme.stats.StatsFragment"
+        android:label="Estadísticas"
+        tools:layout="@layout/fragment_stats" />
 
 </navigation>
