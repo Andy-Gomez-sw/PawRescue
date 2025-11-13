@@ -104,6 +104,8 @@ dependencies {
 
     // Permissions
     implementation("com.guolindev.permissionx:permissionx:1.7.1")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
