@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.refugio.pawrescue.R
-import com.refugio.pawrescue.data.model.Animal
+import com.refugio.pawrescue.data.model.repository.Animal
 import com.refugio.pawrescue.databinding.ActivityPublicMainBinding
 import com.refugio.pawrescue.ui.theme.auth.LoginActivity
 
