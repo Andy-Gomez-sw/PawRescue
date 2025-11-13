@@ -26,9 +26,4 @@
         android:icon="@drawable/ic_people"
         android:title="Voluntarios"/>
 
-    <item
-        android:id="@+id/profileFragment"
-        android:icon="@drawable/ic_person"
-        android:title="Perfil"/>
-
 </menu>

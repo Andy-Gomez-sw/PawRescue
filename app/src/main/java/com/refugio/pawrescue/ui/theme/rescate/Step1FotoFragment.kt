@@ -4,23 +4,24 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore // <<< IMPORTADO
+import android.util.Log // <<< IMPORTADO
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider // <<< IMPORTADO
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.refugio.pawrescue.databinding.Step1FotoBinding
 import java.io.File
+import java.io.IOException // <<< IMPORTADO
 import java.text.SimpleDateFormat
 import java.util.*
+
+// <<< SE ELIMINARON LOS IMPORTS DE CAMERAX (ImageCapture, Preview, CameraProvider, etc.) >>>
 
 class Step1FotoFragment : Fragment() {
 
@@ -28,19 +29,38 @@ class Step1FotoFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: NuevoRescateViewModel by activityViewModels()
 
-    private var imageCapture: ImageCapture? = null
-    private var outputDirectory: File? = null
+    // <<< Se eliminó imageCapture y outputDirectory >>>
+    private var latestTmpUri: Uri? = null // <<< Variable para guardar la URI de la foto temporal
 
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            startCamera()
+            // Si el usuario da permiso, lanzamos la cámara
+            launchCameraIntent()
         } else {
             Toast.makeText(requireContext(), "Permiso de cámara requerido", Toast.LENGTH_SHORT).show()
         }
     }
 
+    // --- LAUNCHER PARA ABRIR LA CÁMARA EXTERNA ---
+    // Este reemplaza la lógica de takePhoto() con CameraX
+    private val takePictureLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { isSuccess ->
+        if (isSuccess) {
+            // La foto se guardó exitosamente en la 'latestTmpUri'
+            latestTmpUri?.let { uri ->
+                viewModel.setFotoPrincipal(uri)
+                showCapturedImage(uri)
+            }
+        } else {
+            // El usuario canceló o hubo un error
+            Log.e("Step1FotoFragment", "Captura de foto fallida o cancelada")
+        }
+    }
+
+    // --- LAUNCHER PARA LA GALERÍA (Este se queda igual) ---
     private val pickImageLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -62,15 +82,19 @@ class Step1FotoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        outputDirectory = getOutputDirectory()
-
+        // <<< Ya no necesitamos 'outputDirectory' >>>
         setupUI()
-        checkCameraPermission()
+
+        // <<< Ya no se inicia la cámara aquí, así que eliminamos checkCameraPermission() >>>
+        // Ocultamos el 'previewView' de CameraX, ya no se usará.
+        binding.previewView.visibility = View.GONE
     }
 
     private fun setupUI() {
         binding.btnCapture.setOnClickListener {
-            takePhoto()
+            // <<< Lógica actualizada >>>
+            // Ahora, al capturar, revisamos permiso y lanzamos el INTENT
+            checkPermissionAndLaunchCamera()
         }
 
         binding.btnGallery.setOnClickListener {
@@ -81,88 +105,67 @@ class Step1FotoFragment : Fragment() {
             binding.ivCapturedImage.visibility = View.GONE
             binding.btnRetake.visibility = View.GONE
             binding.llPlaceholder.visibility = View.VISIBLE
+            // <<< Ya no hay previewView que mostrar >>>
+            latestTmpUri = null // Limpiamos la URI temporal
         }
     }
 
-    private fun checkCameraPermission() {
+    // --- NUEVA FUNCIÓN ---
+    // Revisa el permiso y lanza el launcher de permiso o la cámara directamente
+    private fun checkPermissionAndLaunchCamera() {
         when {
             ContextCompat.checkSelfPermission(
                 requireContext(),
                 Manifest.permission.CAMERA
             ) == PackageManager.PERMISSION_GRANTED -> {
-                startCamera()
+                // Permiso ya concedido, lanzar la cámara
+                launchCameraIntent()
             }
             else -> {
+                // Pedir permiso
                 cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
             }
         }
     }
 
-    private fun startCamera() {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
+    // --- NUEVA FUNCIÓN ---
+    // Esta es la versión Kotlin de 'abrirCamara()'
+    private fun launchCameraIntent() {
+        try {
+            val photoFile = createImageFile()
 
-        cameraProviderFuture.addListener({
-            val cameraProvider = cameraProviderFuture.get()
+            // Obtenemos la URI usando FileProvider (¡IMPORTANTE!)
+            val photoURI = FileProvider.getUriForFile(
+                requireContext(),
+                "${requireContext().packageName}.fileprovider", // Debe coincidir con tu Manifest
+                photoFile
+            )
 
-            val preview = Preview.Builder()
-                .build()
-                .also {
-                    it.setSurfaceProvider(binding.previewView.surfaceProvider)
-                }
+            // Guardamos la URI para usarla en el callback de takePictureLauncher
+            latestTmpUri = photoURI
 
-            imageCapture = ImageCapture.Builder()
-                .build()
+            // Lanzamos el contrato moderno, pasándole la URI donde guardar
+            takePictureLauncher.launch(photoURI)
 
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
-            try {
-                cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(
-                    viewLifecycleOwner,
-                    cameraSelector,
-                    preview,
-                    imageCapture
-                )
-
-                binding.previewView.visibility = View.VISIBLE
-                binding.llPlaceholder.visibility = View.GONE
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-
-        }, ContextCompat.getMainExecutor(requireContext()))
+        } catch (ex: Exception) {
+            Log.e("Step1FotoFragment", "Error al preparar la cámara", ex)
+            Toast.makeText(requireContext(), "Error al preparar la cámara: ${ex.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
-    private fun takePhoto() {
-        val imageCapture = imageCapture ?: return
+    // --- NUEVA FUNCIÓN ---
+    // Esta es la versión Kotlin de 'createImageFile()'
+    @Throws(IOException::class)
+    private fun createImageFile(): File {
+        // Creamos un nombre de archivo único
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        // Usamos el directorio de caché externo, que es el lugar correcto para esto
+        val storageDir = requireContext().externalCacheDir ?: requireContext().cacheDir
 
-        val photoFile = File(
-            outputDirectory,
-            SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US)
-                .format(System.currentTimeMillis()) + ".jpg"
-        )
-
-        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
-        imageCapture.takePicture(
-            outputOptions,
-            ContextCompat.getMainExecutor(requireContext()),
-            object : ImageCapture.OnImageSavedCallback {
-                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    val savedUri = Uri.fromFile(photoFile)
-                    viewModel.setFotoPrincipal(savedUri)
-                    showCapturedImage(savedUri)
-                }
-
-                override fun onError(exception: ImageCaptureException) {
-                    Toast.makeText(
-                        requireContext(),
-                        "Error al capturar foto: ${exception.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
+        return File.createTempFile(
+            "JPEG_${timeStamp}_", /* prefijo */
+            ".jpg", /* sufijo */
+            storageDir /* directorio */
         )
     }
 
@@ -170,17 +173,15 @@ class Step1FotoFragment : Fragment() {
         binding.ivCapturedImage.setImageURI(uri)
         binding.ivCapturedImage.visibility = View.VISIBLE
         binding.btnRetake.visibility = View.VISIBLE
-        binding.previewView.visibility = View.GONE
+        // <<< 'previewView' ya no se usa, así que no se toca >>>
         binding.llPlaceholder.visibility = View.GONE
     }
 
-    private fun getOutputDirectory(): File {
-        val mediaDir = requireContext().externalMediaDirs.firstOrNull()?.let {
-            File(it, "PawRescue").apply { mkdirs() }
-        }
-        return if (mediaDir != null && mediaDir.exists()) mediaDir
-        else requireContext().filesDir
-    }
+    // <<< SE ELIMINARON LAS FUNCIONES: >>>
+    // - checkCameraPermission()
+    // - startCamera()
+    // - takePhoto()
+    // - getOutputDirectory()
 
     override fun onDestroyView() {
         super.onDestroyView()
