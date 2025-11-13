@@ -19,7 +19,6 @@
             android:id="@+id/action_dashboardFragment_to_perfilFragment"
             app:destination="@id/profileFragment" />
 
-        <!-- AÑADIDO PARA CORREGIR NAVEGACIÓN DE VOLUNTARIO -->
         <action
             android:id="@+id/action_dashboardFragment_to_statsFragment"
             app:destination="@id/statsFragment" />
