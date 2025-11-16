@@ -14,13 +14,14 @@ import com.refugio.pawrescue.databinding.FragmentCitasBinding
 import com.refugio.pawrescue.data.model.EstadoSolicitud
 import com.refugio.pawrescue.data.model.SolicitudAdopcion
 import com.refugio.pawrescue.ui.theme.utils.Constants
+import androidx.fragment.app.viewModels
 
 class CitasFragment : Fragment() {
 
     private var _binding: FragmentCitasBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: SolicitudesAdopcionViewModel by viewModels()
+    private val viewModel: CitasViewModel by viewModels()
     private lateinit var citasAdapter: CitasAdapter
     private lateinit var prefs: SharedPreferences
 

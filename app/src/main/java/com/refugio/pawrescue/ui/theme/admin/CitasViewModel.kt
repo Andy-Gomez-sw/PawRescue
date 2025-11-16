@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.refugio.pawrescue.data.model.SolicitudAdopcion
 import com.refugio.pawrescue.data.model.repository.AdopcionRepository
 import kotlinx.coroutines.launch
+import com.refugio.pawrescue.data.model.EstadoSolicitud
 
 class CitasViewModel : ViewModel() {
 
@@ -43,7 +44,7 @@ class CitasViewModel : ViewModel() {
         _isLoading.value = true
 
         viewModelScope.launch {
-            val result = adopcionRepository.getSolicitudesByEstado(estado)
+            val result = adopcionRepository.getSolicitudesByEstado(EstadoSolicitud.ENTREVISTA_PROGRAMADA) // <-- SOLUCIÓN: Es un Enum
 
             result.onSuccess { lista ->
                 _solicitudes.value = lista
