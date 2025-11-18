@@ -15,6 +15,7 @@ import com.refugio.pawrescue.databinding.DialogGestionarSolicitudBinding
 import java.util.Calendar
 import java.util.Date
 import androidx.fragment.app.viewModels
+import com.refugio.pawrescue.data.model.repository.AdopcionRepository
 
 
 // Usamos el ViewModel compartido del Fragment que muestra la lista
@@ -26,7 +27,10 @@ class GestionarSolicitudDialog : BottomSheetDialogFragment() {
 
     // Usamos el ViewModel del fragmento padre (el que tiene la lista de solicitudes)
 // LÍNEA CORREGIDA:
-    private val viewModel: SolicitudesAdopcionViewModel by viewModels({ requireParentFragment() })
+    // DESPUÉS (Correcto)
+    private val viewModel: SolicitudesAdopcionViewModel by activityViewModels {
+        SolicitudesViewModelFactory(AdopcionRepository()) // <-- La Factory que necesita
+    }
     private lateinit var solicitud: SolicitudAdopcion
     private val calendario = Calendar.getInstance()
 

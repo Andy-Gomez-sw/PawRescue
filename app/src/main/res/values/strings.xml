@@ -222,4 +222,6 @@
     <string name="citas_de_adopcion">Citas de Adopción</string>
     <string name="donaciones_y_gastos">Donaciones y Gastos</string>
     <string name="gestion_de_voluntarios">Gestión de Voluntarios</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
