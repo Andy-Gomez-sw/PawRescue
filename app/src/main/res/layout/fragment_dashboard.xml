@@ -32,7 +32,7 @@
                 android:id="@+id/tvGreeting"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="👋 Hola, María"
+                android:text="👋 Hola, Usuario"
                 android:textColor="@color/white"
                 android:textSize="24sp"
                 android:textStyle="bold"/>
@@ -41,7 +41,7 @@
                 android:id="@+id/tvRefugio"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Refugio: Centro Canino MX"
+                android:text="Refugio: Cargando..."
                 android:textColor="@color/white"
                 android:textSize="14sp"
                 android:alpha="0.9"
@@ -104,7 +104,7 @@
                                 android:id="@+id/tvActiveAnimals"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="12"
+                                android:text="-"
                                 android:textSize="24sp"
                                 android:textStyle="bold"
                                 android:textColor="@color/primary_green"/>
@@ -135,7 +135,7 @@
                                 android:id="@+id/tvCompleted"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="8"
+                                android:text="-"
                                 android:textSize="24sp"
                                 android:textStyle="bold"
                                 android:textColor="@color/primary_green"/>
@@ -166,7 +166,7 @@
                                 android:id="@+id/tvPending"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="4"
+                                android:text="-"
                                 android:textSize="24sp"
                                 android:textStyle="bold"
                                 android:textColor="@color/primary_green"/>
@@ -197,7 +197,7 @@
                                 android:id="@+id/tvAlerts"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="2"
+                                android:text="-"
                                 android:textSize="24sp"
                                 android:textStyle="bold"
                                 android:textColor="@color/primary_green"/>
@@ -210,13 +210,9 @@
                                 android:textColor="@color/text_secondary"
                                 android:gravity="center"
                                 android:layout_marginTop="4dp"/>
-
                         </LinearLayout>
-
                     </GridLayout>
-
                 </LinearLayout>
-
             </com.google.android.material.card.MaterialCardView>
 
             <TextView
@@ -244,31 +240,6 @@
                     android:clickable="true"
                     android:focusable="true"
                     app:cardElevation="2dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp"
-                        android:gravity="center">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="📷"
-                            android:textSize="32sp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Nuevo Rescate"
-                            android:textSize="12sp"
-                            android:textColor="@color/text_secondary"
-                            android:gravity="center"
-                            android:layout_marginTop="8dp"/>
-
-                    </LinearLayout>
-
                 </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.card.MaterialCardView
@@ -281,31 +252,6 @@
                     android:clickable="true"
                     android:focusable="true"
                     app:cardElevation="2dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp"
-                        android:gravity="center">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="✓"
-                            android:textSize="32sp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Checklist"
-                            android:textSize="12sp"
-                            android:textColor="@color/text_secondary"
-                            android:gravity="center"
-                            android:layout_marginTop="8dp"/>
-
-                    </LinearLayout>
-
                 </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.card.MaterialCardView
@@ -318,75 +264,109 @@
                     android:clickable="true"
                     android:focusable="true"
                     app:cardElevation="2dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp"
-                        android:gravity="center">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="🏥"
-                            android:textSize="32sp"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Vet Urgente"
-                            android:textSize="12sp"
-                            android:textColor="@color/text_secondary"
-                            android:gravity="center"
-                            android:layout_marginTop="8dp"/>
-
-                    </LinearLayout>
-
                 </com.google.android.material.card.MaterialCardView>
 
             </GridLayout>
 
-            <TextView
+
+            <LinearLayout
+                android:id="@+id/llSolicitudesPendientesSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible"> <TextView
+                android:id="@+id/tvSolicitudesTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🐾 Mis Animales Asignados"
+                android:text="📩 Solicitudes Pendientes"
                 android:textSize="14sp"
                 android:textColor="@color/text_secondary"
                 android:textStyle="bold"
                 android:layout_marginBottom="12dp"/>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvAnimales"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                tools:listitem="@layout/item_animal_card"
-                tools:itemCount="3"/>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvSolicitudes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_solicitud_adopcion"
+                    tools:itemCount="2"/>
+
+                <LinearLayout
+                    android:id="@+id/llSolicitudesEmptyState"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="32dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🎉"
+                        android:textSize="64sp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="No hay solicitudes pendientes"
+                        android:textSize="16sp"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginTop="16dp"/>
+                </LinearLayout>
+            </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/llEmptyState"
+                android:id="@+id/llAnimalesAsignadosSection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:gravity="center"
-                android:padding="32dp"
-                android:visibility="gone">
+                android:visibility="gone"
+                tools:visibility="gone">
 
                 <TextView
+                    android:id="@+id/tvAnimalesTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="🐕"
-                    android:textSize="64sp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="No tienes animales asignados"
-                    android:textSize="16sp"
+                    android:text="🐾 Mis Animales Asignados"
+                    android:textSize="14sp"
                     android:textColor="@color/text_secondary"
-                    android:layout_marginTop="16dp"/>
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp"/>
 
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvAnimales"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    tools:listitem="@layout/item_animal_card"
+                    tools:itemCount="3"/>
+
+                <LinearLayout
+                    android:id="@+id/llAnimalesEmptyState"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="32dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🐕"
+                        android:textSize="64sp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="No tienes animales asignados"
+                        android:textSize="16sp"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginTop="16dp"/>
+                </LinearLayout>
             </LinearLayout>
 
         </LinearLayout>

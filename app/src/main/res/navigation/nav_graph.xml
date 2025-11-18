@@ -22,6 +22,13 @@
         <action
             android:id="@+id/action_dashboardFragment_to_statsFragment"
             app:destination="@id/statsFragment" />
+
+        <!-- === ACCIÓN AÑADIDA === -->
+        <!-- Esta es la acción que tu DashboardFragment estaba buscando -->
+        <action
+            android:id="@+id/action_dashboardFragment_to_gestionarSolicitudDialog"
+            app:destination="@id/gestionarSolicitudDialog" />
+
     </fragment>
 
     <fragment
@@ -33,7 +40,6 @@
             android:id="@+id/action_listaAnimalesFragment_to_perfilAnimalFragment"
             app:destination="@id/perfilAnimalFragment" />
 
-        <!-- AÑADIDO PARA CORREGIR EL CRASH DEL LOG -->
         <action
             android:id="@+id/action_listaAnimalesFragment_to_statsFragment"
             app:destination="@id/statsFragment" />
@@ -73,11 +79,22 @@
         android:label="Perfil de Usuario"
         tools:layout="@layout/fragment_profile" />
 
-    <!-- AÑADIDO: DEFINICIÓN DEL FRAGMENTO QUE FALTABA -->
     <fragment
         android:id="@+id/statsFragment"
         android:name="com.refugio.pawrescue.ui.theme.stats.StatsFragment"
         android:label="Estadísticas"
         tools:layout="@layout/fragment_stats" />
+
+    <!-- === DESTINO DE DIÁLOGO AÑADIDO === -->
+    <!-- Aquí definimos el diálogo para que la acción pueda encontrarlo -->
+    <dialog
+        android:id="@+id/gestionarSolicitudDialog"
+        android:name="com.refugio.pawrescue.ui.theme.admin.GestionarSolicitudDialog"
+        android:label="Gestionar Solicitud"
+        tools:layout="@layout/dialog_gestionar_solicitud">
+        <argument
+            android:name="solicitudId"
+            app:argType="string" />
+    </dialog>
 
 </navigation>
