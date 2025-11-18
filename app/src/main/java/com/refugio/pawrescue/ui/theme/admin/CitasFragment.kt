@@ -11,14 +11,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.refugio.pawrescue.databinding.FragmentCitasBinding
-import com.refugio.pawrescue.data.model.EstadoSolicitud
+import com.refugio.pawrescue.data.model.EstadoSolicitud // Importar el Enum
 import com.refugio.pawrescue.data.model.SolicitudAdopcion
 import com.refugio.pawrescue.ui.theme.utils.Constants
-import androidx.fragment.app.viewModels
 
 class CitasFragment : Fragment() {
 
-    // ... (el resto de tus variables)
     private var _binding: FragmentCitasBinding? = null
     private val binding get() = _binding!!
 
@@ -27,7 +25,6 @@ class CitasFragment : Fragment() {
     private lateinit var prefs: SharedPreferences
 
     override fun onCreateView(
-        // ... (código igual)
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -44,12 +41,16 @@ class CitasFragment : Fragment() {
         setupRecyclerView()
         observeViewModel()
 
-        // --- CAMBIO AQUÍ: Usamos el Enum, no un String ---
-        viewModel.cargarSolicitudesByEstado(EstadoSolicitud.ENTREVISTA_PROGRAMADA)
+        // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
+        // Obtenemos el refugioId del admin
+        val refugioId = prefs.getString(Constants.KEY_REFUGIO_ID, "") ?: ""
+
+        // Le pedimos al ViewModel que cargue las citas programadas (usando el Enum)
+        // Y le pasamos el refugioId para que pueda filtrar
+        viewModel.cargarSolicitudesByEstado(EstadoSolicitud.ENTREVISTA_PROGRAMADA, refugioId)
     }
 
     private fun setupRecyclerView() {
-        // ... (código igual)
         citasAdapter = CitasAdapter(
             onAprobarClick = { cita -> aprobarCita(cita) },
             onRechazarClick = { cita -> rechazarCita(cita) },
@@ -61,9 +62,6 @@ class CitasFragment : Fragment() {
             adapter = citasAdapter
         }
     }
-
-    // ... (El resto de tu CitasFragment.kt se queda igual)
-    // ... (observeViewModel, aprobarCita, rechazarCita, etc...)
 
     private fun observeViewModel() {
         viewModel.solicitudes.observe(viewLifecycleOwner) { solicitudes ->
@@ -85,12 +83,14 @@ class CitasFragment : Fragment() {
 
     private fun aprobarCita(cita: SolicitudAdopcion) {
         val evaluador = prefs.getString(Constants.KEY_USER_ID, "") ?: ""
+        // TODO: Deberías recargar la lista con el refugioId
         viewModel.aprobarSolicitud(cita.id, evaluador)
         Toast.makeText(requireContext(), "Solicitud aprobada", Toast.LENGTH_SHORT).show()
     }
 
     private fun rechazarCita(cita: SolicitudAdopcion) {
         val evaluador = prefs.getString(Constants.KEY_USER_ID, "") ?: ""
+        // TODO: Deberías recargar la lista con el refugioId
         viewModel.rechazarSolicitud(cita.id, evaluador, "")
         Toast.makeText(requireContext(), "Solicitud rechazada", Toast.LENGTH_SHORT).show()
     }
@@ -111,6 +111,7 @@ class CitasFragment : Fragment() {
     }
 
     private fun updateStats(solicitudes: List<SolicitudAdopcion>) {
+        // Esta lógica podría necesitar ajustarse si 'solicitudes' ahora solo trae ENTREVISTA_PROGRAMADA
         val pendientes = solicitudes.count { it.estado == EstadoSolicitud.PENDIENTE }
         val aprobadas = solicitudes.count { it.estado == EstadoSolicitud.APROBADA }
         val rechazadas = solicitudes.count { it.estado == EstadoSolicitud.RECHAZADA }
