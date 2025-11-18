@@ -3,7 +3,6 @@ package com.refugio.pawrescue.data.model.repository
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.refugio.pawrescue.data.model.SolicitudAdopcion
-// AÑADIR ESTE IMPORT para que reconozca el Enum
 import com.refugio.pawrescue.data.model.EstadoSolicitud
 import com.refugio.pawrescue.ui.theme.utils.Constants
 import kotlinx.coroutines.tasks.await
