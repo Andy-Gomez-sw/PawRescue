@@ -20,9 +20,12 @@ class AdopcionRepository {
                 firestore.collection(Constants.COLLECTION_ADOPCIONES).document(solicitud.id)
             }
 
+            // CORREGIDO: Guardar 'estado' como String
             val solicitudToSave = solicitud.copy(
                 id = solicitudRef.id,
-                fechaSolicitud = Date() // Asegura que la fecha se ponga al crear
+                fechaSolicitud = Date(),
+                estado = solicitud.estado, // El objeto
+                estadoString = solicitud.estado.name.lowercase() // El string
             )
 
             solicitudRef.set(solicitudToSave).await()
@@ -33,6 +36,7 @@ class AdopcionRepository {
     }
 
     suspend fun getSolicitudes(): Result<List<SolicitudAdopcion>> {
+        // (Esta función se queda igual)
         return try {
             val snapshot = firestore.collection(Constants.COLLECTION_ADOPCIONES)
                 .orderBy("fechaSolicitud", Query.Direction.DESCENDING)
@@ -48,10 +52,19 @@ class AdopcionRepository {
         }
     }
 
-    suspend fun getSolicitudesByEstado(estado: EstadoSolicitud): Result<List<SolicitudAdopcion>> { // Modificado para usar Enum
+    // --- FUNCIÓN CRÍTICA CORREGIDA ---
+    suspend fun getSolicitudesByEstado(estado: EstadoSolicitud, refugioId: String): Result<List<SolicitudAdopcion>> {
         return try {
+            // Si no hay refugioId, no buscar nada (prevención)
+            if (refugioId.isEmpty()) {
+                return Result.success(emptyList())
+            }
+
             val snapshot = firestore.collection(Constants.COLLECTION_ADOPCIONES)
-                .whereEqualTo("estado", estado) // Compara con el Enum
+                // CORRECCIÓN 1: Buscar por String (el .name del Enum)
+                .whereEqualTo("estado", estado.name)
+                // CORRECCIÓN 2: Filtrar por el Refugio del Admin
+                .whereEqualTo("refugioId", refugioId)
                 .orderBy("fechaSolicitud", Query.Direction.DESCENDING)
                 .get()
                 .await()
@@ -64,18 +77,20 @@ class AdopcionRepository {
             Result.failure(e)
         }
     }
+    // --- FIN DE LA FUNCIÓN CRÍTICA ---
 
-    // --- FUNCIONES MODIFICADAS (para usar el Enum de tu modelo) ---
+
+    // --- OTRAS FUNCIONES CORREGIDAS (Para que guarden String) ---
 
     suspend fun aprobarSolicitud(solicitudId: String, evaluadoPor: String): Result<Unit> {
         return try {
-            val nuevoEstado = EstadoSolicitud.APROBADA // <-- MODIFICADO
+            val nuevoEstado = EstadoSolicitud.APROBADA
             firestore.collection(Constants.COLLECTION_ADOPCIONES)
                 .document(solicitudId)
                 .update(
                     mapOf(
-                        "estado" to nuevoEstado, // <-- MODIFICADO
-                        "estadoString" to nuevoEstado.name.lowercase(), // <-- AÑADIDO
+                        "estado" to nuevoEstado.name, // <-- CORREGIDO a String
+                        "estadoString" to nuevoEstado.name.lowercase(),
                         "evaluadoPor" to evaluadoPor,
                         "fechaActualizacion" to Date()
                     )
@@ -94,15 +109,15 @@ class AdopcionRepository {
         motivo: String
     ): Result<Unit> {
         return try {
-            val nuevoEstado = EstadoSolicitud.RECHAZADA // <-- MODIFICADO
+            val nuevoEstado = EstadoSolicitud.RECHAZADA
             firestore.collection(Constants.COLLECTION_ADOPCIONES)
                 .document(solicitudId)
                 .update(
                     mapOf(
-                        "estado" to nuevoEstado, // <-- MODIFICADO
-                        "estadoString" to nuevoEstado.name.lowercase(), // <-- AÑADIDO
+                        "estado" to nuevoEstado.name, // <-- CORREGIDO a String
+                        "estadoString" to nuevoEstado.name.lowercase(),
                         "evaluadoPor" to evaluadoPor,
-                        "notasEvaluacion" to motivo, // Tu modelo usa 'notasEvaluacion'
+                        "notasEvaluacion" to motivo,
                         "fechaActualizacion" to Date()
                     )
                 )
@@ -114,8 +129,6 @@ class AdopcionRepository {
         }
     }
 
-    // --- NUEVA FUNCIÓN (para agendar la entrevista) ---
-
     suspend fun agendarEntrevista(
         solicitudId: String,
         fechaCita: Date,
@@ -125,9 +138,9 @@ class AdopcionRepository {
         return try {
             val nuevoEstado = EstadoSolicitud.ENTREVISTA_PROGRAMADA
             val updates = mapOf(
-                "estado" to nuevoEstado,
+                "estado" to nuevoEstado.name, // <-- CORREGIDO a String
                 "estadoString" to nuevoEstado.name.lowercase(),
-                "citaProgramada" to fechaCita, // Guarda la fecha de la cita
+                "citaProgramada" to fechaCita,
                 "notasEvaluacion" to notas,
                 "evaluadoPor" to evaluadoPor,
                 "fechaActualizacion" to Date()
@@ -143,7 +156,7 @@ class AdopcionRepository {
         }
     }
 
-    // --- FIN DE NUEVAS FUNCIONES ---
+    // --- FIN DE FUNCIONES MODIFICADAS ---
 
     suspend fun getSolicitudById(solicitudId: String): Result<SolicitudAdopcion> {
         return try {
