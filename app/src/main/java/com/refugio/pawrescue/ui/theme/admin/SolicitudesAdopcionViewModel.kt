@@ -4,91 +4,84 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.refugio.pawrescue.data.model.EstadoSolicitud
+import kotlinx.coroutines.launch
 import com.refugio.pawrescue.data.model.SolicitudAdopcion
 import com.refugio.pawrescue.data.model.repository.AdopcionRepository
-import kotlinx.coroutines.launch
+import java.util.Date
+class SolicitudesAdopcionViewModel(
+    private val adopcionRepository: AdopcionRepository
+) : ViewModel() {
 
-class SolicitudesAdopcionViewModel : ViewModel() {
-
-    private val adopcionRepository = AdopcionRepository()
-
+    // --- Lógica para CARGAR LA LISTA (El código que te faltaba) ---
     private val _solicitudes = MutableLiveData<List<SolicitudAdopcion>>()
     val solicitudes: LiveData<List<SolicitudAdopcion>> = _solicitudes
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
-    private val _error = MutableLiveData<String?>()
-    val error: LiveData<String?> = _error
+    private val _error = MutableLiveData<String>()
+    val error: LiveData<String> = _error
 
     init {
-        cargarSolicitudes()
+        cargarSolicitudes() // Carga las solicitudes al iniciar
     }
 
     fun cargarSolicitudes() {
         _isLoading.value = true
-
         viewModelScope.launch {
-            val result = adopcionRepository.getSolicitudes()
-
+            val result = adopcionRepository.getSolicitudes() // Usa la función de tu repo
             result.onSuccess { lista ->
                 _solicitudes.value = lista
-                _error.value = null
-            }.onFailure { exception ->
-                _error.value = exception.message
-                _solicitudes.value = emptyList()
             }
-
+            result.onFailure {
+                _error.value = it.message ?: "Error al cargar solicitudes"
+            }
             _isLoading.value = false
         }
     }
 
-    fun cargarSolicitudesByEstado(estado: EstadoSolicitud) {
-        _isLoading.value = true
+    // --- Lógica NUEVA (La que tú pegaste, ahora conectada) ---
 
-        viewModelScope.launch {
-            val result = adopcionRepository.getSolicitudesByEstado(estado.name.lowercase())
+    private val _solicitudSeleccionada = MutableLiveData<SolicitudAdopcion>()
+    val solicitudSeleccionada: LiveData<SolicitudAdopcion> = _solicitudSeleccionada
 
-            result.onSuccess { lista ->
-                _solicitudes.value = lista
-                _error.value = null
-            }.onFailure { exception ->
-                _error.value = exception.message
-                _solicitudes.value = emptyList()
-            }
-
-            _isLoading.value = false
-        }
+    /**
+     * El Fragment llama a esto cuando el admin toca un item de la lista
+     */
+    fun seleccionarSolicitud(solicitud: SolicitudAdopcion) {
+        _solicitudSeleccionada.value = solicitud
     }
 
-    fun actualizarEstado(solicitudId: String, nuevoEstado: EstadoSolicitud) {
+    /**
+     * Llamado por GestionarSolicitudDialog
+     */
+    fun rechazarSolicitud(solicitudId: String, notas: String) {
         viewModelScope.launch {
-            // TODO: Implementar actualización en el repositorio
-            cargarSolicitudes()
-        }
-    }
-
-    fun aprobarSolicitud(solicitudId: String, evaluadoPor: String) {
-        viewModelScope.launch {
-            val result = adopcionRepository.aprobarSolicitud(solicitudId, evaluadoPor)
+            val adminId = "admin_actual" // TODO: Reemplaza esto con el ID del admin logueado
+            val result = adopcionRepository.rechazarSolicitud(solicitudId, adminId, notas)
 
             result.onSuccess {
-                cargarSolicitudes()
-            }.onFailure { exception ->
-                _error.value = exception.message
+                cargarSolicitudes() // Refresca la lista
+            }
+            result.onFailure {
+                _error.value = it.message ?: "Error al rechazar"
             }
         }
     }
 
-    fun rechazarSolicitud(solicitudId: String, evaluadoPor: String, motivo: String) {
+    /**
+     * Llamado por GestionarSolicitudDialog
+     */
+    fun agendarEntrevista(solicitudId: String, fechaCita: Date, notas: String) {
         viewModelScope.launch {
-            val result = adopcionRepository.rechazarSolicitud(solicitudId, evaluadoPor, motivo)
+            val adminId = "admin_actual" // TODO: Reemplaza esto con el ID del admin logueado
+            val result = adopcionRepository.agendarEntrevista(solicitudId, fechaCita, notas, adminId)
 
             result.onSuccess {
-                cargarSolicitudes()
-            }.onFailure { exception ->
-                _error.value = exception.message
+                cargarSolicitudes() // Refresca la lista
+            }
+            result.onFailure {
+                _error.value = it.message ?: "Error al agendar"
             }
         }
     }

@@ -12,6 +12,7 @@ import com.refugio.pawrescue.R
 import com.refugio.pawrescue.databinding.ActivityLoginBinding
 import com.refugio.pawrescue.ui.theme.public_user.PublicRegisterActivity
 import com.refugio.pawrescue.ui.theme.main.MainActivity
+import com.refugio.pawrescue.ui.theme.public_user.PublicRegisterActivity
 import com.refugio.pawrescue.ui.theme.utils.Constants
 import com.refugio.pawrescue.ui.theme.utils.NetworkUtils
 
