@@ -5,15 +5,8 @@ import androidx.room.PrimaryKey
 import com.google.firebase.firestore.ServerTimestamp
 import java.util.Date
 import java.util.UUID
+import com.refugio.pawrescue.data.model.EstadoSolicitud
 
-enum class EstadoSolicitud {
-    PENDIENTE,
-    APROBADA,
-    RECHAZADA,
-    ENTREVISTA_PROGRAMADA
-}
-
-// Versión para Room (Base de datos local)
 @Entity(tableName = "solicitudes_adopcion")
 data class SolicitudAdopcionEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
@@ -28,7 +21,7 @@ data class SolicitudAdopcionEntity(
     val detallesOtrasMascotas: String = "",
     val motivoAdopcion: String,
     val fechaSolicitud: Date = Date(),
-    var estado: EstadoSolicitud = EstadoSolicitud.PENDIENTE,
+    var estado: EstadoSolicitud = EstadoSolicitud.PENDIENTE, // Esto ya usa el Enum importado
     var notasAdmin: String = "",
     var synced: Boolean = false
 )
@@ -75,7 +68,7 @@ data class SolicitudAdopcion(
     val documentosAdjuntos: List<String> = emptyList(),
 
     // Estado (manejado por enum o string según contexto)
-    val estado: EstadoSolicitud = EstadoSolicitud.PENDIENTE,
+    val estado: EstadoSolicitud = EstadoSolicitud.PENDIENTE, // Esto también usa el Enum importado
     val estadoString: String = estado.name.lowercase(),
     val puntuacionAutomatica: Int = 0,
     val citaProgramada: Date? = null,

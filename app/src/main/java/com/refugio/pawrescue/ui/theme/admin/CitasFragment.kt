@@ -18,6 +18,7 @@ import androidx.fragment.app.viewModels
 
 class CitasFragment : Fragment() {
 
+    // ... (el resto de tus variables)
     private var _binding: FragmentCitasBinding? = null
     private val binding get() = _binding!!
 
@@ -26,6 +27,7 @@ class CitasFragment : Fragment() {
     private lateinit var prefs: SharedPreferences
 
     override fun onCreateView(
+        // ... (código igual)
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -41,9 +43,13 @@ class CitasFragment : Fragment() {
 
         setupRecyclerView()
         observeViewModel()
+
+        // --- CAMBIO AQUÍ: Usamos el Enum, no un String ---
+        viewModel.cargarSolicitudesByEstado(EstadoSolicitud.ENTREVISTA_PROGRAMADA)
     }
 
     private fun setupRecyclerView() {
+        // ... (código igual)
         citasAdapter = CitasAdapter(
             onAprobarClick = { cita -> aprobarCita(cita) },
             onRechazarClick = { cita -> rechazarCita(cita) },
@@ -55,6 +61,9 @@ class CitasFragment : Fragment() {
             adapter = citasAdapter
         }
     }
+
+    // ... (El resto de tu CitasFragment.kt se queda igual)
+    // ... (observeViewModel, aprobarCita, rechazarCita, etc...)
 
     private fun observeViewModel() {
         viewModel.solicitudes.observe(viewLifecycleOwner) { solicitudes ->

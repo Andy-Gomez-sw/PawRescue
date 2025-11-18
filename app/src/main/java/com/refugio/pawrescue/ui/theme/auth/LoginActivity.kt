@@ -12,6 +12,8 @@ import com.refugio.pawrescue.R
 import com.refugio.pawrescue.databinding.ActivityLoginBinding
 import com.refugio.pawrescue.ui.theme.public_user.PublicRegisterActivity
 import com.refugio.pawrescue.ui.theme.main.MainActivity
+// --- CAMBIO AQUÍ: Importar la actividad del usuario público ---
+import com.refugio.pawrescue.ui.theme.public_user.PublicMainActivity
 import com.refugio.pawrescue.ui.theme.utils.Constants
 import com.refugio.pawrescue.ui.theme.utils.NetworkUtils
 
@@ -61,7 +63,10 @@ class LoginActivity : AppCompatActivity() {
                 is LoginState.Success -> {
                     showLoading(false)
                     saveUserData(state.usuario)
-                    navigateToMain()
+
+                    // --- CAMBIO AQUÍ: Ya no llamamos a navigateToMain() ---
+                    // Ahora decidimos a dónde ir basado en el rol
+                    navigateToUserActivity(state.usuario.rol)
                 }
                 is LoginState.Error -> {
                     showLoading(false)
@@ -126,6 +131,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun updateConnectionStatus() {
+        // ... (Tu función original está bien, la dejo igual)
         val isConnected = NetworkUtils.isNetworkAvailable(this)
 
         if (isConnected) {
@@ -158,10 +164,22 @@ class LoginActivity : AppCompatActivity() {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
-    private fun navigateToMain() {
-        val intent = Intent(this, MainActivity::class.java)
+    // --- CAMBIO AQUÍ: Esta función reemplaza a navigateToMain() ---
+    private fun navigateToUserActivity(rol: String) {
+        // Decide a qué actividad ir basado en el ROL
+        val intent = if (rol == "publico") {
+            // Es un usuario público, mandarlo a PublicMainActivity
+            Intent(this, PublicMainActivity::class.java)
+        } else {
+            // Es Admin o Voluntario, mandarlo a la MainActivity interna
+            Intent(this, MainActivity::class.java)
+        }
+
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()
     }
+
+    // --- CAMBIO AQUÍ: La función navigateToMain() original se elimina ---
+    // private fun navigateToMain() { ... }
 }

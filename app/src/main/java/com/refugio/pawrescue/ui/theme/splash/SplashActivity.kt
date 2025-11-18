@@ -11,13 +11,14 @@ import com.google.firebase.auth.FirebaseAuth
 import com.refugio.pawrescue.R
 import com.refugio.pawrescue.ui.theme.auth.LoginActivity
 import com.refugio.pawrescue.ui.theme.main.MainActivity
+import com.refugio.pawrescue.ui.theme.public_user.PublicMainActivity
 import com.refugio.pawrescue.ui.theme.utils.Constants
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
 
     private lateinit var prefs: SharedPreferences
-    private val splashTimeOut: Long = 2000 // 2 segundos
+    private val splashTimeOut: Long = 2000
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,12 +35,19 @@ class SplashActivity : AppCompatActivity() {
         val currentUser = FirebaseAuth.getInstance().currentUser
         val userId = prefs.getString(Constants.KEY_USER_ID, null)
 
-        // Usuario autenticado Y con sesión guardada = ir directo a MainActivity
-        val intent = if (currentUser != null && !userId.isNullOrEmpty()) {
-            Intent(this, MainActivity::class.java)
+        val userRol = prefs.getString(Constants.KEY_USER_ROL, null)
+
+        val intent = if (currentUser != null && !userId.isNullOrEmpty() && !userRol.isNullOrEmpty()) {
+
+            if (userRol == "publico") {
+                Intent(this, PublicMainActivity::class.java)
+            } else {
+                Intent(this, MainActivity::class.java)
+            }
+
         } else {
-            // Si no hay sesión válida, cerrar Firebase Auth y limpiar prefs
-            if (currentUser == null || userId.isNullOrEmpty()) {
+            // Si no hay sesión válida o falta algún dato (ID o Rol), cerrar Firebase Auth y limpiar prefs
+            if (currentUser == null || userId.isNullOrEmpty() || userRol.isNullOrEmpty()) {
                 FirebaseAuth.getInstance().signOut()
                 clearUserPreferences()
             }
@@ -55,7 +63,6 @@ class SplashActivity : AppCompatActivity() {
             remove(Constants.KEY_USER_ID)
             remove(Constants.KEY_USER_ROL)
             remove(Constants.KEY_REFUGIO_ID)
-            // Mantener el email si está "recordarme" activado
             val rememberMe = prefs.getBoolean(Constants.KEY_REMEMBER_ME, false)
             if (!rememberMe) {
                 remove(Constants.KEY_USER_EMAIL)
