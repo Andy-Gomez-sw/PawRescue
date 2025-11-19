@@ -1,0 +1,21 @@
+# Archivos y Carpetas de Compilacion Generadas
+.gradle/
+build/
+app/build/
+buildSrc/build/
+
+# Archivos Generados por Android Studio/IntelliJ
+.idea/
+*.iml
+
+# Archivos de Configuracion Locales
+local.properties
+.DS_Store
+/captures
+
+# Binarios y Salidas de Compilacion
+*.apk
+*.aab
+.externalNativeBuild/
+.cxx/
+key.properties
