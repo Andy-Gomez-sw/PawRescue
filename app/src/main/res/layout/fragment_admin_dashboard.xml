@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    tools:context=".ui.admin.dashboard.AdminDashboardFragment">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Panel de Control General"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="16dp" />
+
+            <!-- SECCIÓN ESTADÍSTICAS PRINCIPALES -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Resumen de Animales (Estadísticas)"
+                android:textSize="18sp"
+                android:textStyle="italic"
+                android:textColor="#1976D2"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="3"
+                android:baselineAligned="false">
+
+                <!-- Tarjeta 1: Total de Animales -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="4dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="8dp">
+                        <TextView android:id="@+id/tv_total_animals" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="28sp" android:textStyle="bold" android:textColor="#388E3C" tools:text="48"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Total" android:textSize="14sp" android:textColor="#555555"/>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Tarjeta 2: Disponibles Hoy -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_weight="1"
+                    android:layout_marginHorizontal="4dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="4dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="8dp">
+                        <TextView android:id="@+id/tv_available_today" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="28sp" android:textStyle="bold" android:textColor="#FF9800" tools:text="12"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Disponibles" android:textSize="14sp" android:textColor="#555555"/>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Tarjeta 3: Adoptados -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="4dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="8dp">
+                        <TextView android:id="@+id/tv_adopted_total" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="28sp" android:textStyle="bold" android:textColor="#1976D2" tools:text="35"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Adoptados" android:textSize="14sp" android:textColor="#555555"/>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+            </LinearLayout>
+
+            <!-- SECCIÓN ALERTAS IMPORTANTES -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Alertas Importantes"
+                android:textSize="18sp"
+                android:textStyle="italic"
+                android:textColor="#D32F2F"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Alerta 1: Atención Veterinaria (Basado en el RF-09) -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_alert_vet"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                android:backgroundTint="#FFEBEE">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⚠️ 3 animales requieren atención veterinaria urgente"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#D32F2F"/>
+                    <Button
+                        android:id="@+id/btn_view_vet_alerts"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Ver detalles →"
+                        android:backgroundTint="#D32F2F"
+                        android:textColor="@android:color/white"
+                        app:cornerRadius="8dp"
+                        style="@style/Widget.MaterialComponents.Button.TextButton" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Alerta 2: Citas de Adopción Hoy (Basado en el RF-15) -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_citas_today"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                android:backgroundTint="#E8F5E9">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🗓️ 2 citas de adopción agendadas para hoy"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#388E3C"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Próxima: 10:00 AM - Max"
+                        android:textColor="#555555"/>
+                    <Button
+                        android:id="@+id/btn_view_citas"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Gestionar citas →"
+                        android:backgroundTint="#388E3C"
+                        android:textColor="@android:color/white"
+                        app:cornerRadius="8dp"
+                        style="@style/Widget.MaterialComponents.Button.TextButton" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+
+            <!-- Placeholder para la Gráfica de Donaciones vs. Gastos (Módulo 4.4) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Resumen Financiero Mensual"
+                android:textSize="18sp"
+                android:textStyle="italic"
+                android:textColor="#1976D2"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                android:padding="16dp">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="Gráfica de Balance Financiero (Donaciones vs. Gastos) - Módulo 4.4"
+                    android:textColor="#AAAAAA" />
+            </androidx.cardview.widget.CardView>
+
+
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

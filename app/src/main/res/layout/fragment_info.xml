@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Información General"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="12dp"/>
+
+    <TextView android:id="@+id/tv_info_id" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="16sp" android:paddingVertical="4dp" android:text="ID: N/A"/>
+    <TextView android:id="@+id/tv_info_nombre" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="16sp" android:paddingVertical="4dp" android:text="Nombre: N/A"/>
+    <TextView android:id="@+id/tv_info_especie" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="16sp" android:paddingVertical="4dp" android:text="Especie: N/A"/>
+    <TextView android:id="@+id/tv_info_raza" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="16sp" android:paddingVertical="4dp" android:text="Raza: N/A"/>
+    <TextView android:id="@+id/tv_info_estado" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="16sp" android:paddingVertical="4dp" android:text="Estado: N/A"/>
+    <TextView android:id="@+id/tv_info_rescate" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="16sp" android:paddingVertical="4dp" android:text="Rescatado: N/A"/>
+
+</LinearLayout>

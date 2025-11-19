@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="colorPrimary">#388E3C</color>
+    <color name="colorAccent">#1976D2</color>
+
+    <!-- Colores específicos de estado para el mockup -->
+    <color name="status_adopted">#4CAF50</color> <!-- Verde -->
+    <color name="status_available">#FFC107</color> <!-- Amarillo/Naranja -->
+    <color name="status_rescued">#2196F3</color> <!-- Azul -->
+
+    <!-- Placeholders y fondos -->
+    <color name="background_light_grey">#DDDDDD</color>
 </resources>

@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".ui.admin.RegistroAnimalActivity">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Registro de Animal Rescatado"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="#388E3C"
+                android:layout_marginBottom="16dp" />
+
+            <!-- SECCIÓN DATOS BÁSICOS -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1. Datos Generales"
+                android:textSize="18sp"
+                android:textStyle="italic"
+                android:textColor="#1976D2"
+                android:layout_marginTop="8dp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_nombre"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_nombre"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Nombre Provisional"
+                    android:inputType="textCapWords" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Spinner
+                android:id="@+id/spinner_especie"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:entries="@array/animal_species_array"
+                android:prompt="@string/prompt_especie"
+                android:layout_marginTop="8dp"/>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_raza"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_raza"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Raza o Aproximada"
+                    android:inputType="textCapWords" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Grupo de Radio Buttons para Sexo -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sexo:"
+                android:layout_marginTop="16dp"
+                android:textSize="16sp"/>
+            <RadioGroup
+                android:id="@+id/rg_sexo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <RadioButton android:id="@+id/rb_macho" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Macho" />
+                <RadioButton android:id="@+id/rb_hembra" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hembra" />
+                <RadioButton android:id="@+id/rb_desconocido" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Desconocido" android:checked="true" />
+            </RadioGroup>
+
+            <!-- SECCIÓN ESTADO Y UBICACIÓN -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2. Estado y Rescate"
+                android:textSize="18sp"
+                android:textStyle="italic"
+                android:textColor="#1976D2"
+                android:layout_marginTop="24dp" />
+
+            <!-- Botón para Tomar Foto (RF-05) -->
+            <Button
+                android:id="@+id/btn_tomar_foto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Capturar Foto del Animal (RF-05)"
+                android:backgroundTint="#FF9800"
+                app:cornerRadius="8dp" />
+
+            <ImageView
+                android:id="@+id/iv_foto_preview"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginTop="8dp"
+                android:scaleType="centerCrop"
+                android:background="#DDDDDD"
+                android:visibility="gone"
+                android:contentDescription="Previsualización de la foto del animal" />
+
+            <!-- Botón para Obtener Ubicación (RF-11) -->
+            <Button
+                android:id="@+id/btn_obtener_gps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Obtener Ubicación GPS (RF-11)"
+                android:backgroundTint="#03A9F4"
+                app:cornerRadius="8dp" />
+
+            <TextView
+                android:id="@+id/tv_gps_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Estado: Sin Ubicación Registrada."
+                android:textColor="#555555" />
+
+            <!-- Campo para Ubicación Manual (Alternativa a GPS) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/til_ubicacion_manual"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_ubicacion_manual"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Ubicación Manual (Ej: Calle Principal #10)"
+                    android:inputType="textMultiLine" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- SECCIÓN CONDICIONES -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="3. Condiciones Especiales"
+                android:textSize="18sp"
+                android:textStyle="italic"
+                android:textColor="#1976D2"
+                android:layout_marginTop="24dp" />
+
+            <CheckBox
+                android:id="@+id/cb_heridas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Presenta Heridas Visibles" />
+
+            <CheckBox
+                android:id="@+id/cb_desnutrido"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Desnutrido/Bajo peso" />
+
+            <CheckBox
+                android:id="@+id/cb_prenada"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Preñada (Hembras)" />
+
+            <!-- Botón Final de Registro -->
+            <Button
+                android:id="@+id/btn_guardar_animal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="32dp"
+                android:text="Guardar Animal Rescatado"
+                android:padding="12dp"
+                android:backgroundTint="#388E3C"
+                app:cornerRadius="8dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

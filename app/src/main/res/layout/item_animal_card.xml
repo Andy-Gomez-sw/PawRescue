@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginTop="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:attr/selectableItemBackground">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <!-- Foto del Animal (Mockup de la izquierda) -->
+        <ImageView
+            android:id="@+id/iv_animal_photo"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:scaleType="centerCrop"
+            android:background="#CCCCCC"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:contentDescription="Foto del animal"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <!-- Nombre del Animal -->
+        <TextView
+            android:id="@+id/tv_animal_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            app:layout_constraintStart_toEndOf="@+id/iv_animal_photo"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Max #A001" />
+
+        <!-- Detalles (Especie, Raza) -->
+        <TextView
+            android:id="@+id/tv_animal_details"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="2dp"
+            android:textSize="14sp"
+            android:textColor="#555555"
+            app:layout_constraintStart_toEndOf="@+id/iv_animal_photo"
+            app:layout_constraintTop_toBottomOf="@+id/tv_animal_name"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Pastor Alemán, 3 años" />
+
+        <!-- Etiqueta de Estado (Mockup inferior) -->
+        <TextView
+            android:id="@+id/tv_animal_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            app:layout_constraintStart_toEndOf="@+id/iv_animal_photo"
+            app:layout_constraintTop_toBottomOf="@+id/tv_animal_details"
+            tools:text="En Adopción"
+            android:background="@drawable/rounded_status_bg"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>
