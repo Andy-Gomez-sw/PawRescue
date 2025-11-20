@@ -118,15 +118,17 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Botón de Registro (Inicialmente solo para Admin/Voluntario) -->
+
     <Button
         android:id="@+id/btn_register"
         style="@style/Widget.MaterialComponents.Button.TextButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="8dp"
         android:text="REGISTRAR NUEVO USUARIO"
         android:textColor="#388E3C"
-        app:layout_constraintTop_toBottomOf="@+id/tv_forgot_password" />
+        app:layout_constraintTop_toBottomOf="@+id/tv_forgot_password"
+        tools:layout_editor_absoluteX="32dp" />
 
     <ProgressBar
         android:id="@+id/progress_bar"
