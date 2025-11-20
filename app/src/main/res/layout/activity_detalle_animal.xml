@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -12,15 +13,17 @@
         android:id="@+id/app_bar_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        app:layout_constraintTop_toTopOf="parent">
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:layout_width="match_parent"
             android:layout_height="300dp"
             app:contentScrim="?attr/colorPrimary"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:expandedTitleMarginStart="48dp"
+            app:expandedTitleMarginEnd="64dp">
 
+            <!-- Imagen de fondo -->
             <ImageView
                 android:id="@+id/iv_animal_header"
                 android:layout_width="match_parent"
@@ -30,6 +33,13 @@
                 android:contentDescription="Foto de perfil del animal"
                 app:layout_collapseMode="parallax" />
 
+            <!-- Gradiente oscuro sobre la imagen -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_gravity="bottom"
+                android:background="@drawable/photo_overlay_gradient" />
+
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar_detail"
                 android:layout_width="match_parent"
@@ -37,7 +47,7 @@
                 app:layout_collapseMode="pin"
                 app:titleTextColor="@android:color/white">
 
-                <!-- Botones de Acción Superior (Exportar y Editar) -->
+                <!-- Botones de Acción Superior -->
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -57,7 +67,7 @@
                         android:focusable="true"
                         app:tint="@android:color/white" />
 
-                    <!-- Botón para Exportar/Compartir -->
+                    <!-- Botón para Exportar -->
                     <ImageView
                         android:id="@+id/ic_share"
                         android:layout_width="24dp"
@@ -75,30 +85,35 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Contenedor principal con Pestañas (TabLayout y ViewPager) -->
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
+    <!-- Contenedor de Pestañas (CORREGIDO) -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@+id/app_bar_layout"
-        app:layout_constraintBottom_toBottomOf="parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <!-- Pestañas de Navegación (TabLayout) -->
+        <!-- Pestañas de Navegación -->
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tab_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:tabMode="fixed" />
+            android:background="@android:color/white"
+            android:elevation="4dp"
+            app:tabMode="fixed"
+            app:tabIndicatorColor="#388E3C"
+            app:tabTextColor="#666666"
+            app:tabSelectedTextColor="#388E3C" />
 
-        <!-- Contenido de las Pestañas (ViewPager) -->
+        <!-- Contenido de las Pestañas -->
         <androidx.viewpager.widget.ViewPager
             android:id="@+id/view_pager"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </LinearLayout>
 
-    <!-- Se necesita un FAB para acciones rápidas como Cambiar Estado/Agregar Cita/etc. -->
+    <!-- FAB para acciones rápidas -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_action"
         android:layout_width="wrap_content"
@@ -107,8 +122,7 @@
         android:src="@drawable/ic_edit"
         app:backgroundTint="#FF9800"
         app:tint="@android:color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_gravity="bottom|end"
         android:contentDescription="Acción rápida de expediente" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

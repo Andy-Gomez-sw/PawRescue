@@ -34,6 +34,7 @@ import com.refugio.pawrescue.ui.admin.tabs.InfoFragment;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -159,6 +160,7 @@ public class DetalleAnimalActivity extends AppCompatActivity {
     /**
      * Carga el objeto Animal desde Firestore usando el ID.
      */
+    // En DetalleAnimalActivity.java, método cargarDetalleAnimal()
     private void cargarDetalleAnimal(String id) {
         db.collection("animales").document(id).get()
                 .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -168,31 +170,30 @@ public class DetalleAnimalActivity extends AppCompatActivity {
                             currentAnimal = task.getResult().toObject(Animal.class);
                             if (currentAnimal != null) {
 
-                                // CORRECCIÓN 1: Formateo del ID Numérico para el título
-                                String idDisplay = String.format("#%04d", currentAnimal.getIdNumerico());
+                                // ✅ FORMATEO CORRECTO DEL ID
+                                String idDisplay = String.format(Locale.US, "#%04d", currentAnimal.getIdNumerico());
 
-                                // Establecer Título de la Toolbar con el nombre del animal
+                                // Establecer Título con nombre e ID
                                 if (getSupportActionBar() != null) {
                                     getSupportActionBar().setTitle(currentAnimal.getNombre() + " " + idDisplay);
                                 }
 
-                                // Cargar foto con Glide (Asumiendo que la dependencia ya fue agregada)
+                                // Cargar foto
                                 Glide.with(DetalleAnimalActivity.this)
                                         .load(currentAnimal.getFotoUrl())
                                         .placeholder(R.drawable.ic_pet_placeholder)
                                         .error(R.drawable.ic_pet_error)
                                         .into(ivAnimalHeader);
 
-                                // Inicializar Pestañas con el objeto Animal cargado
+                                // Inicializar pestañas
                                 setupViewPagerAndTabs(viewPager, currentAnimal);
                                 tabLayout.setupWithViewPager(viewPager);
 
                             } else {
-                                Toast.makeText(DetalleAnimalActivity.this, "Error al mapear datos del animal.", Toast.LENGTH_LONG).show();
+                                Toast.makeText(DetalleAnimalActivity.this, "Error al mapear datos.", Toast.LENGTH_LONG).show();
                             }
                         } else {
                             Toast.makeText(DetalleAnimalActivity.this, "Animal no encontrado.", Toast.LENGTH_LONG).show();
-                            Log.e(TAG, "Error al cargar el documento del animal: " + (task.getException() != null ? task.getException().getMessage() : "Desconocido"));
                             finish();
                         }
                     }

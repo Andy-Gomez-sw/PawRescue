@@ -12,10 +12,9 @@ import com.refugio.pawrescue.R;
 import com.refugio.pawrescue.model.Animal;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
-/**
- * Fragmento que muestra la información general del animal (RF-06).
- */
 public class InfoFragment extends Fragment {
 
     private static final String ARG_ANIMAL = "animal_object";
@@ -33,14 +32,14 @@ public class InfoFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            // Se debe usar Parcelable/Serializable, asumimos Serializable para simplificar.
             animal = (Animal) getArguments().getSerializable(ARG_ANIMAL);
         }
     }
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_info, container, false);
 
         if (animal != null) {
@@ -48,18 +47,54 @@ public class InfoFragment extends Fragment {
             TextView tvNombre = view.findViewById(R.id.tv_info_nombre);
             TextView tvEspecie = view.findViewById(R.id.tv_info_especie);
             TextView tvRaza = view.findViewById(R.id.tv_info_raza);
+            TextView tvSexo = view.findViewById(R.id.tv_info_sexo);
             TextView tvEstado = view.findViewById(R.id.tv_info_estado);
             TextView tvRescate = view.findViewById(R.id.tv_info_rescate);
+            TextView tvUbicacion = view.findViewById(R.id.tv_info_ubicacion);
+            TextView tvCondiciones = view.findViewById(R.id.tv_info_condiciones);
 
-            tvId.setText("ID: " + animal.getIdNumerico());
-            tvNombre.setText("Nombre: " + animal.getNombre());
-            tvEspecie.setText("Especie: " + animal.getEspecie());
-            tvRaza.setText("Raza: " + animal.getRaza());
-            tvEstado.setText("Estado: " + animal.getEstadoRefugio());
+            // ID Numérico formateado correctamente
+            String idDisplay = String.format(Locale.US, "#%04d", animal.getIdNumerico());
+            tvId.setText("ID: " + idDisplay);
 
-            // Formateo de fecha de rescate
-            String fecha = (animal.getFechaRegistro() != null) ? animal.getFechaRegistro().toDate().toString() : "N/A";
-            tvRescate.setText("Rescatado: " + fecha);
+            tvNombre.setText("Nombre: " + (animal.getNombre() != null ? animal.getNombre() : "N/A"));
+            tvEspecie.setText("Especie: " + (animal.getEspecie() != null ? animal.getEspecie() : "N/A"));
+            tvRaza.setText("Raza: " + (animal.getRaza() != null ? animal.getRaza() : "N/A"));
+            tvSexo.setText("Sexo: " + (animal.getSexo() != null ? animal.getSexo() : "N/A"));
+            tvEstado.setText("Estado: " + (animal.getEstadoRefugio() != null ? animal.getEstadoRefugio() : "N/A"));
+
+            // Formateo de fecha más legible
+            if (animal.getFechaRegistro() != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+                String fecha = sdf.format(animal.getFechaRegistro().toDate());
+                tvRescate.setText("Rescatado: " + fecha);
+            } else {
+                tvRescate.setText("Rescatado: N/A");
+            }
+
+            // Ubicación GPS
+            if (animal.getUbicacionRescate() != null) {
+                String ubicacion = String.format(Locale.US, "Lat: %.6f, Lon: %.6f",
+                        animal.getUbicacionRescate().getLatitude(),
+                        animal.getUbicacionRescate().getLongitude());
+                tvUbicacion.setText("Ubicación: " + ubicacion);
+            } else {
+                tvUbicacion.setText("Ubicación: No registrada");
+            }
+
+            // Condiciones especiales
+            if (animal.getCondicionesEspeciales() != null && !animal.getCondicionesEspeciales().isEmpty()) {
+                StringBuilder condiciones = new StringBuilder("Condiciones: ");
+                for (int i = 0; i < animal.getCondicionesEspeciales().size(); i++) {
+                    condiciones.append(animal.getCondicionesEspeciales().get(i));
+                    if (i < animal.getCondicionesEspeciales().size() - 1) {
+                        condiciones.append(", ");
+                    }
+                }
+                tvCondiciones.setText(condiciones.toString());
+            } else {
+                tvCondiciones.setText("Condiciones: Ninguna registrada");
+            }
         }
 
         return view;
