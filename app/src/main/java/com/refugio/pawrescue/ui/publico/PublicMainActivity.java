@@ -5,26 +5,35 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.refugio.pawrescue.R;
 import com.refugio.pawrescue.model.Animal;
 import com.refugio.pawrescue.databinding.ActivityPublicMainBinding;
 import com.refugio.pawrescue.ui.auth.LoginActivity;
+import com.refugio.pawrescue.ui.adapter.AnimalAdapter; // Usamos tu adaptador existente
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class PublicMainActivity extends AppCompatActivity {
 
     private ActivityPublicMainBinding binding;
-    private PublicAnimalsAdapter adapter;
+    private AnimalAdapter adapter;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityPublicMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // 1. Inicializar Firestore
+        db = FirebaseFirestore.getInstance();
 
         setupToolbar();
         setupRecyclerView();
@@ -40,6 +49,7 @@ public class PublicMainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        // Asegúrate de tener res/menu/public_menu.xml creado, si no, comenta esta línea
         getMenuInflater().inflate(R.menu.public_menu, menu);
         return true;
     }
@@ -60,8 +70,10 @@ public class PublicMainActivity extends AppCompatActivity {
     }
 
     private void setupRecyclerView() {
-        adapter = new PublicAnimalsAdapter(animal -> showAnimalDetails(animal));
+        // 2. Configurar el adaptador con el click listener
+        adapter = new AnimalAdapter(this, animal -> showAnimalDetails(animal));
 
+        // Usamos GridLayoutManager para que se vea en 2 columnas (como en la imagen de muestra)
         binding.rvAnimals.setLayoutManager(new GridLayoutManager(this, 2));
         binding.rvAnimals.setAdapter(adapter);
     }
@@ -74,40 +86,40 @@ public class PublicMainActivity extends AppCompatActivity {
     private void loadAnimalesDisponibles() {
         showLoading(true);
 
-        // Aquí debes implementar tu lógica para cargar los animales
-        /*
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        // 3. Consulta a Firebase CORREGIDA
         db.collection("animales")
-            .whereEqualTo("estado", "Disponible")
-            .get()
-            .addOnSuccessListener(queryDocumentSnapshots -> {
-                List<Animal> animales = new ArrayList<>();
-                for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                    Animal animal = doc.toObject(Animal.class);
-                    if (animal != null) {
-                        animales.add(animal);
+                // --- NOTA: He comentado el filtro para que veas TODOS los animales por ahora ---
+                // .whereEqualTo("estadoRefugio", "Disponible Adopcion")
+                // -------------------------------------------------------------------------------
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<Animal> animales = new ArrayList<>();
+                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        try {
+                            Animal animal = doc.toObject(Animal.class);
+                            if (animal != null) {
+                                // Aseguramos que el ID del documento esté en el objeto
+                                animal.setIdAnimal(doc.getId());
+                                animales.add(animal);
+                            }
+                        } catch (Exception e) {
+                            // Ignorar documentos mal formados
+                        }
                     }
-                }
-                adapter.submitList(animales);
-                updateEmptyState(animales.isEmpty());
-                showLoading(false);
-            })
-            .addOnFailureListener(e -> {
-                showLoading(false);
-                Toast.makeText(this,
-                    "Error al cargar animales: " + e.getMessage(),
-                    Toast.LENGTH_SHORT).show();
-            });
-        */
 
-        // Simulación temporal (elimina esto en producción)
-        new android.os.Handler().postDelayed(() -> {
-            List<Animal> animales = new ArrayList<>();
-            // Aquí obtendrías los datos reales
-            adapter.submitList(animales);
-            updateEmptyState(animales.isEmpty());
-            showLoading(false);
-        }, 1500);
+                    // Actualizar la lista en el adaptador
+                    adapter.setAnimalesList(animales);
+
+                    // Mostrar imagen de "vacío" si no hay datos
+                    updateEmptyState(animales.isEmpty());
+                    showLoading(false);
+                })
+                .addOnFailureListener(e -> {
+                    showLoading(false);
+                    Toast.makeText(this,
+                            "Error al cargar animales: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void showAnimalDetails(Animal animal) {

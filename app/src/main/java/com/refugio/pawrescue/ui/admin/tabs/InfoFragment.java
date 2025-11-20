@@ -53,7 +53,7 @@ public class InfoFragment extends Fragment {
             TextView tvUbicacion = view.findViewById(R.id.tv_info_ubicacion);
             TextView tvCondiciones = view.findViewById(R.id.tv_info_condiciones);
 
-            // ID Numérico formateado correctamente
+            // ID Numérico formateado correctamente (ej. #0001)
             String idDisplay = String.format(Locale.US, "#%04d", animal.getIdNumerico());
             tvId.setText("ID: " + idDisplay);
 
@@ -63,21 +63,27 @@ public class InfoFragment extends Fragment {
             tvSexo.setText("Sexo: " + (animal.getSexo() != null ? animal.getSexo() : "N/A"));
             tvEstado.setText("Estado: " + (animal.getEstadoRefugio() != null ? animal.getEstadoRefugio() : "N/A"));
 
-            // Formateo de fecha más legible
+            // Formateo de fecha (Ahora usa Date directamente)
             if (animal.getFechaRegistro() != null) {
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
-                String fecha = sdf.format(animal.getFechaRegistro().toDate());
+                String fecha = sdf.format(animal.getFechaRegistro());
                 tvRescate.setText("Rescatado: " + fecha);
             } else {
                 tvRescate.setText("Rescatado: N/A");
             }
 
-            // Ubicación GPS
-            if (animal.getUbicacionRescate() != null) {
-                String ubicacion = String.format(Locale.US, "Lat: %.6f, Lon: %.6f",
-                        animal.getUbicacionRescate().getLatitude(),
-                        animal.getUbicacionRescate().getLongitude());
-                tvUbicacion.setText("Ubicación: " + ubicacion);
+            // Ubicación GPS (Ahora parsea el String "lat,lon")
+            if (animal.getUbicacionRescate() != null && animal.getUbicacionRescate().contains(",")) {
+                try {
+                    String[] partes = animal.getUbicacionRescate().split(",");
+                    double latitud = Double.parseDouble(partes[0]);
+                    double longitud = Double.parseDouble(partes[1]);
+
+                    String ubicacion = String.format(Locale.US, "Lat: %.6f, Lon: %.6f", latitud, longitud);
+                    tvUbicacion.setText("Ubicación: " + ubicacion);
+                } catch (NumberFormatException e) {
+                    tvUbicacion.setText("Ubicación: Error de formato");
+                }
             } else {
                 tvUbicacion.setText("Ubicación: No registrada");
             }

@@ -385,14 +385,15 @@ public class RegistroAnimalActivity extends AppCompatActivity {
         nuevoAnimal.setSexo(obtenerSexoSeleccionado());
         nuevoAnimal.setEstadoSalud("Estable");
         nuevoAnimal.setEstadoRefugio("Rescatado");
-        nuevoAnimal.setFechaRegistro(new Timestamp(new Date()));
+        nuevoAnimal.setFechaRegistro(new Date());
         nuevoAnimal.setCondicionesEspeciales(obtenerCondicionesEspeciales());
 
         // Manejar Ubicación
         if (ubicacionGPS != null) {
-            nuevoAnimal.setUbicacionRescate(ubicacionGPS);
+            String coordenadas = ubicacionGPS.getLatitude() + "," + ubicacionGPS.getLongitude();
+            nuevoAnimal.setUbicacionRescate(coordenadas);
         } else {
-            Log.w(TAG, "⚠️ Ubicación GPS no disponible. Usando Ubicación Manual.");
+            nuevoAnimal.setUbicacionRescate(null);
         }
 
         // Mostrar progreso
