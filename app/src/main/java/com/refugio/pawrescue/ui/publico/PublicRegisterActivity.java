@@ -6,18 +6,29 @@ import android.util.Patterns;
 import android.view.View;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.refugio.pawrescue.data.helper.FirebaseHelper; // <--- Importante
 import com.refugio.pawrescue.databinding.ActivityPublicRegisterBinding;
+import com.refugio.pawrescue.model.Usuario;
 import com.refugio.pawrescue.ui.auth.LoginActivity;
 
 public class PublicRegisterActivity extends AppCompatActivity {
 
     private ActivityPublicRegisterBinding binding;
+    private FirebaseAuth mAuth;
+    private FirebaseHelper firebaseHelper; // <--- Instancia del Helper
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityPublicRegisterBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // Inicializar Firebase Auth y nuestro Helper
+        mAuth = FirebaseAuth.getInstance();
+        firebaseHelper = new FirebaseHelper(); // <--- Inicialización
 
         setupUI();
     }
@@ -41,13 +52,7 @@ public class PublicRegisterActivity extends AppCompatActivity {
         });
     }
 
-    private boolean validateInputs(
-            String nombre,
-            String email,
-            String password,
-            String passwordConfirm,
-            String telefono
-    ) {
+    private boolean validateInputs(String nombre, String email, String password, String passwordConfirm, String telefono) {
         boolean isValid = true;
 
         if (nombre.isEmpty()) {
@@ -97,38 +102,58 @@ public class PublicRegisterActivity extends AppCompatActivity {
     private void register(String nombre, String email, String password, String telefono) {
         showLoading(true);
 
-        // lógica de registro llamar a Firebase
-
-        /*
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener(this, task -> {
-                if (task.isSuccessful()) {
-                    // Guardar datos adicionales en Firestore o Realtime Database
-                    saveUserData(nombre, email, telefono);
-                } else {
-                    showLoading(false);
-                    Toast.makeText(this,
-                        "Error: " + task.getException().getMessage(),
-                        Toast.LENGTH_LONG).show();
-                }
-            });
-        */
-
-        new android.os.Handler().postDelayed(() -> {
-            showLoading(false);
-            Toast.makeText(
-                    this,
-                    "✅ Registro exitoso. ¡Bienvenido!",
-                    Toast.LENGTH_LONG
-            ).show();
-            navigateToPublicMain();
-        }, 2000);
+        // 1. Crear usuario en Firebase Authentication (Email/Password)
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        // Autenticación exitosa
+                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                        if (firebaseUser != null) {
+                            // 2. Guardar datos en Firestore con ID Autoincremental
+                            guardarUsuarioEnFirestore(firebaseUser.getUid(), nombre, email, telefono);
+                        }
+                    } else {
+                        showLoading(false);
+                        String error = task.getException() != null ? task.getException().getMessage() : "Error desconocido";
+                        Toast.makeText(this, "Error Auth: " + error, Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
-    private void showLoading(boolean show) {
-        binding.progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
-        binding.btnRegistrar.setEnabled(!show);
+    private void guardarUsuarioEnFirestore(String uid, String nombre, String email, String telefono) {
+        // Crear objeto Usuario
+        Usuario nuevoUsuario = new Usuario();
+        nuevoUsuario.setUid(uid);
+        nuevoUsuario.setNombre(nombre);
+        nuevoUsuario.setCorreo(email);
+        nuevoUsuario.setRol("Usuario"); // Rol por defecto
+        nuevoUsuario.setEstadoActivo(true);
+
+        // Si decidiste agregar el campo telefono al modelo Usuario.java, descomenta esto:
+        // nuevoUsuario.setTelefono(telefono);
+
+        // 3. USAR EL HELPER PARA ASIGNAR ID AUTOINCREMENTAL Y GUARDAR
+        firebaseHelper.registrarUsuarioConContador(nuevoUsuario, new FirebaseHelper.RegistroUsuarioCallback() {
+            @Override
+            public void onSuccess(long idGenerado) {
+                showLoading(false);
+
+                // Mostrar mensaje de éxito con el ID asignado
+                Toast.makeText(PublicRegisterActivity.this,
+                        "¡Bienvenido! Tu ID de usuario es #" + idGenerado,
+                        Toast.LENGTH_LONG).show();
+
+                navigateToPublicMain();
+            }
+
+            @Override
+            public void onFailure(String error) {
+                showLoading(false);
+                Toast.makeText(PublicRegisterActivity.this,
+                        "Usuario creado, pero error al guardar datos: " + error,
+                        Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void navigateToPublicMain() {
@@ -136,5 +161,10 @@ public class PublicRegisterActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    private void showLoading(boolean show) {
+        binding.progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        binding.btnRegistrar.setEnabled(!show);
     }
 }

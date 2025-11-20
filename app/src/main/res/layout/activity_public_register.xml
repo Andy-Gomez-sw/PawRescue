@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light">
+    android:background="@color/light">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -16,7 +16,6 @@
             android:layout_height="wrap_content"
             android:padding="32dp">
 
-            <!-- Logo -->
             <TextView
                 android:id="@+id/tvLogo"
                 android:layout_width="wrap_content"
@@ -28,7 +27,6 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 android:layout_marginTop="20dp"/>
 
-            <!-- Título -->
             <TextView
                 android:id="@+id/tvTitulo"
                 android:layout_width="wrap_content"
@@ -42,7 +40,6 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 android:layout_marginTop="16dp"/>
 
-            <!-- Subtítulo -->
             <TextView
                 android:id="@+id/tvSubtitulo"
                 android:layout_width="wrap_content"
@@ -55,13 +52,15 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 android:layout_marginTop="8dp"/>
 
-            <!-- Nombre -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilNombre"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Nombre completo"
+                android:textColorHint="@color/black"
+                app:boxStrokeColor="@color/black"
+                app:hintTextColor="@color/black"
                 app:layout_constraintTop_toBottomOf="@id/tvSubtitulo"
                 android:layout_marginTop="32dp">
 
@@ -69,17 +68,20 @@
                     android:id="@+id/etNombre"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:textColor="@color/black"
                     android:inputType="textPersonName"/>
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Email -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilEmail"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Email"
-                app:startIconTint="@color/primary_green"
+                android:textColorHint="@color/black"
+                app:boxStrokeColor="@color/black"
+                app:hintTextColor="@color/black"
+                app:startIconTint="@color/black"
                 app:layout_constraintTop_toBottomOf="@id/tilNombre"
                 android:layout_marginTop="16dp">
 
@@ -87,16 +89,19 @@
                     android:id="@+id/etEmail"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:textColor="@color/black"
                     android:inputType="textEmailAddress"/>
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Teléfono -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilTelefono"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Teléfono"
+                android:textColorHint="@color/black"
+                app:boxStrokeColor="@color/black"
+                app:hintTextColor="@color/black"
                 app:layout_constraintTop_toBottomOf="@id/tilEmail"
                 android:layout_marginTop="16dp">
 
@@ -104,17 +109,21 @@
                     android:id="@+id/etTelefono"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:textColor="@color/black"
                     android:inputType="phone"/>
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Contraseña -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilPassword"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Contraseña"
-                app:startIconTint="@color/primary_green"
+                android:textColorHint="@color/black"
+                app:boxStrokeColor="@color/black"
+                app:hintTextColor="@color/black"
+                app:startIconTint="@color/black"
+                app:endIconTint="@color/black"
                 app:endIconMode="password_toggle"
                 app:layout_constraintTop_toBottomOf="@id/tilTelefono"
                 android:layout_marginTop="16dp">
@@ -123,17 +132,21 @@
                     android:id="@+id/etPassword"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:textColor="@color/black"
                     android:inputType="textPassword"/>
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Confirmar Contraseña -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilPasswordConfirm"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Confirmar contraseña"
-                app:startIconTint="@color/primary_green"
+                android:textColorHint="@color/black"
+                app:boxStrokeColor="@color/black"
+                app:hintTextColor="@color/black"
+                app:startIconTint="@color/black"
+                app:endIconTint="@color/black"
                 app:endIconMode="password_toggle"
                 app:layout_constraintTop_toBottomOf="@id/tilPassword"
                 android:layout_marginTop="16dp">
@@ -142,10 +155,10 @@
                     android:id="@+id/etPasswordConfirm"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:textColor="@color/black"
                     android:inputType="textPassword"/>
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Botón Registrar -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRegistrar"
                 android:layout_width="match_parent"
@@ -155,7 +168,6 @@
                 app:layout_constraintTop_toBottomOf="@id/tilPasswordConfirm"
                 android:layout_marginTop="24dp"/>
 
-            <!-- Ya tienes cuenta -->
             <TextView
                 android:id="@+id/tvYaTienesCuenta"
                 android:layout_width="wrap_content"
@@ -170,7 +182,6 @@
                 android:clickable="true"
                 android:focusable="true"/>
 
-            <!-- Progress Bar -->
             <ProgressBar
                 android:id="@+id/progressBar"
                 android:layout_width="wrap_content"

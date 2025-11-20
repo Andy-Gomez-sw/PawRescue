@@ -22,7 +22,8 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.refugio.pawrescue.R;
 import com.refugio.pawrescue.ui.admin.AdminMainActivity;
-import com.refugio.pawrescue.ui.volunteer.VolunteerMainActivity; // Asumimos esta actividad para el otro rol
+import com.refugio.pawrescue.ui.publico.PublicRegisterActivity; // <--- NUEVO IMPORT
+import com.refugio.pawrescue.ui.volunteer.VolunteerMainActivity;
 
 /**
  * Activity para el Inicio de Sesión (RF-02) y validación de roles (RF-04).
@@ -71,18 +72,18 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // Navegar a la Activity de Recuperación de Contraseña
-                // Por ahora, solo mostramos un Toast como placeholder
                 Toast.makeText(LoginActivity.this, "Funcionalidad de recuperación (RF-03) implementada más tarde.", Toast.LENGTH_SHORT).show();
             }
         });
 
         // Listener para el botón de Registro (RF-01)
+        // --- AQUÍ ESTÁ EL CAMBIO PARA CONECTAR CON EL REGISTRO ---
         btnRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // En una aplicación real, esta Activity permitiría crear nuevos usuarios
-                // Por ahora, solo mostramos un Toast como placeholder
-                Toast.makeText(LoginActivity.this, "Funcionalidad de registro (RF-01) implementada más tarde.", Toast.LENGTH_SHORT).show();
+                // Navegar a la pantalla de Registro Público
+                Intent intent = new Intent(LoginActivity.this, PublicRegisterActivity.class);
+                startActivity(intent);
             }
         });
     }
@@ -150,10 +151,13 @@ public class LoginActivity extends AppCompatActivity {
                                 if (rol != null) {
                                     redirigirSegunRol(rol);
                                 } else {
-                                    Toast.makeText(LoginActivity.this, "Error: Rol no asignado. Acceso denegado (RF-04).", Toast.LENGTH_LONG).show();
-                                    mAuth.signOut(); // Bloquear acceso
+                                    // Si el usuario existe pero no tiene rol (ej. recién registrado manualmente sin rol)
+                                    // Asignamos comportamiento por defecto o mostramos error
+                                    // Para este caso, asumiremos que si no tiene rol definido es un usuario público:
+                                    redirigirSegunRol("Usuario");
                                 }
                             } else {
+                                // Usuario en Auth pero no en Firestore (casos raros)
                                 Toast.makeText(LoginActivity.this, "Error: Datos de usuario no encontrados en DB.", Toast.LENGTH_LONG).show();
                                 mAuth.signOut();
                             }
@@ -168,7 +172,7 @@ public class LoginActivity extends AppCompatActivity {
 
     /**
      * Redirige a la Activity principal según el rol.
-     * @param rol El rol del usuario ("Admin", "Voluntario", etc.).
+     * @param rol El rol del usuario ("Admin", "Voluntario", "Usuario", etc.).
      */
     private void redirigirSegunRol(String rol) {
         Intent intent;
@@ -179,16 +183,15 @@ public class LoginActivity extends AppCompatActivity {
             // Redirige a la vista del Voluntario.
             intent = new Intent(LoginActivity.this, VolunteerMainActivity.class);
         } else {
-            // Rol no reconocido o Bloqueado.
-            Toast.makeText(LoginActivity.this, "Rol no reconocido. Contacte a soporte.", Toast.LENGTH_LONG).show();
-            mAuth.signOut();
-            return;
+            // LÓGICA ORIGINAL EXTENDIDA: Cualquier otro rol (ej: "Usuario") va al PublicMainActivity
+            // Esto cubre el flujo del usuario público que se acaba de loguear
+            intent = new Intent(LoginActivity.this, com.refugio.pawrescue.ui.publico.PublicMainActivity.class);
         }
 
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Limpiar historial
         startActivity(intent);
         finish();
-        Toast.makeText(LoginActivity.this, "Bienvenido como " + rol + ".", Toast.LENGTH_SHORT).show();
+        Toast.makeText(LoginActivity.this, "Bienvenido " + (rol != null ? rol : ""), Toast.LENGTH_SHORT).show();
     }
 
     /**
