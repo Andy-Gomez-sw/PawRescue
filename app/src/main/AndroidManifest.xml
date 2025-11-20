@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <!-- PERMISOS REQUERIDOS POR EL PROYECTO (Módulos futuros) -->
-    <!-- Para la geolocalización de rescates (RF-11) -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> <!-- Para la cámara y fotos del animal (RF-05) -->
-    <uses-permission android:name="android.permission.CAMERA" /> <!-- Para guardar archivos temporales y fotos (Modo Offline RF-25) -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- NOTA: WRITE_EXTERNAL_STORAGE es requerido para dispositivos antiguos y la mayoría
+               de las implementaciones de FileProvider en dispositivos modernos para guardar. -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
     <uses-permission android:name="android.permission.INTERNET" />
+
 
     <application
         android:allowBackup="true"
@@ -19,29 +26,52 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PawRescue">
-        <activity
-            android:name=".ui.admin.DetalleAnimalActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.admin.RegistroAnimalActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.volunteer.VolunteerMainActivity"
+
+        <!-- DECLARACIÓN DEL FILE PROVIDER (Nuevo) -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
             android:exported="false"
-            android:label="Panel de Voluntarios" />
-        <activity
-            android:name=".ui.admin.AdminMainActivity"
-            android:exported="false"
-            android:label="Panel de Administración" /> <!-- 1. ACTIVITY DE INICIO DE SESIÓN (Punto de entrada RF-02) -->
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+        <!-- FIN DECLARACIÓN DEL FILE PROVIDER -->
+
+        <!-- 1. ACTIVITY DE INICIO DE SESIÓN (Punto de entrada RF-02) -->
         <activity
             android:name=".ui.auth.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 2. ACTIVITY PRINCIPAL DEL ADMINISTRADOR (RF-04) -->
+        <activity
+            android:name=".ui.admin.AdminMainActivity"
+            android:exported="false"
+            android:label="Panel de Administración" />
+
+        <!-- 3. ACTIVITY PRINCIPAL DEL VOLUNTARIO (RF-04) -->
+        <activity
+            android:name=".ui.volunteer.VolunteerMainActivity"
+            android:exported="false"
+            android:label="Panel de Voluntarios" />
+
+        <!-- Activities del CRUD -->
+        <activity
+            android:name=".ui.admin.RegistroAnimalActivity"
+            android:exported="false"
+            android:label="Registro Animal"/>
+
+        <activity
+            android:name=".ui.admin.DetalleAnimalActivity"
+            android:exported="false"
+            android:label="Detalle Expediente"/>
+
     </application>
 
 </manifest>

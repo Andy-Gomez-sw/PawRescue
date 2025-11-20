@@ -82,17 +82,14 @@
         app:layout_constraintTop_toBottomOf="@+id/app_bar_layout"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- Pestañas de Navegación (Similar al Mockup de Pestañas: Info, Cuidados, Historial) -->
+        <!-- Pestañas de Navegación (TabLayout) -->
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tab_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@android:color/white"
-            app:tabIndicatorColor="#388E3C"
-            app:tabSelectedTextColor="#388E3C"
             app:tabMode="fixed" />
 
-        <!-- Contenido de las Pestañas -->
+        <!-- Contenido de las Pestañas (ViewPager) -->
         <androidx.viewpager.widget.ViewPager
             android:id="@+id/view_pager"
             android:layout_width="match_parent"
