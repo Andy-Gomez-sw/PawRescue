@@ -16,4 +16,34 @@
     <color name="text_secondary">#383838</color>
     <color name="background_light">#CADBB8</color>
     <color name="secondary_blue">#1976D2</color>
+
+    <!-- Colores Primarios -->
+    <color name="primary_green_dark">#388E3C</color>
+    <color name="primary_green_light">#81C784</color>
+
+    <!-- Colores de Acento -->
+    <color name="accent_orange">#FF9800</color>
+    <color name="accent_blue">#2196F3</color>
+    <!-- Colores de Estado -->
+    <color name="status_success">#4CAF50</color>
+    <color name="status_warning">#FF9800</color>
+    <color name="status_error">#F44336</color>
+    <color name="status_info">#2196F3</color>
+    <!-- Colores de Texto -->
+    <color name="text_primary">#212121</color>
+    <color name="text_hint">#9E9E9E</color>
+    <color name="text_disabled">#BDBDBD</color>
+    <!-- Colores de Fondo -->
+    <color name="background_primary">#FFFFFF</color>
+    <color name="background_secondary">#F5F5F5</color>
+    <color name="background_card">#FFFFFF</color>
+    <!-- Colores Básicos -->
+    <color name="transparent">#00000000</color>
+    <!-- Colores de Divider y Borders -->
+    <color name="divider">#E0E0E0</color>
+    <color name="border_light">#EEEEEE</color>
+    <!-- Colores de Overlay -->
+    <color name="overlay_dark">#80000000</color>
+    <color name="overlay_light">#80FFFFFF</color>
+
 </resources>
