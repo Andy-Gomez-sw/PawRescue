@@ -50,21 +50,44 @@ public class AnimalAdapter extends RecyclerView.Adapter<AnimalAdapter.AnimalView
         Animal animal = animalesList.get(position);
 
         // Cargar imagen usando Glide (o Picasso) para manejo eficiente (RF-06)
-        // Nota: Se requiere la librería Glide en el archivo build.gradle
         Glide.with(context)
                 .load(animal.getFotoUrl())
                 .placeholder(R.drawable.ic_pet_placeholder) // Placeholder de huella
                 .error(R.drawable.ic_pet_error)
                 .into(holder.ivAnimalPhoto);
 
-        holder.tvAnimalName.setText(animal.getNombre());
-        holder.tvAnimalDetails.setText(String.format("%s, %s", animal.getEspecie(), animal.getRaza()));
+        // Mostrar ID Numérico como #0001
+        String animalIdDisplay = String.format("#%04d", animal.getIdNumerico());
+        holder.tvAnimalName.setText(String.format("%s %s", animal.getNombre(), animalIdDisplay));
+
+        holder.tvAnimalDetails.setText(String.format("%s • %s", animal.getEspecie(), animal.getRaza()));
         holder.tvAnimalStatus.setText(animal.getEstadoRefugio());
 
-        // Colores y estética según el estado (similar al mockup)
-        if (animal.getEstadoRefugio().equals("Adoptado")) {
+        // --- LÓGICA DE PUNTOS DE ESTADO ---
+        String estado = animal.getEstadoRefugio();
+
+        // Punto 1: Alerta o Disponibilidad (Rojo/Naranja fuerte)
+        if (estado.equals("Disponible Adopcion") || estado.equals("En Proceso Adopción")) {
+            holder.dotStatusMain.setVisibility(View.VISIBLE);
+            holder.dotStatusMain.setBackgroundResource(R.drawable.legend_dot_red);
+        } else {
+            holder.dotStatusMain.setVisibility(View.GONE);
+        }
+
+        // Punto 2: Medicación Activa (Simulación: Si tiene "Tratamiento" en condiciones especiales)
+        // NOTA: Para una implementación real, tendrías que consultar el Historial Médico.
+        // Aquí simulamos si tiene alguna condición que requiera atención.
+        if (animal.getCondicionesEspeciales() != null && !animal.getCondicionesEspeciales().isEmpty()) {
+            holder.dotStatusMedication.setVisibility(View.VISIBLE);
+            holder.dotStatusMedication.setBackgroundResource(R.drawable.legend_dot_orange);
+        } else {
+            holder.dotStatusMedication.setVisibility(View.GONE);
+        }
+
+        // Colores de la Etiqueta de Estado (Mockup inferior)
+        if (estado.equals("Adoptado")) {
             holder.tvAnimalStatus.setBackgroundColor(ContextCompat.getColor(context, R.color.status_adopted));
-        } else if (animal.getEstadoRefugio().equals("Disponible Adopcion")) {
+        } else if (estado.equals("Disponible Adopcion") || estado.equals("En Proceso Adopción")) {
             holder.tvAnimalStatus.setBackgroundColor(ContextCompat.getColor(context, R.color.status_available));
         } else {
             holder.tvAnimalStatus.setBackgroundColor(ContextCompat.getColor(context, R.color.status_rescued));
@@ -85,6 +108,9 @@ public class AnimalAdapter extends RecyclerView.Adapter<AnimalAdapter.AnimalView
         final TextView tvAnimalName;
         final TextView tvAnimalDetails;
         final TextView tvAnimalStatus;
+        // Puntos de estado
+        final View dotStatusMain;
+        final View dotStatusMedication;
 
         public AnimalViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -93,6 +119,8 @@ public class AnimalAdapter extends RecyclerView.Adapter<AnimalAdapter.AnimalView
             tvAnimalName = itemView.findViewById(R.id.tv_animal_name);
             tvAnimalDetails = itemView.findViewById(R.id.tv_animal_details);
             tvAnimalStatus = itemView.findViewById(R.id.tv_animal_status);
+            dotStatusMain = itemView.findViewById(R.id.dot_status_main);
+            dotStatusMedication = itemView.findViewById(R.id.dot_status_medication);
         }
     }
 

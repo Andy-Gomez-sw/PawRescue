@@ -1,15 +1,16 @@
 package com.refugio.pawrescue.ui.admin;
 
-import static com.refugio.pawrescue.ui.admin.tabs.AdoptionFragment.newInstance;
-
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
@@ -24,13 +25,16 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.refugio.pawrescue.R;
+import com.refugio.pawrescue.data.repository.AnimalRepository;
 import com.refugio.pawrescue.model.Animal;
 import com.refugio.pawrescue.ui.admin.tabs.AdoptionFragment;
 import com.refugio.pawrescue.ui.admin.tabs.HistoryFragment;
 import com.refugio.pawrescue.ui.admin.tabs.InfoFragment;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Activity para mostrar el detalle, historial y opciones de edición de un Animal (RF-06, RF-07).
@@ -48,6 +52,10 @@ public class DetalleAnimalActivity extends AppCompatActivity {
     private TabLayout tabLayout;
     private ViewPager viewPager;
     private FirebaseFirestore db;
+    private AnimalRepository animalRepository; // Añadimos el repositorio para operaciones de CRUD
+
+    // Estados del animal (RF-08)
+    private final String[] estadosAnimal = {"Rescatado", "En Tratamiento", "Disponible Adopcion", "Adoptado", "Caso Cerrado"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +64,7 @@ public class DetalleAnimalActivity extends AppCompatActivity {
 
         // Inicialización
         db = FirebaseFirestore.getInstance();
+        animalRepository = new AnimalRepository();
         animalId = getIntent().getStringExtra("animalId");
 
         // Enlazar UI
@@ -73,8 +82,8 @@ public class DetalleAnimalActivity extends AppCompatActivity {
             getSupportActionBar().setTitle(""); // Título se establecerá al cargar el animal
         }
 
-        // Listener de Edición (RF-07)
-        icEdit.setOnClickListener(v -> Toast.makeText(this, "Iniciando Edición (RF-07) - Implementación futura.", Toast.LENGTH_SHORT).show());
+        // Listener de Edición (RF-07, RF-08) -> Muestra diálogo para cambiar estado
+        //icEdit.setOnClickListener(v -> mostrarDialogoEdicionEstado());
 
         // Listener de Exportar/Compartir
         icShare.setOnClickListener(v -> Toast.makeText(this, "Funcionalidad de Exportación (RF-23) - Implementación futura.", Toast.LENGTH_SHORT).show());
@@ -87,6 +96,66 @@ public class DetalleAnimalActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
+    }
+
+    /**
+     * Muestra un diálogo para que el Administrador cambie el estado oficial del animal (RF-08).
+     */
+   /* private void mostrarDialogoEdicionEstado() {
+        if (currentAnimal == null) return;
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Cambiar Estado del Animal (RF-08)");
+
+        final Spinner spinner = new Spinner(this);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, estadosAnimal);
+        spinner.setAdapter(adapter);
+
+        // Seleccionar el estado actual
+        int currentPosition = adapter.getPosition(currentAnimal.getEstadoRefugio());
+        if (currentPosition >= 0) {
+            spinner.setSelection(currentPosition);
+        }
+
+        builder.setView(spinner);
+
+        builder.setPositiveButton("Actualizar", (dialog, which) -> {
+            String nuevoEstado = spinner.getSelectedItem().toString();
+            actualizarEstado(nuevoEstado);
+        });
+
+        builder.setNegativeButton("Cancelar", (dialog, which) -> dialog.cancel());
+        builder.show();
+    }*/
+
+    /**
+     * Llama al repositorio para actualizar el estado del animal en Firestore (RF-08).
+     * @param nuevoEstado El nuevo estado seleccionado.
+     */
+    /*private void actualizarEstado(String nuevoEstado) {
+        if (animalId == null || nuevoEstado.equals(currentAnimal.getEstadoRefugio())) return;
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("estadoRefugio", nuevoEstado);
+
+        animalRepository.actualizarAnimal(animalId, updates)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(DetalleAnimalActivity.this, "Estado actualizado a: " + nuevoEstado, Toast.LENGTH_SHORT).show();
+                        // Recargar datos para actualizar la UI (ya que no estamos escuchando en tiempo real en esta Activity)
+                        cargarDetalleAnimal(animalId);
+                    } else {
+                        Toast.makeText(DetalleAnimalActivity.this, "Error al actualizar estado.", Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "Error actualizando estado: ", task.getException());
+                    }
+                });
+    }*/
+
+
     /**
      * Carga el objeto Animal desde Firestore usando el ID.
      */
@@ -98,12 +167,16 @@ public class DetalleAnimalActivity extends AppCompatActivity {
                         if (task.isSuccessful() && task.getResult().exists()) {
                             currentAnimal = task.getResult().toObject(Animal.class);
                             if (currentAnimal != null) {
+
+                                // CORRECCIÓN 1: Formateo del ID Numérico para el título
+                                String idDisplay = String.format("#%04d", currentAnimal.getIdNumerico());
+
                                 // Establecer Título de la Toolbar con el nombre del animal
                                 if (getSupportActionBar() != null) {
-                                    getSupportActionBar().setTitle(currentAnimal.getNombre() + " #" + currentAnimal.getIdAnimal());
+                                    getSupportActionBar().setTitle(currentAnimal.getNombre() + " " + idDisplay);
                                 }
 
-                                // Cargar foto con Glide
+                                // Cargar foto con Glide (Asumiendo que la dependencia ya fue agregada)
                                 Glide.with(DetalleAnimalActivity.this)
                                         .load(currentAnimal.getFotoUrl())
                                         .placeholder(R.drawable.ic_pet_placeholder)
@@ -139,7 +212,7 @@ public class DetalleAnimalActivity extends AppCompatActivity {
         adapter.addFragment(HistoryFragment.newInstance(animal.getIdAnimal()), "Historial");
 
         // Pestaña 3: Adopciones (RF-14, RF-16)
-        adapter.addFragment(newInstance(animal.getIdAnimal()), "Adopciones");
+        adapter.addFragment(AdoptionFragment.newInstance(animal.getIdAnimal()), "Adopciones");
 
         viewPager.setAdapter(adapter);
     }

@@ -2,6 +2,8 @@ package com.refugio.pawrescue.model;
 
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.GeoPoint;
+
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -9,7 +11,7 @@ import java.util.List;
  * Mapea la información almacenada en la colección "animales" de Firestore.
  * Corresponde principalmente a los Requisitos Funcionales RF-05 y RF-08.
  */
-public class Animal {
+public class Animal implements Serializable {
     private String idAnimal;
     private long idNumerico;
     private String nombre;

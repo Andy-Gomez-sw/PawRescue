@@ -51,7 +51,7 @@ public class InfoFragment extends Fragment {
             TextView tvEstado = view.findViewById(R.id.tv_info_estado);
             TextView tvRescate = view.findViewById(R.id.tv_info_rescate);
 
-            tvId.setText("ID: " + animal.getIdAnimal());
+            tvId.setText("ID: " + animal.getIdNumerico());
             tvNombre.setText("Nombre: " + animal.getNombre());
             tvEspecie.setText("Especie: " + animal.getEspecie());
             tvRaza.setText("Raza: " + animal.getRaza());

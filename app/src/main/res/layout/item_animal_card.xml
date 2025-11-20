@@ -30,7 +30,7 @@
             android:contentDescription="Foto del animal"
             app:layout_constraintBottom_toBottomOf="parent" />
 
-        <!-- Nombre del Animal -->
+        <!-- Nombre del Animal + ID Numérico -->
         <TextView
             android:id="@+id/tv_animal_name"
             android:layout_width="0dp"
@@ -42,21 +42,49 @@
             app:layout_constraintStart_toEndOf="@+id/iv_animal_photo"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            tools:text="Max #A001" />
+            tools:text="Max #0001" />
 
-        <!-- Detalles (Especie, Raza) -->
-        <TextView
-            android:id="@+id/tv_animal_details"
+        <!-- Contenedor para Detalles (Especie, Raza, y Puntos de Estado) -->
+        <LinearLayout
+            android:id="@+id/details_container"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
             android:layout_marginStart="16dp"
             android:layout_marginTop="2dp"
-            android:textSize="14sp"
-            android:textColor="#555555"
+            android:gravity="center_vertical"
             app:layout_constraintStart_toEndOf="@+id/iv_animal_photo"
             app:layout_constraintTop_toBottomOf="@+id/tv_animal_name"
-            app:layout_constraintEnd_toEndOf="parent"
-            tools:text="Pastor Alemán, 3 años" />
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <!-- PUNTO 1: DISPONIBLE / ALERTA (Rojo) -->
+            <View
+                android:id="@+id/dot_status_main"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:layout_marginEnd="4dp"
+                android:visibility="gone"
+                android:background="@drawable/legend_dot_red"/>
+
+            <!-- PUNTO 2: MEDICACIÓN ACTIVA (Naranja) -->
+            <View
+                android:id="@+id/dot_status_medication"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:layout_marginEnd="4dp"
+                android:visibility="gone"
+                android:background="@drawable/legend_dot_orange"/>
+
+            <!-- Detalles (Especie, Raza) -->
+            <TextView
+                android:id="@+id/tv_animal_details"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textColor="#555555"
+                tools:text="Pastor Alemán • 3 años" />
+
+        </LinearLayout>
 
         <!-- Etiqueta de Estado (Mockup inferior) -->
         <TextView
@@ -71,8 +99,8 @@
             android:textStyle="bold"
             android:textColor="@android:color/white"
             app:layout_constraintStart_toEndOf="@+id/iv_animal_photo"
-            app:layout_constraintTop_toBottomOf="@+id/tv_animal_details"
-            tools:text="En Adopción"
+            app:layout_constraintTop_toBottomOf="@+id/details_container"
+            tools:text="Rescatado"
             android:background="@drawable/rounded_status_bg"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

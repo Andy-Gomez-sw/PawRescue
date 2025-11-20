@@ -180,6 +180,14 @@
                 android:layout_height="wrap_content"
                 android:text="Preñada (Hembras)" />
 
+            <ProgressBar
+                android:id="@+id/progress_bar_registro"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:indeterminate="true"
+                android:visibility="gone" />
             <!-- Botón Final de Registro -->
             <Button
                 android:id="@+id/btn_guardar_animal"
