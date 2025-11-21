@@ -1,5 +1,7 @@
 package com.refugio.pawrescue.model;
 
+import com.google.firebase.firestore.GeoPoint;
+
 import java.io.Serializable;
 import java.util.Date; // <--- IMPORTANTE: Usar Date, no Timestamp
 import java.util.List;
