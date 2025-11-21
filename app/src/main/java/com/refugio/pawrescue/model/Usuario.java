@@ -1,22 +1,16 @@
 package com.refugio.pawrescue.model;
 
-/**
- * Modelo de datos para la entidad Usuario.
- * Mapea la información de permisos y rol almacenada en la colección "usuarios".
- * Esencial para el flujo de autenticación y roles (RF-04).
- */
 public class Usuario {
     private String uid;
+    private long idNumerico; // <--- Tu nuevo campo
     private String nombre;
     private String correo;
-    private String rol; // Valores clave: "Admin", "Coordinador", "Voluntario" (RF-04)
+    private String rol;
     private boolean estadoActivo;
 
-    // Constructor vacío requerido por Firebase Firestore
     public Usuario() {
     }
 
-    // Constructor completo
     public Usuario(String uid, String nombre, String correo, String rol, boolean estadoActivo) {
         this.uid = uid;
         this.nombre = nombre;
@@ -25,7 +19,15 @@ public class Usuario {
         this.estadoActivo = estadoActivo;
     }
 
-    // Getters y Setters
+    public long getIdNumerico() {
+        return idNumerico;
+    }
+
+    public void setIdNumerico(long idNumerico) {
+        this.idNumerico = idNumerico;
+    }
+    // ---------------------------------------
+
     public String getUid() {
         return uid;
     }

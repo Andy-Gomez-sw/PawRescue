@@ -1,55 +1,40 @@
 package com.refugio.pawrescue.model;
 
-import com.google.firebase.Timestamp;
-import com.google.firebase.firestore.GeoPoint;
-
 import java.io.Serializable;
+import java.util.Date; // <--- IMPORTANTE: Usar Date, no Timestamp
 import java.util.List;
 
 /**
  * Modelo de datos para la entidad Animal.
- * Mapea la información almacenada en la colección "animales" de Firestore.
- * Corresponde principalmente a los Requisitos Funcionales RF-05 y RF-08.
+ * Implementa Serializable para poder pasar el objeto completo entre actividades con Intent.
  */
 public class Animal implements Serializable {
+
     private String idAnimal;
     private long idNumerico;
     private String nombre;
     private String especie;
     private String raza;
     private String sexo;
-    private String edadAprox; // Ej: "Cachorro", "Adulto"
+    private String edadAprox;
     private String estadoSalud;
-    private String estadoRefugio; // Ej: "Rescatado", "Disponible Adopcion", "Adoptado" (RF-08)
-    private GeoPoint ubicacionRescate; // Coordenadas GPS del rescate (RF-11)
-    private Timestamp fechaRegistro;
-    private String fotoUrl; // URL de la imagen en Firebase Storage (RF-05)
+    private List<String> condicionesEspeciales;
+    private String estadoRefugio;
     private String idVoluntario;
-    private List<String> condicionesEspeciales; // Ej: "Heridas", "Desnutrido"
+    private String fotoUrl;
+    private String ubicacionRescate;
+
+    // --- CORRECCIÓN DEL ERROR ---
+    // Usamos java.util.Date porque es Serializable.
+    // Firebase convierte automáticamente el Timestamp de la base de datos a Date.
+    private Date fechaRegistro;
 
     // Constructor vacío requerido por Firebase Firestore
     public Animal() {
     }
 
-    // Constructor completo
-    public Animal(String idAnimal, String nombre, String especie, String raza, String sexo, String edadAprox, String estadoSalud, String estadoRefugio, GeoPoint ubicacionRescate, Timestamp fechaRegistro, String fotoUrl, String idVoluntario, List<String> condicionesEspeciales) {
-        this.idAnimal = idAnimal;
-        this.idNumerico = idNumerico;
-        this.nombre = nombre;
-        this.especie = especie;
-        this.raza = raza;
-        this.sexo = sexo;
-        this.edadAprox = edadAprox;
-        this.estadoSalud = estadoSalud;
-        this.estadoRefugio = estadoRefugio;
-        this.ubicacionRescate = ubicacionRescate;
-        this.fechaRegistro = fechaRegistro;
-        this.fotoUrl = fotoUrl;
-        this.idVoluntario = idVoluntario;
-        this.condicionesEspeciales = condicionesEspeciales;
-    }
-
     // Getters y Setters
+
     public String getIdAnimal() {
         return idAnimal;
     }
@@ -114,36 +99,20 @@ public class Animal implements Serializable {
         this.estadoSalud = estadoSalud;
     }
 
+    public List<String> getCondicionesEspeciales() {
+        return condicionesEspeciales;
+    }
+
+    public void setCondicionesEspeciales(List<String> condicionesEspeciales) {
+        this.condicionesEspeciales = condicionesEspeciales;
+    }
+
     public String getEstadoRefugio() {
         return estadoRefugio;
     }
 
     public void setEstadoRefugio(String estadoRefugio) {
         this.estadoRefugio = estadoRefugio;
-    }
-
-    public GeoPoint getUbicacionRescate() {
-        return ubicacionRescate;
-    }
-
-    public void setUbicacionRescate(GeoPoint ubicacionRescate) {
-        this.ubicacionRescate = ubicacionRescate;
-    }
-
-    public Timestamp getFechaRegistro() {
-        return fechaRegistro;
-    }
-
-    public void setFechaRegistro(Timestamp fechaRegistro) {
-        this.fechaRegistro = fechaRegistro;
-    }
-
-    public String getFotoUrl() {
-        return fotoUrl;
-    }
-
-    public void setFotoUrl(String fotoUrl) {
-        this.fotoUrl = fotoUrl;
     }
 
     public String getIdVoluntario() {
@@ -154,11 +123,28 @@ public class Animal implements Serializable {
         this.idVoluntario = idVoluntario;
     }
 
-    public List<String> getCondicionesEspeciales() {
-        return condicionesEspeciales;
+    public String getFotoUrl() {
+        return fotoUrl;
     }
 
-    public void setCondicionesEspeciales(List<String> condicionesEspeciales) {
-        this.condicionesEspeciales = condicionesEspeciales;
+    public void setFotoUrl(String fotoUrl) {
+        this.fotoUrl = fotoUrl;
+    }
+
+    public String getUbicacionRescate() {
+        return ubicacionRescate;
+    }
+
+    public void setUbicacionRescate(String ubicacionRescate) {
+        this.ubicacionRescate = ubicacionRescate;
+    }
+
+    // --- GETTER Y SETTER DE FECHA CORREGIDOS ---
+    public Date getFechaRegistro() {
+        return fechaRegistro;
+    }
+
+    public void setFechaRegistro(Date fechaRegistro) {
+        this.fechaRegistro = fechaRegistro;
     }
 }

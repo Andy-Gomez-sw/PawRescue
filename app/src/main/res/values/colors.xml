@@ -46,4 +46,6 @@
     <color name="overlay_dark">#80000000</color>
     <color name="overlay_light">#80FFFFFF</color>
 
+    <color name="light">#CBE4B7</color>
+
 </resources>

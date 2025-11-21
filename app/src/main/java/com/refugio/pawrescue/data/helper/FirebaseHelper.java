@@ -15,8 +15,11 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.refugio.pawrescue.model.Animal;
+import com.refugio.pawrescue.model.Usuario; // Asegúrate de importar tu modelo Usuario
 
 import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import androidx.annotation.NonNull;
@@ -195,10 +198,61 @@ public class FirebaseHelper {
     }
 
     /**
-     * Interfaz de callback para manejar el resultado del registro.
+     * Interfaz de callback para manejar el resultado del registro de ANIMALES.
      */
     public interface GuardadoAnimalCallback {
         void onSuccess(String message);
+        void onFailure(String error);
+    }
+
+    // ============================================================================================
+    //                                  NUEVOS MÉTODOS PARA USUARIOS
+    // ============================================================================================
+
+    /**
+     * Registra un usuario asignándole un ID numérico autoincremental.
+     * Usa la colección "counters" -> documento "usuarios_id"
+     */
+    public void registrarUsuarioConContador(final Usuario usuario, final RegistroUsuarioCallback callback) {
+        final DocumentReference counterRef = db.collection("counters").document("usuarios_id");
+        final DocumentReference userRef = db.collection("usuarios").document(usuario.getUid());
+
+        db.runTransaction((Transaction.Function<Void>) transaction -> {
+            // 1. Leer el contador actual
+            DocumentSnapshot snapshot = transaction.get(counterRef);
+            long newId = 1;
+
+            if (snapshot.exists()) {
+                Long currentId = snapshot.getLong("currentId");
+                if (currentId != null) {
+                    newId = currentId + 1;
+                }
+            }
+
+            // 2. Actualizar el contador en Firestore
+            Map<String, Object> counterData = new HashMap<>();
+            counterData.put("currentId", newId);
+            transaction.set(counterRef, counterData);
+
+            // 3. Asignar el nuevo ID al objeto usuario
+            usuario.setIdNumerico(newId);
+
+            // 4. Guardar el usuario con el ID ya asignado
+            transaction.set(userRef, usuario);
+
+            return null;
+        }).addOnSuccessListener(aVoid -> {
+            callback.onSuccess(usuario.getIdNumerico());
+        }).addOnFailureListener(e -> {
+            callback.onFailure(e.getMessage());
+        });
+    }
+
+    /**
+     * Interfaz de callback para manejar el resultado del registro de USUARIOS.
+     */
+    public interface RegistroUsuarioCallback {
+        void onSuccess(long idGenerado);
         void onFailure(String error);
     }
 }
