@@ -16,6 +16,8 @@ import com.refugio.pawrescue.R;
 import com.refugio.pawrescue.ui.admin.AnimalesListFragment;
 import com.refugio.pawrescue.ui.admin.AdminDashboardFragment;
 import com.refugio.pawrescue.ui.admin.ProfileFragment; // NUEVO IMPORT
+import com.refugio.pawrescue.ui.admin.tabs.AdoptionFragment;
+import com.refugio.pawrescue.ui.volunteer.VolunteerMainActivity;
 
 /**
  * Activity Principal para el rol de Administrador.
@@ -48,9 +50,9 @@ public class AdminMainActivity extends AppCompatActivity {
                     selectedFragment = new AdminDashboardFragment(); // Panel de Estadísticas
                 } else if (item.getItemId() == R.id.nav_animals) {
                     selectedFragment = new AnimalesListFragment(); // CRUD de Animales
-                } else if (item.getItemId() == R.id.nav_adoptions) {
+                } else if (item.getItemId() == R.id.nav_volunteers) {
                     // Módulo 5: Gestión de Adopciones
-                    Toast.makeText(AdminMainActivity.this, "Módulo de Adopciones (Módulo 5)", Toast.LENGTH_SHORT).show();
+                    selectedFragment = new VolunteerManagmentFragment();
                 } else if (item.getItemId() == R.id.nav_finance) {
                     // Módulo 4.4: Gestión de Donaciones
                     selectedFragment = new FinanzasFragment();

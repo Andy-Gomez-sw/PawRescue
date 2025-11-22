@@ -11,9 +11,9 @@
         android:title="Animales" />
 
     <item
-        android:id="@+id/nav_adoptions"
+        android:id="@+id/nav_volunteers"
         android:icon="@drawable/ic_adoption"
-        android:title="Adopciones" />
+        android:title="Voluntarios" />
 
     <item
         android:id="@+id/nav_finance"

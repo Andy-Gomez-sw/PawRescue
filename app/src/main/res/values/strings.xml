@@ -38,4 +38,12 @@
         <item>Suministros</item>
         <item>Otros</item>
     </string-array>
+
+    <!-- RF-16: Resultados de Adopción -->
+    <string-array name="adoption_results">
+        <item>Seleccionar</item>
+        <item>Aprobada</item>
+        <item>Rechazada</item>
+        <item>Pendiente</item>
+    </string-array>
 </resources>
