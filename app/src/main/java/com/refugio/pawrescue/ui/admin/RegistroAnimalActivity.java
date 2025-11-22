@@ -12,6 +12,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
@@ -34,6 +35,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.GeoPoint;
 import com.refugio.pawrescue.R;
 import com.refugio.pawrescue.data.helper.FirebaseHelper;
@@ -44,23 +46,23 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
- * Activity para el registro inicial de un Animal Rescatado (RF-05, RF-11).
- * OPTIMIZADO: Incluye redimensionamiento de imágenes y mantiene ambos métodos de cámara.
+ * Activity para el registro inicial de un Animal Rescatado (RF-05) y su EDICIÓN (RF-07).
  */
 public class RegistroAnimalActivity extends AppCompatActivity {
 
     private static final int PERMISSIONS_REQUEST_CODE = 100;
     private static final int REQUEST_TAKE_PHOTO = 101;
     private static final String TAG = "RegistroAnimalActivity";
-
-    // Dimensiones máximas para la imagen
     private static final int MAX_IMAGE_DIMENSION = 1920;
 
     // Componentes UI
+    private TextView tvTitle;
     private TextInputEditText etNombre, etRaza, etUbicacionManual;
     private Spinner spinnerEspecie;
     private RadioGroup rgSexo;
@@ -70,7 +72,10 @@ public class RegistroAnimalActivity extends AppCompatActivity {
     private TextView tvGpsStatus;
     private ProgressBar progressBar;
 
-    // Datos del Animal
+    // Modo y Datos del Animal
+    private boolean isEditMode = false;
+    private String animalId = null;
+    private Animal originalAnimal = null;
     private Bitmap fotoBitmap;
     private GeoPoint ubicacionGPS;
     private String currentPhotoPath;
@@ -89,6 +94,7 @@ public class RegistroAnimalActivity extends AppCompatActivity {
         firebaseHelper = new FirebaseHelper();
 
         // Enlazar componentes
+        tvTitle = findViewById(R.id.tv_registro_title);
         etNombre = findViewById(R.id.et_nombre);
         etRaza = findViewById(R.id.et_raza);
         etUbicacionManual = findViewById(R.id.et_ubicacion_manual);
@@ -102,20 +108,170 @@ public class RegistroAnimalActivity extends AppCompatActivity {
         btnGuardarAnimal = findViewById(R.id.btn_guardar_animal);
         ivFotoPreview = findViewById(R.id.iv_foto_preview);
         tvGpsStatus = findViewById(R.id.tv_gps_status);
-
-        // ProgressBar (opcional)
         progressBar = findViewById(R.id.progress_bar_registro);
-        if (progressBar != null) {
-            progressBar.setVisibility(View.GONE);
+
+        progressBar.setVisibility(View.GONE);
+
+        // Verificar Modo (Registro vs. Edición)
+        isEditMode = getIntent().getBooleanExtra("isEditMode", false);
+        animalId = getIntent().getStringExtra("animalId");
+
+        if (isEditMode && animalId != null) {
+            setupEditMode();
+            cargarDatosParaEdicion(animalId);
+        } else {
+            setupRegistroMode();
         }
 
         // Listeners
         btnTomarFoto.setOnClickListener(v -> solicitarPermisosYCapturarFoto());
         btnObtenerGps.setOnClickListener(v -> solicitarPermisosYObtenerGPS());
-        btnGuardarAnimal.setOnClickListener(v -> intentarGuardarAnimal());
+        btnGuardarAnimal.setOnClickListener(v -> {
+            if (isEditMode) {
+                intentarActualizarAnimal(); // Lógica de edición
+            } else {
+                intentarGuardarAnimal(); // Lógica de registro nuevo
+            }
+        });
+
+        // Habilitar flecha de regreso en el ActionBar si es necesario
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
     }
 
-    // --- MANEJO DE PERMISOS ---
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
+    }
+
+    // --- CONFIGURACIÓN DE MODOS ---
+
+    private void setupRegistroMode() {
+        tvTitle.setText("Registro de Animal Rescatado (RF-05)");
+        btnGuardarAnimal.setText("Guardar Animal Rescatado");
+        btnTomarFoto.setVisibility(View.VISIBLE);
+        btnObtenerGps.setVisibility(View.VISIBLE);
+    }
+
+    private void setupEditMode() {
+        tvTitle.setText("Editar Expediente (RF-07)");
+        btnGuardarAnimal.setText("GUARDAR CAMBIOS");
+        // Ocultar botones de foto y GPS para edición (se asume que la foto/ubicación inicial ya están)
+        btnTomarFoto.setVisibility(View.GONE);
+        btnObtenerGps.setVisibility(View.GONE);
+        tvGpsStatus.setText("Modo Edición. Ubicación Rescate: ");
+        // Bloquear ubicación manual para no alterar la inicial a menos que se use un campo específico de lat/lon.
+        etUbicacionManual.setEnabled(false);
+    }
+
+    // --- LÓGICA DE EDICIÓN (RF-07) ---
+
+    private void cargarDatosParaEdicion(String id) {
+        firebaseHelper.getDb().collection("animales").document(id).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        originalAnimal = documentSnapshot.toObject(Animal.class);
+                        if (originalAnimal != null) {
+                            popularFormulario(originalAnimal);
+                            Log.d(TAG, "Datos cargados para edición: " + originalAnimal.getNombre());
+                        } else {
+                            Toast.makeText(this, "Error al mapear datos para edición.", Toast.LENGTH_LONG).show();
+                            finish();
+                        }
+                    } else {
+                        Toast.makeText(this, "Animal no encontrado para edición.", Toast.LENGTH_LONG).show();
+                        finish();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error cargando datos: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    finish();
+                });
+    }
+
+    private void popularFormulario(Animal animal) {
+        // Datos Básicos
+        etNombre.setText(animal.getNombre());
+        etRaza.setText(animal.getRaza());
+
+        // Especie
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                this, R.array.animal_species_array, android.R.layout.simple_spinner_dropdown_item);
+        if (animal.getEspecie() != null) {
+            for (int i = 0; i < adapter.getCount(); i++) {
+                if (adapter.getItem(i).toString().equalsIgnoreCase(animal.getEspecie())) {
+                    spinnerEspecie.setSelection(i);
+                    break;
+                }
+            }
+        }
+
+        // Sexo
+        if (animal.getSexo() != null) {
+            if (animal.getSexo().equalsIgnoreCase("Macho")) {
+                rgSexo.check(R.id.rb_macho);
+            } else if (animal.getSexo().equalsIgnoreCase("Hembra")) {
+                rgSexo.check(R.id.rb_hembra);
+            } else {
+                rgSexo.check(R.id.rb_desconocido);
+            }
+        }
+
+        // Condiciones
+        if (animal.getCondicionesEspeciales() != null) {
+            cbHeridas.setChecked(animal.getCondicionesEspeciales().contains(cbHeridas.getText().toString()));
+            cbDesnutrido.setChecked(animal.getCondicionesEspeciales().contains(cbDesnutrido.getText().toString()));
+            cbPrenada.setChecked(animal.getCondicionesEspeciales().contains(cbPrenada.getText().toString()));
+        }
+
+        // Ubicación
+        tvGpsStatus.setText("Ubicación Rescate: " + animal.getUbicacionRescate());
+        etUbicacionManual.setText(animal.getUbicacionRescate()); // Mostrar valor en campo
+
+        // No precargamos la foto en la preview de esta activity en modo edición, ya que se ve en DetalleAnimalActivity.
+    }
+
+    private void intentarActualizarAnimal() {
+        if (animalId == null || !validarCampos()) return;
+
+        // Recolectar datos del formulario
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("nombre", etNombre.getText().toString().trim());
+        updates.put("especie", spinnerEspecie.getSelectedItem().toString());
+        updates.put("raza", etRaza.getText().toString().trim());
+        updates.put("sexo", obtenerSexoSeleccionado());
+        updates.put("condicionesEspeciales", obtenerCondicionesEspeciales());
+        updates.put("ubicacionRescate", etUbicacionManual.getText().toString().trim());
+        updates.put("fechaUltimaActualizacion", new Timestamp(new Date()));
+
+        // Ocultar botones y mostrar progreso
+        btnGuardarAnimal.setEnabled(false);
+        progressBar.setVisibility(View.VISIBLE);
+        Toast.makeText(this, "Actualizando expediente...", Toast.LENGTH_SHORT).show();
+
+        firebaseHelper.actualizarAnimal(animalId, updates, new FirebaseHelper.GuardadoAnimalCallback() {
+            @Override
+            public void onSuccess(String message) {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(RegistroAnimalActivity.this, message, Toast.LENGTH_LONG).show();
+                Log.d(TAG, "✅ Expediente actualizado exitosamente.");
+                finish(); // Regresar a DetalleAnimalActivity
+            }
+
+            @Override
+            public void onFailure(String error) {
+                progressBar.setVisibility(View.GONE);
+                btnGuardarAnimal.setEnabled(true);
+                Toast.makeText(RegistroAnimalActivity.this, "Error: " + error, Toast.LENGTH_LONG).show();
+                Log.e(TAG, "❌ Error al actualizar animal: " + error);
+            }
+        });
+    }
+
+    // --- MANEJO DE PERMISOS, CÁMARA, GPS y GUARDADO (sin cambios en su lógica) ---
 
     private void solicitarPermisosYCapturarFoto() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
@@ -151,11 +307,6 @@ public class RegistroAnimalActivity extends AppCompatActivity {
         }
     }
 
-    // --- MANEJO DE CÁMARA (AMBOS MÉTODOS) ---
-
-    /**
-     * Crea un archivo temporal para guardar la imagen de alta resolución.
-     */
     private File createImageFile() throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
         String imageFileName = "ANIMAL_" + timeStamp + "_";
@@ -172,9 +323,6 @@ public class RegistroAnimalActivity extends AppCompatActivity {
         return image;
     }
 
-    /**
-     * MÉTODO 1: Inicia la Intent de la cámara (funciona en algunos dispositivos).
-     */
     private void abrirCamara() {
         try {
             Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -203,18 +351,15 @@ public class RegistroAnimalActivity extends AppCompatActivity {
                 }
             } else {
                 Log.d(TAG, "No se encontró app de cámara compatible con FileProvider (Método 1)");
-                abrirCualquierCamara(); // Usar el método alternativo
+                abrirCualquierCamara();
             }
         } catch (Exception e) {
             Log.e(TAG, "Error al abrir cámara (Método 1): " + e.getMessage());
             Toast.makeText(this, "Error al abrir cámara. Intentando método alternativo...", Toast.LENGTH_SHORT).show();
-            abrirCualquierCamara(); // Intentar con el método alternativo
+            abrirCualquierCamara();
         }
     }
 
-    /**
-     * MÉTODO 2: Alternativa de cámara (funciona en otros dispositivos).
-     */
     private void abrirCualquierCamara() {
         Intent intent = new Intent();
         intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -288,10 +433,6 @@ public class RegistroAnimalActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * NUEVA FUNCIÓN: Carga y redimensiona una imagen de forma eficiente.
-     * Esto reduce el tamaño del archivo antes de subir a Firebase.
-     */
     private Bitmap cargarYRedimensionarImagen(String photoPath) {
         // Primero, obtener las dimensiones sin cargar toda la imagen
         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -330,8 +471,6 @@ public class RegistroAnimalActivity extends AppCompatActivity {
         return bitmap;
     }
 
-    // --- MANEJO DE GPS (RF-11) ---
-
     private void obtenerUbicacionGPS() {
         tvGpsStatus.setText("Estado: Obteniendo coordenadas...");
 
@@ -349,7 +488,7 @@ public class RegistroAnimalActivity extends AppCompatActivity {
                             ubicacionGPS = new GeoPoint(location.getLatitude(), location.getLongitude());
                             tvGpsStatus.setText(String.format("GPS Registrado\nLat: %.6f, Lon: %.6f",
                                     location.getLatitude(), location.getLongitude()));
-                            etUbicacionManual.setText("Ubicación GPS automática");
+                            etUbicacionManual.setText(String.format(Locale.US, "%.6f,%.6f", location.getLatitude(), location.getLongitude()));
                             etUbicacionManual.setEnabled(false);
                             Toast.makeText(RegistroAnimalActivity.this, "Ubicación registrada con éxito.", Toast.LENGTH_SHORT).show();
                         } else {
@@ -365,7 +504,7 @@ public class RegistroAnimalActivity extends AppCompatActivity {
                 });
     }
 
-    // --- LÓGICA DE GUARDADO (RF-05) ---
+    // --- LÓGICA DE GUARDADO NUEVO (RF-05) ---
 
     private void intentarGuardarAnimal() {
         if (!validarCampos()) {
@@ -390,17 +529,15 @@ public class RegistroAnimalActivity extends AppCompatActivity {
 
         // Manejar Ubicación
         if (ubicacionGPS != null) {
-            String coordenadas = ubicacionGPS.getLatitude() + "," + ubicacionGPS.getLongitude();
-            nuevoAnimal.setUbicacionRescate(coordenadas);
+            // Guardamos la ubicación de la caja de texto, que ya fue poblada con lat,lon
+            nuevoAnimal.setUbicacionRescate(etUbicacionManual.getText().toString().trim());
         } else {
-            nuevoAnimal.setUbicacionRescate(null);
+            nuevoAnimal.setUbicacionRescate(etUbicacionManual.getText().toString().trim());
         }
 
         // Mostrar progreso
         btnGuardarAnimal.setEnabled(false);
-        if (progressBar != null) {
-            progressBar.setVisibility(View.VISIBLE);
-        }
+        progressBar.setVisibility(View.VISIBLE);
         Toast.makeText(this, "Guardando animal y subiendo foto...", Toast.LENGTH_SHORT).show();
 
         Log.d(TAG, "🚀 Iniciando subida de animal: " + nuevoAnimal.getNombre());
@@ -409,9 +546,7 @@ public class RegistroAnimalActivity extends AppCompatActivity {
         firebaseHelper.registrarAnimalConFoto(nuevoAnimal, fotoBitmap, new FirebaseHelper.GuardadoAnimalCallback() {
             @Override
             public void onSuccess(String message) {
-                if (progressBar != null) {
-                    progressBar.setVisibility(View.GONE);
-                }
+                progressBar.setVisibility(View.GONE);
                 Toast.makeText(RegistroAnimalActivity.this, message, Toast.LENGTH_LONG).show();
 
                 // Limpiar archivo temporal
@@ -429,9 +564,7 @@ public class RegistroAnimalActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(String error) {
-                if (progressBar != null) {
-                    progressBar.setVisibility(View.GONE);
-                }
+                progressBar.setVisibility(View.GONE);
                 btnGuardarAnimal.setEnabled(true);
                 Toast.makeText(RegistroAnimalActivity.this, "Error: " + error, Toast.LENGTH_LONG).show();
                 Log.e(TAG, "❌ Error al guardar animal: " + error);

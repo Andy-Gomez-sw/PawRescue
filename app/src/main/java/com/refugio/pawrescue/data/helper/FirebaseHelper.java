@@ -15,7 +15,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.refugio.pawrescue.model.Animal;
-import com.refugio.pawrescue.model.Usuario; // Asegúrate de importar tu modelo Usuario
+import com.refugio.pawrescue.model.Usuario;
 
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
@@ -27,7 +27,7 @@ import androidx.annotation.NonNull;
 /**
  * Clase auxiliar para encapsular operaciones complejas de Firebase.
  * Maneja la subida de imágenes a Storage y el guardado de datos en Firestore.
- * VERSIÓN CORREGIDA con mejor manejo de errores y compresión optimizada.
+ * Incluye lógica para registro y actualización de Animales y Usuarios.
  */
 public class FirebaseHelper {
 
@@ -40,6 +40,13 @@ public class FirebaseHelper {
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
         mAuth = FirebaseAuth.getInstance();
+    }
+
+    /**
+     * Getter para obtener la instancia de Firestore, usado por Fragments/Activities.
+     */
+    public FirebaseFirestore getDb() {
+        return db;
     }
 
     /**
@@ -181,6 +188,25 @@ public class FirebaseHelper {
             callback.onFailure("Error al guardar en la base de datos: " + e.getMessage());
         });
     }
+
+    /**
+     * Actualiza los datos de un animal existente en Firestore (RF-07).
+     * @param animalId ID del documento del animal.
+     * @param updates Mapa con los campos a actualizar.
+     * @param callback Interfaz para manejar el resultado.
+     */
+    public void actualizarAnimal(String animalId, Map<String, Object> updates, final GuardadoAnimalCallback callback) {
+        db.collection("animales").document(animalId)
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    callback.onSuccess("✅ Expediente actualizado exitosamente.");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al actualizar animal: ", e);
+                    callback.onFailure("❌ Error al actualizar expediente: " + e.getMessage());
+                });
+    }
+
 
     /**
      * Clase interna para mapear el contador de ID en Firestore.

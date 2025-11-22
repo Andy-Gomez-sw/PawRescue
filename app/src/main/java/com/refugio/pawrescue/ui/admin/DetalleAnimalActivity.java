@@ -1,6 +1,7 @@
 package com.refugio.pawrescue.ui.admin;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -87,10 +88,19 @@ public class DetalleAnimalActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("");
         }
 
-        // Listener de Edición (RF-08) -> Muestra diálogo para cambiar estado
-        icEdit.setOnClickListener(v -> mostrarDialogoEdicionEstado());
+        // Listener de Edición (RF-07) -> Navega a RegistroAnimalActivity en modo edición
+        icEdit.setOnClickListener(v -> {
+            if (currentAnimal != null) {
+                Intent editIntent = new Intent(DetalleAnimalActivity.this, RegistroAnimalActivity.class);
+                editIntent.putExtra("animalId", animalId); // Pasa el ID del animal
+                editIntent.putExtra("isEditMode", true);  // Flag para modo edición
+                startActivity(editIntent);
+            } else {
+                Toast.makeText(DetalleAnimalActivity.this, "Esperando datos del animal...", Toast.LENGTH_SHORT).show();
+            }
+        });
 
-        // FAB también permite cambiar estado
+        // FAB también permite cambiar estado (función más rápida y controlada)
         fabAction.setOnClickListener(v -> mostrarDialogoEdicionEstado());
 
         // Listener de Exportar/Compartir
@@ -103,6 +113,15 @@ public class DetalleAnimalActivity extends AppCompatActivity {
         } else {
             Toast.makeText(this, "Error: ID de animal no proporcionado.", Toast.LENGTH_LONG).show();
             finish();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Recargar el detalle cuando se regresa de la edición
+        if (animalId != null) {
+            cargarDetalleAnimal(animalId);
         }
     }
 
@@ -199,6 +218,8 @@ public class DetalleAnimalActivity extends AppCompatActivity {
                         if (task.isSuccessful() && task.getResult().exists()) {
                             currentAnimal = task.getResult().toObject(Animal.class);
                             if (currentAnimal != null) {
+                                // Asegurar que el ID del documento esté en el objeto
+                                currentAnimal.setIdAnimal(task.getResult().getId());
 
                                 // Formateo del ID Numérico
                                 String idDisplay = String.format(Locale.US, "#%04d", currentAnimal.getIdNumerico());
@@ -230,7 +251,7 @@ public class DetalleAnimalActivity extends AppCompatActivity {
                                     Toast.LENGTH_LONG).show();
                             Log.e(TAG, "Error al cargar el documento: " +
                                     (task.getException() != null ? task.getException().getMessage() : "Desconocido"));
-                            finish();
+                            // finish(); // No finalizar, solo mostrar error
                         }
                     }
                 });

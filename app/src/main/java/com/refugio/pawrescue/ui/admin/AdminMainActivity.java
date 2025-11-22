@@ -13,8 +13,9 @@ import androidx.fragment.app.FragmentTransaction;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.refugio.pawrescue.R;
-import com.refugio.pawrescue.ui.admin.AnimalesListFragment; // Módulo 3.1
-import com.refugio.pawrescue.ui.admin.AdminDashboardFragment; // Módulo 4.3
+import com.refugio.pawrescue.ui.admin.AnimalesListFragment;
+import com.refugio.pawrescue.ui.admin.AdminDashboardFragment;
+import com.refugio.pawrescue.ui.admin.ProfileFragment; // NUEVO IMPORT
 
 /**
  * Activity Principal para el rol de Administrador.
@@ -33,7 +34,7 @@ public class AdminMainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         bottomNavigationView = findViewById(R.id.bottom_navigation);
 
-        // Cargar el Fragmento de Dashboard por defecto (Módulo 4.3)
+        // Cargar el Fragmento de Dashboard por defecto
         if (savedInstanceState == null) {
             loadFragment(new AdminDashboardFragment());
         }
@@ -44,15 +45,18 @@ public class AdminMainActivity extends AppCompatActivity {
                 Fragment selectedFragment = null;
 
                 if (item.getItemId() == R.id.nav_dashboard) {
-                    selectedFragment = new AdminDashboardFragment(); // Panel de Estadísticas (Módulo 4.3)
+                    selectedFragment = new AdminDashboardFragment(); // Panel de Estadísticas
                 } else if (item.getItemId() == R.id.nav_animals) {
-                    selectedFragment = new AnimalesListFragment(); // CRUD de Animales (Módulo 3.1)
+                    selectedFragment = new AnimalesListFragment(); // CRUD de Animales
                 } else if (item.getItemId() == R.id.nav_adoptions) {
                     // Módulo 5: Gestión de Adopciones
                     Toast.makeText(AdminMainActivity.this, "Módulo de Adopciones (Módulo 5)", Toast.LENGTH_SHORT).show();
                 } else if (item.getItemId() == R.id.nav_finance) {
                     // Módulo 4.4: Gestión de Donaciones
                     Toast.makeText(AdminMainActivity.this, "Módulo de Finanzas (Módulo 4.4)", Toast.LENGTH_SHORT).show();
+                } else if (item.getItemId() == R.id.nav_profile) {
+                    // NUEVO: Perfil de Usuario/Mi Cuenta
+                    selectedFragment = new ProfileFragment();
                 }
 
                 if (selectedFragment != null) {

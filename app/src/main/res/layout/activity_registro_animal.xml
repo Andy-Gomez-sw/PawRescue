@@ -17,7 +17,9 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- Título de la sección (Añadido ID para modo Edición/Registro) -->
             <TextView
+                android:id="@+id/tv_registro_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Registro de Animal Rescatado"

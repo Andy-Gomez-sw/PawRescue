@@ -19,4 +19,9 @@
         android:id="@+id/nav_finance"
         android:icon="@drawable/ic_finance"
         android:title="Finanzas" />
+
+    <item
+        android:id="@+id/nav_profile"
+        android:icon="@drawable/ic_edit"
+        android:title="Mi Cuenta" />
 </menu>
