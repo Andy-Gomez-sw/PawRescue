@@ -53,7 +53,7 @@ public class AdminMainActivity extends AppCompatActivity {
                     Toast.makeText(AdminMainActivity.this, "Módulo de Adopciones (Módulo 5)", Toast.LENGTH_SHORT).show();
                 } else if (item.getItemId() == R.id.nav_finance) {
                     // Módulo 4.4: Gestión de Donaciones
-                    Toast.makeText(AdminMainActivity.this, "Módulo de Finanzas (Módulo 4.4)", Toast.LENGTH_SHORT).show();
+                    selectedFragment = new FinanzasFragment();
                 } else if (item.getItemId() == R.id.nav_profile) {
                     // NUEVO: Perfil de Usuario/Mi Cuenta
                     selectedFragment = new ProfileFragment();

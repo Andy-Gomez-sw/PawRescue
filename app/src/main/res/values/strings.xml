@@ -19,4 +19,23 @@
     </string-array>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <!-- RF-21: Categorías de Donaciones -->
+    <string-array name="donation_categories">
+        <item>Efectivo</item>
+        <item>Transferencia</item>
+        <item>Alimento</item>
+        <item>Medicamentos</item>
+        <item>Accesorios/Otros</item>
+    </string-array>
+
+    <!-- RF-22: Categorías de Gastos -->
+    <string-array name="expense_categories">
+        <item>Veterinaria</item>
+        <item>Alimento</item>
+        <item>Mantenimiento</item>
+        <item>Transporte</item>
+        <item>Suministros</item>
+        <item>Otros</item>
+    </string-array>
 </resources>
