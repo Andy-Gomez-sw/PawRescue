@@ -128,9 +128,10 @@
                     android:orientation="vertical"
                     android:padding="16dp">
                     <TextView
+                        android:id="@+id/tv_alerta_vet_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="⚠️ 3 animales requieren atención veterinaria urgente"
+                        android:text="⚠️ Cargando..."
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="#D32F2F"/>
@@ -162,9 +163,10 @@
                     android:orientation="vertical"
                     android:padding="16dp">
                     <TextView
+                        android:id="@+id/tv_citas_hoy_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🗓️ 2 citas de adopción agendadas para hoy"
+                        android:text="🗓️ Cargando..."
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="#388E3C"/>

@@ -9,10 +9,13 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.INTERNET" />
-
 
     <application
         android:allowBackup="true"
@@ -23,6 +26,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PawRescue">
+        <activity
+            android:name=".ui.admin.RegistroEventoMedicoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.admin.CitasAdopcionActivity"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -39,47 +48,39 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".ui.admin.AdminMainActivity"
             android:exported="false"
             android:label="Panel de Administración" />
-
         <activity
             android:name=".ui.volunteer.VolunteerMainActivity"
             android:exported="false"
             android:label="Panel de Voluntarios" />
-
         <activity
             android:name=".ui.admin.RegistroAnimalActivity"
             android:exported="false"
-            android:label="Registro Animal"/>
-
+            android:label="Registro Animal" />
         <activity
             android:name=".ui.admin.DetalleAnimalActivity"
             android:exported="false"
-            android:label="Detalle Expediente"/>
-
+            android:label="Detalle Expediente" />
         <activity
             android:name=".ui.publico.PublicMainActivity"
             android:exported="false" />
-
         <activity
             android:name=".ui.publico.AnimalDetailsPublicActivity"
             android:exported="false" />
-
         <activity
             android:name=".ui.publico.MyAdoptionRequestsActivity"
             android:exported="false" />
-
         <activity
             android:name=".ui.publico.PublicRegisterActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
-
     </application>
 
 </manifest>

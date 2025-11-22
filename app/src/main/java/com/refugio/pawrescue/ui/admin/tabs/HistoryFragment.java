@@ -1,5 +1,6 @@
 package com.refugio.pawrescue.ui.admin.tabs;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -7,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,6 +22,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.refugio.pawrescue.R;
 import com.refugio.pawrescue.model.HistorialMedico;
 import com.refugio.pawrescue.ui.adapter.HistoryAdapter;
+import com.refugio.pawrescue.ui.admin.RegistroEventoMedicoActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,17 +76,26 @@ public class HistoryFragment extends Fragment {
         recyclerView.setAdapter(adapter);
 
         // Listener para agregar nuevo evento médico (RF-09)
-        fabAddEvento.setOnClickListener(v ->
-                Toast.makeText(getContext(), "Agregar Evento Médico (RF-09)", Toast.LENGTH_SHORT).show());
+        fabAddEvento.setOnClickListener(v -> abrirRegistroEvento());
 
         cargarHistorial();
 
         return view;
     }
 
-    /**
-     * Carga el historial médico desde la subcolección de Firestore.
-     */
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Recargar al volver de registrar un evento
+        cargarHistorial();
+    }
+
+    private void abrirRegistroEvento() {
+        Intent intent = new Intent(getActivity(), RegistroEventoMedicoActivity.class);
+        intent.putExtra("animalId", animalId);
+        startActivity(intent);
+    }
+
     private void cargarHistorial() {
         if (animalId == null) {
             tvEmpty.setVisibility(View.VISIBLE);
@@ -111,15 +121,17 @@ public class HistoryFragment extends Fragment {
 
                     if (historial.isEmpty()) {
                         tvEmpty.setVisibility(View.VISIBLE);
-                        tvEmpty.setText("No hay eventos médicos registrados.");
+                        tvEmpty.setText("No hay eventos médicos registrados.\n\nUsa el botón '+' para agregar uno.");
+                        recyclerView.setVisibility(View.GONE);
                     } else {
                         adapter.setHistorial(historial);
+                        recyclerView.setVisibility(View.VISIBLE);
                     }
                 })
                 .addOnFailureListener(e -> {
                     progressBar.setVisibility(View.GONE);
                     tvEmpty.setVisibility(View.VISIBLE);
-                    tvEmpty.setText("Error al cargar historial.");
+                    tvEmpty.setText("Error al cargar historial: " + e.getMessage());
                     Log.e(TAG, "Error al cargar historial: ", e);
                 });
     }

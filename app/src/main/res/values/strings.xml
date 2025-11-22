@@ -46,4 +46,16 @@
         <item>Rechazada</item>
         <item>Pendiente</item>
     </string-array>
+
+    <!-- Historial médico-->
+    <string-array name="tipos_evento_medico">
+        <item>Consulta</item>
+        <item>Vacuna</item>
+        <item>Desparasitación</item>
+        <item>Cirugía</item>
+        <item>Tratamiento</item>
+        <item>Revisión</item>
+        <item>Emergencia</item>
+        <item>Otro</item>
+    </string-array>
 </resources>
