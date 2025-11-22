@@ -53,6 +53,9 @@ public class DetalleAnimalActivity extends AppCompatActivity {
     private FloatingActionButton fabAction;
     private FirebaseFirestore db;
 
+    // NUEVO: Referencia al adaptador
+    private ViewPagerAdapter pagerAdapter;
+
     // Estados del animal (RF-08)
     private final String[] estadosAnimal = {
             "Rescatado",
@@ -92,8 +95,8 @@ public class DetalleAnimalActivity extends AppCompatActivity {
         icEdit.setOnClickListener(v -> {
             if (currentAnimal != null) {
                 Intent editIntent = new Intent(DetalleAnimalActivity.this, RegistroAnimalActivity.class);
-                editIntent.putExtra("animalId", animalId); // Pasa el ID del animal
-                editIntent.putExtra("isEditMode", true);  // Flag para modo edición
+                editIntent.putExtra("animalId", animalId);
+                editIntent.putExtra("isEditMode", true);
                 startActivity(editIntent);
             } else {
                 Toast.makeText(DetalleAnimalActivity.this, "Esperando datos del animal...", Toast.LENGTH_SHORT).show();
@@ -236,9 +239,14 @@ public class DetalleAnimalActivity extends AppCompatActivity {
                                         .error(R.drawable.ic_pet_error)
                                         .into(ivAnimalHeader);
 
-                                // Inicializar Pestañas
-                                setupViewPagerAndTabs(viewPager, currentAnimal);
-                                tabLayout.setupWithViewPager(viewPager);
+                                // CAMBIO IMPORTANTE: Si el adaptador ya existe, actualizar fragmentos
+                                if (pagerAdapter != null) {
+                                    actualizarFragmentos(currentAnimal);
+                                } else {
+                                    // Primera carga: Inicializar Pestañas
+                                    setupViewPagerAndTabs(viewPager, currentAnimal);
+                                    tabLayout.setupWithViewPager(viewPager);
+                                }
 
                             } else {
                                 Toast.makeText(DetalleAnimalActivity.this,
@@ -251,32 +259,58 @@ public class DetalleAnimalActivity extends AppCompatActivity {
                                     Toast.LENGTH_LONG).show();
                             Log.e(TAG, "Error al cargar el documento: " +
                                     (task.getException() != null ? task.getException().getMessage() : "Desconocido"));
-                            // finish(); // No finalizar, solo mostrar error
                         }
                     }
                 });
     }
 
     /**
+     * NUEVO: Actualiza los fragmentos existentes con los nuevos datos
+     */
+    private void actualizarFragmentos(Animal animal) {
+        if (pagerAdapter == null) return;
+
+        // Obtener los fragmentos actuales y actualizarlos
+        for (int i = 0; i < pagerAdapter.getCount(); i++) {
+            Fragment fragment = pagerAdapter.getItem(i);
+
+            if (fragment instanceof InfoFragment) {
+                // Recrear el fragmento de información con los nuevos datos
+                Fragment nuevoFragment = InfoFragment.newInstance(animal);
+                pagerAdapter.replaceFragment(i, nuevoFragment);
+            }
+            // Los otros fragmentos (Historial, Adopciones) no necesitan actualizarse
+            // porque cargan sus propios datos desde Firestore
+        }
+
+        pagerAdapter.notifyDataSetChanged();
+
+        // Forzar la recreación de la vista actual
+        int currentItem = viewPager.getCurrentItem();
+        viewPager.setAdapter(pagerAdapter);
+        viewPager.setCurrentItem(currentItem);
+    }
+
+    /**
      * Configura el ViewPager con las pestañas.
      */
     private void setupViewPagerAndTabs(ViewPager viewPager, Animal animal) {
-        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        pagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
 
         // Pestaña 1: Información General (RF-06)
-        adapter.addFragment(InfoFragment.newInstance(animal), "Información");
+        pagerAdapter.addFragment(InfoFragment.newInstance(animal), "Información");
 
         // Pestaña 2: Historial Médico/Cuidados (RF-09, RF-10)
-        adapter.addFragment(HistoryFragment.newInstance(animal.getIdAnimal()), "Historial");
+        pagerAdapter.addFragment(HistoryFragment.newInstance(animal.getIdAnimal()), "Historial");
 
         // Pestaña 3: Adopciones (RF-14, RF-16)
-        adapter.addFragment(AdoptionFragment.newInstance(animal.getIdAnimal()), "Adopciones");
+        pagerAdapter.addFragment(AdoptionFragment.newInstance(animal.getIdAnimal()), "Adopciones");
 
-        viewPager.setAdapter(adapter);
+        viewPager.setAdapter(pagerAdapter);
     }
 
-    // Adaptador para el ViewPager
-    static class ViewPagerAdapter extends FragmentPagerAdapter {
+    // Adaptador para el ViewPager - MODIFICADO
+    class ViewPagerAdapter extends FragmentPagerAdapter {
         private final List<Fragment> mFragmentList = new ArrayList<>();
         private final List<String> mFragmentTitleList = new ArrayList<>();
 
@@ -300,9 +334,22 @@ public class DetalleAnimalActivity extends AppCompatActivity {
             mFragmentTitleList.add(title);
         }
 
+        // NUEVO: Método para reemplazar un fragmento
+        public void replaceFragment(int position, Fragment fragment) {
+            if (position >= 0 && position < mFragmentList.size()) {
+                mFragmentList.set(position, fragment);
+            }
+        }
+
         @Override
         public CharSequence getPageTitle(int position) {
             return mFragmentTitleList.get(position);
+        }
+
+        // IMPORTANTE: Forzar la actualización de fragmentos
+        @Override
+        public int getItemPosition(@NonNull Object object) {
+            return POSITION_NONE;
         }
     }
 }
