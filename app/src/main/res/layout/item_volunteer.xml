@@ -22,68 +22,58 @@
             android:gravity="center_vertical">
 
             <TextView
-                android:id="@+id/tv_cita_nombre"
+                android:id="@+id/tv_volunteer_name"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
-                tools:text="María López"/>
+                tools:text="Juan Pérez"/>
 
             <TextView
-                android:id="@+id/tv_indicador_hoy"
+                android:id="@+id/tv_volunteer_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="• HOY"
-                android:textSize="12sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
-                android:textColor="@color/status_error"
-                android:visibility="gone"/>
+                tools:text="✓ Activo"
+                tools:textColor="@color/status_success"/>
         </LinearLayout>
 
         <TextView
-            android:id="@+id/tv_cita_telefono"
+            android:id="@+id/tv_volunteer_email"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textSize="14sp"
             android:textColor="@color/text_secondary"
-            tools:text="📞 55-1234-5678"/>
+            tools:text="juan.perez@email.com"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="12dp"
-            android:gravity="center_vertical">
-
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:src="@drawable/ic_calendar_small"
-                android:contentDescription="Fecha"
-                app:tint="@color/primary_green"/>
+            android:layout_marginTop="8dp">
 
             <TextView
-                android:id="@+id/tv_cita_fecha"
+                android:id="@+id/tv_volunteer_id"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:textSize="14sp"
-                android:textStyle="bold"
+                android:textSize="12sp"
                 android:textColor="@color/primary_green"
-                tools:text="Lun 25 Nov 2025"/>
+                tools:text="ID: #0001"/>
 
             <TextView
-                android:id="@+id/tv_cita_hora"
+                android:id="@+id/tv_volunteer_role"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="@color/primary_green"
-                tools:text="10:00"/>
+                android:textSize="12sp"
+                android:background="@drawable/bg_chip"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                tools:text="Voluntario"/>
         </LinearLayout>
 
     </LinearLayout>

@@ -42,6 +42,16 @@
         app:layout_constraintBottom_toBottomOf="parent"
         tools:listitem="@layout/item_animal_card" />
 
+    <ProgressBar
+        android:id="@+id/progress_bar_volunteers"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- FAB para agregar nuevo voluntario (RF-18) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_volunteer"

@@ -20,6 +20,9 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.refugio.pawrescue.R;
+import com.refugio.pawrescue.model.Animal;
+import com.refugio.pawrescue.model.Transaccion;
+import com.refugio.pawrescue.ui.admin.BalanceChartView;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -37,6 +40,7 @@ public class AdminDashboardFragment extends Fragment {
     private TextView tvAlertaVetCount, tvCitasHoyCount;
     private CardView cardAlertVet, cardCitasToday;
     private Button btnViewVetAlerts, btnViewCitas;
+    private BalanceChartView balanceChart; // <--- AGREGADO
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -58,12 +62,16 @@ public class AdminDashboardFragment extends Fragment {
         btnViewVetAlerts = view.findViewById(R.id.btn_view_vet_alerts);
         btnViewCitas = view.findViewById(R.id.btn_view_citas);
 
+        // Gráfica de Balance
+        balanceChart = view.findViewById(R.id.balance_chart); // <--- AGREGADO
+
         // Listeners
         btnViewVetAlerts.setOnClickListener(v -> navegarAHistorialMedico());
         btnViewCitas.setOnClickListener(v -> navegarACitas());
 
         cargarEstadisticas();
         cargarAlertas();
+        cargarGraficoBalance(); // <--- AGREGADO
 
         return view;
     }
@@ -113,16 +121,37 @@ public class AdminDashboardFragment extends Fragment {
     }
 
     private void cargarAlertasVeterinarias() {
-        // Buscar animales con estado "En Tratamiento" o condiciones especiales
+        // Buscar animales con condiciones especiales O en tratamiento
         db.collection("animales")
-                .whereEqualTo("estadoRefugio", "En Tratamiento")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    int count = queryDocumentSnapshots.size();
+                    int count = 0;
 
-                    if (count > 0) {
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        Animal animal = doc.toObject(Animal.class);
+                        if (animal != null) {
+                            // Verificar si tiene condiciones especiales
+                            boolean requiereAtencion = false;
+
+                            if (animal.getCondicionesEspeciales() != null &&
+                                    !animal.getCondicionesEspeciales().isEmpty()) {
+                                requiereAtencion = true;
+                            }
+
+                            if ("En Tratamiento".equals(animal.getEstadoRefugio())) {
+                                requiereAtencion = true;
+                            }
+
+                            if (requiereAtencion) {
+                                count++;
+                            }
+                        }
+                    }
+
+                    final int finalCount = count;
+                    if (finalCount > 0) {
                         cardAlertVet.setVisibility(View.VISIBLE);
-                        tvAlertaVetCount.setText("⚠️ " + count + " animal(es) requieren atención veterinaria urgente");
+                        tvAlertaVetCount.setText("⚠️ " + finalCount + " animal(es) requieren atención");
                     } else {
                         cardAlertVet.setVisibility(View.GONE);
                     }
@@ -166,6 +195,37 @@ public class AdminDashboardFragment extends Fragment {
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error al cargar citas de hoy: ", e);
                     cardCitasToday.setVisibility(View.GONE);
+                });
+    }
+
+    // <--- MÉTODO AGREGADO --->
+    private void cargarGraficoBalance() {
+        if (balanceChart == null) {
+            Log.e(TAG, "balanceChart es null");
+            return;
+        }
+
+        db.collection("transacciones").get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    double totalDonaciones = 0;
+                    double totalGastos = 0;
+
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        Transaccion t = doc.toObject(Transaccion.class);
+                        if (t != null) {
+                            if ("Donacion".equalsIgnoreCase(t.getTipo())) {
+                                totalDonaciones += t.getMonto();
+                            } else {
+                                totalGastos += t.getMonto();
+                            }
+                        }
+                    }
+
+                    Log.d(TAG, "Donaciones: " + totalDonaciones + ", Gastos: " + totalGastos);
+                    balanceChart.setData(totalDonaciones, totalGastos);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al cargar datos del gráfico: ", e);
                 });
     }
 

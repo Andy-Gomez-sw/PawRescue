@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F5F5F5"
-    tools:context=".ui.admin.dashboard.AdminDashboardFragment">
+    tools:context=".ui.admin.AdminDashboardFragment">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -203,16 +203,31 @@
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
+                android:layout_height="250dp"
                 app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                android:padding="16dp">
-                <TextView
+                app:cardElevation="4dp">
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:text="Gráfica de Balance Financiero (Donaciones vs. Gastos) - Módulo 4.4"
-                    android:textColor="#AAAAAA" />
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Balance Mensual"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_marginBottom="8dp"/>
+
+                    <com.refugio.pawrescue.ui.admin.BalanceChartView
+                        android:id="@+id/balance_chart"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"/>
+                </LinearLayout>
             </androidx.cardview.widget.CardView>
 
 
