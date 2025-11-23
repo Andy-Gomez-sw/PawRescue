@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,74 +18,207 @@ import com.google.android.material.button.MaterialButton;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.refugio.pawrescue.R;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Locale;
 
+/**
+ * Fragmento del Dashboard principal del Administrador.
+ * Muestra estadísticas generales, alertas importantes y resumen financiero.
+ */
 public class AdminDashboardFragment extends Fragment {
 
     private static final String TAG = "AdminDashboardFragment";
 
-    // ... (Inicialización de Firebase Firestore)
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    // Firebase
+    private FirebaseFirestore db;
 
-    // Vistas de Alerta y Estadísticas (asumiendo que existen en el layout)
-    private TextView tvTotalAnimals, tvNewRescues, tvAdoptedCount;
-    private View cardCitasToday;
-    private TextView tvCitasHoyCount;
+    // Vistas de Estadísticas
+    private TextView tvTotalAnimals, tvAvailableToday, tvAdoptedTotal;
 
-    private MaterialButton btnVetDetails;
-    private MaterialButton btnMedicationDetails;
-    private MaterialButton btnCitasDetails;
+    // Vistas de Alertas
+    private View cardAlertVet, cardAlertMeds, cardCitasToday;
+    private TextView tvAlertaVetCount, tvAlertaMedsCount, tvCitasHoyCount;
+    private Button btnViewVetAlerts, btnViewMedsAlerts, btnViewCitas;
 
-    // ... (Resto de campos y onCreate)
+    // Vista de Gráfico Financiero
+    private BalanceChartView balanceChart;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        db = FirebaseFirestore.getInstance();
+    }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_admin_dashboard, container, false);
 
-        // Inicialización de Vistas (Asumiendo IDs del layout)
-        // ... (otras inicializaciones)
+        // Inicializar vistas de estadísticas
+        tvTotalAnimals = view.findViewById(R.id.tv_total_animals);
+        tvAvailableToday = view.findViewById(R.id.tv_available_today);
+        tvAdoptedTotal = view.findViewById(R.id.tv_adopted_total);
+
+        // Inicializar vistas de alertas
+        cardAlertVet = view.findViewById(R.id.card_alert_vet);
+        cardAlertMeds = view.findViewById(R.id.card_alert_meds);
         cardCitasToday = view.findViewById(R.id.card_citas_today);
+
+        tvAlertaVetCount = view.findViewById(R.id.tv_alerta_vet_count);
+        tvAlertaMedsCount = view.findViewById(R.id.tv_alerta_meds_count);
         tvCitasHoyCount = view.findViewById(R.id.tv_citas_hoy_count);
 
-        btnVetDetails = view.findViewById(R.id.btn_view_vet_alerts);
-        btnMedicationDetails = view.findViewById(R.id.btn_view_meds_alerts);
-        btnCitasDetails = view.findViewById(R.id.btn_view_citas);
+        btnViewVetAlerts = view.findViewById(R.id.btn_view_vet_alerts);
+        btnViewMedsAlerts = view.findViewById(R.id.btn_view_meds_alerts);
+        btnViewCitas = view.findViewById(R.id.btn_view_citas);
 
-        // Listener para Alerta de Atención Veterinaria
-        btnVetDetails.setOnClickListener(v -> {
-            if (getActivity() instanceof AdminMainActivity) {
-                // Navegar a la lista de animales con filtro de ATENCIÓN VETERINARIA
-                ((AdminMainActivity) getActivity()).navigateToAnimalListWithFilter(AnimalesListFragment.FILTER_ATTENTION);
-            }
-        });
+        // Inicializar gráfico financiero
+        balanceChart = view.findViewById(R.id.balance_chart);
 
-        // Listener para Alerta de Medicamentos (Reutiliza el mismo filtro)
-        btnMedicationDetails.setOnClickListener(v -> {
-            if (getActivity() instanceof AdminMainActivity) {
-                // Navegar a la lista de animales con filtro de ATENCIÓN VETERINARIA
-                ((AdminMainActivity) getActivity()).navigateToAnimalListWithFilter(AnimalesListFragment.FILTER_ATTENTION);
-            }
-        });
+        // Configurar listeners de navegación
+        setupNavigationListeners();
 
-        // Listener para Citas de Hoy (Navegación directa a la actividad de Citas)
-        btnCitasDetails.setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), CitasAdopcionActivity.class);
-            startActivity(intent);
-        });
-
+        // Cargar datos
+        cargarEstadisticas();
+        cargarAlertasVeterinarias();
+        cargarAlertasMedicamentos();
         cargarCitasHoy();
-        // ... (Otras llamadas a métodos de carga de estadísticas)
+        cargarBalanceFinanciero();
 
         return view;
     }
 
+    private void setupNavigationListeners() {
+        // Navegación a alertas veterinarias
+        btnViewVetAlerts.setOnClickListener(v -> {
+            if (getActivity() instanceof AdminMainActivity) {
+                ((AdminMainActivity) getActivity()).navigateToAnimalListWithFilter(AnimalesListFragment.FILTER_ATTENTION);
+            }
+        });
+
+        // Navegación a alertas de medicamentos
+        btnViewMedsAlerts.setOnClickListener(v -> {
+            if (getActivity() instanceof AdminMainActivity) {
+                ((AdminMainActivity) getActivity()).navigateToAnimalListWithFilter(AnimalesListFragment.FILTER_MEDICATION);
+            }
+        });
+
+        // Navegación a citas
+        btnViewCitas.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), CitasAdopcionActivity.class);
+            startActivity(intent);
+        });
+    }
+
+    /**
+     * Carga las estadísticas generales de animales.
+     */
+    private void cargarEstadisticas() {
+        // Total de animales
+        db.collection("animales")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int total = queryDocumentSnapshots.size();
+                    tvTotalAnimals.setText(String.valueOf(total));
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error cargando total de animales: ", e);
+                    tvTotalAnimals.setText("N/A");
+                });
+
+        // Animales disponibles para adopción
+        db.collection("animales")
+                .whereEqualTo("estadoRefugio", "Disponible Adopcion")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int disponibles = queryDocumentSnapshots.size();
+                    tvAvailableToday.setText(String.valueOf(disponibles));
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error cargando disponibles: ", e);
+                    tvAvailableToday.setText("N/A");
+                });
+
+        // Animales adoptados
+        db.collection("animales")
+                .whereEqualTo("estadoRefugio", "Adoptado")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int adoptados = queryDocumentSnapshots.size();
+                    tvAdoptedTotal.setText(String.valueOf(adoptados));
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error cargando adoptados: ", e);
+                    tvAdoptedTotal.setText("N/A");
+                });
+    }
+
+    /**
+     * Carga las alertas de animales que requieren atención veterinaria urgente.
+     */
+    private void cargarAlertasVeterinarias() {
+        db.collection("animales")
+                .whereEqualTo("estadoRefugio", "En Tratamiento")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int count = queryDocumentSnapshots.size();
+
+                    if (count > 0) {
+                        cardAlertVet.setVisibility(View.VISIBLE);
+                        tvAlertaVetCount.setText(String.format("⚠️ %d animal(es) requieren atención veterinaria urgente", count));
+                    } else {
+                        cardAlertVet.setVisibility(View.GONE);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error cargando alertas veterinarias: ", e);
+                    cardAlertVet.setVisibility(View.GONE);
+                });
+    }
+
+    /**
+     * Carga las alertas de animales con medicación activa.
+     * Nota: Esta es una aproximación basada en condiciones especiales.
+     * En un sistema real, tendrías un campo específico para medicación activa.
+     */
+    private void cargarAlertasMedicamentos() {
+        db.collection("animales")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int countConMedicacion = 0;
+
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        // Verificar si tiene condiciones especiales (aproximación)
+                        Object condicionesObj = doc.get("condicionesEspeciales");
+                        if (condicionesObj instanceof java.util.List) {
+                            java.util.List<?> condiciones = (java.util.List<?>) condicionesObj;
+                            if (!condiciones.isEmpty()) {
+                                countConMedicacion++;
+                            }
+                        }
+                    }
+
+                    if (countConMedicacion > 0) {
+                        cardAlertMeds.setVisibility(View.VISIBLE);
+                        tvAlertaMedsCount.setText(String.format("💊 %d animal(es) con medicación activa", countConMedicacion));
+                    } else {
+                        cardAlertMeds.setVisibility(View.GONE);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error cargando alertas de medicamentos: ", e);
+                    cardAlertMeds.setVisibility(View.GONE);
+                });
+    }
+
+    /**
+     * Carga las citas de adopción programadas para hoy.
+     */
     private void cargarCitasHoy() {
-        // Obtener inicio y fin del día actual (Timestamp)
+        // Obtener inicio y fin del día actual
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
@@ -102,27 +236,64 @@ public class AdminDashboardFragment extends Fragment {
                 .whereEqualTo("estadoSolicitud", "Cita Agendada")
                 .whereGreaterThanOrEqualTo("fechaCita", new Timestamp(inicioDia))
                 .whereLessThanOrEqualTo("fechaCita", new Timestamp(finDia))
-                .orderBy("fechaCita", Query.Direction.ASCENDING) // Necesario para el índice compuesto
+                .orderBy("fechaCita", Query.Direction.ASCENDING)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     int count = queryDocumentSnapshots.size();
 
-                    // Se asume que el layout tiene estas vistas
-                    if (cardCitasToday != null && tvCitasHoyCount != null) {
-                        if (count > 0) {
-                            cardCitasToday.setVisibility(View.VISIBLE);
-                            tvCitasHoyCount.setText("🗓️ " + count + " cita(s) de adopción programada(s) para hoy");
-                        } else {
-                            cardCitasToday.setVisibility(View.GONE);
-                        }
+                    if (count > 0) {
+                        cardCitasToday.setVisibility(View.VISIBLE);
+                        tvCitasHoyCount.setText(String.format("🗓️ %d cita(s) de adopción programada(s) para hoy", count));
+                    } else {
+                        cardCitasToday.setVisibility(View.GONE);
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error al cargar citas de hoy (Verifique el índice compuesto en Firestore): ", e);
-                    // Ocultar la tarjeta si falla
-                    if (cardCitasToday != null) {
-                        cardCitasToday.setVisibility(View.GONE);
-                    }
+                    cardCitasToday.setVisibility(View.GONE);
                 });
+    }
+
+    /**
+     * Carga el balance financiero mensual y actualiza el gráfico.
+     */
+    private void cargarBalanceFinanciero() {
+        db.collection("transacciones")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    double totalDonaciones = 0;
+                    double totalGastos = 0;
+
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        String tipo = doc.getString("tipo");
+                        Double monto = doc.getDouble("monto");
+
+                        if (monto != null) {
+                            if ("Donacion".equalsIgnoreCase(tipo)) {
+                                totalDonaciones += monto;
+                            } else if ("Gasto".equalsIgnoreCase(tipo)) {
+                                totalGastos += monto;
+                            }
+                        }
+                    }
+
+                    // Actualizar el gráfico con los datos
+                    balanceChart.setData(totalDonaciones, totalGastos);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error cargando balance financiero: ", e);
+                    // El gráfico mostrará "Sin datos financieros"
+                });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Recargar datos cuando se vuelve al fragmento
+        cargarEstadisticas();
+        cargarAlertasVeterinarias();
+        cargarAlertasMedicamentos();
+        cargarCitasHoy();
+        cargarBalanceFinanciero();
     }
 }

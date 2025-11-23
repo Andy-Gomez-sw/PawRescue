@@ -35,6 +35,7 @@ public class AnimalesListFragment extends Fragment implements AnimalAdapter.OnAn
     // Constantes de Filtro (Usadas por el Dashboard)
     public static final String ARG_FILTER = "filter_key";
     public static final String FILTER_ATTENTION = "ATENCION_VETERINARIA";
+    public static final String FILTER_MEDICATION = "MEDICACION_ACTIVA";
 
     private RecyclerView recyclerView;
     private AnimalAdapter adapter;
@@ -109,7 +110,9 @@ public class AnimalesListFragment extends Fragment implements AnimalAdapter.OnAn
 
                 String message = null;
                 if (animales.isEmpty()) {
-                    message = (initialFilter != null) ? "No se encontraron animales con el filtro aplicado." : "No hay animales registrados.";
+                    message = (initialFilter != null) ?
+                            "No se encontraron animales con el filtro aplicado." :
+                            "No hay animales registrados.";
                 }
 
                 if (message != null) {
@@ -128,10 +131,19 @@ public class AnimalesListFragment extends Fragment implements AnimalAdapter.OnAn
         };
 
         // LÓGICA DE FILTRADO: Llama al método apropiado del repositorio
-        if (initialFilter != null && initialFilter.equals(FILTER_ATTENTION)) {
-            // ESTO REQUIERE QUE AGREGUES LA LÓGICA DE FILTRADO EN AnimalRepository.java
-            listenerRegistration = repository.getAnimalesConAtencionUrgente(listener);
-            Toast.makeText(getContext(), "Filtro activo: Atención Veterinaria Urgente", Toast.LENGTH_SHORT).show();
+        if (initialFilter != null) {
+            if (initialFilter.equals(FILTER_ATTENTION)) {
+                // Filtro de atención veterinaria urgente
+                listenerRegistration = repository.getAnimalesConAtencionUrgente(listener);
+                Toast.makeText(getContext(), "Filtro activo: Atención Veterinaria Urgente", Toast.LENGTH_SHORT).show();
+            } else if (initialFilter.equals(FILTER_MEDICATION)) {
+                // Filtro de medicación activa
+                listenerRegistration = repository.getAnimalesConMedicacion(listener);
+                Toast.makeText(getContext(), "Filtro activo: Animales con Medicación Activa", Toast.LENGTH_SHORT).show();
+            } else {
+                // Filtro desconocido, cargar todos
+                listenerRegistration = repository.getAnimalesEnTiempoReal(listener);
+            }
         } else {
             // Carga normal de todos los animales
             listenerRegistration = repository.getAnimalesEnTiempoReal(listener);

@@ -63,21 +63,20 @@ public class AnimalRepository {
 
     /**
      * NUEVO MÉTODO: Obtiene la lista de animales que requieren atención veterinaria urgente (RF-09, RF-10).
-     * Asume que el estado "En Tratamiento" o "Urgente" indica la necesidad de alerta.
+     * Filtra animales en estado "En Tratamiento".
      * @param listener Callback para entregar la lista de animales o errores.
      * @return Objeto ListenerRegistration para poder detener la escucha.
      */
     public ListenerRegistration getAnimalesConAtencionUrgente(final AnimalesListener listener) {
-        // Filtramos por un estado que represente urgencia/tratamiento activo.
-        // Nota: Si usas múltiples estados (ej. "Urgente", "Requiere Medicación"), necesitarías un 'whereIn'
-        // o manejarlo con lógica en la aplicación. Usaremos "En Tratamiento" como ejemplo base.
-        Query query = animalCollection.whereEqualTo("estado", "En Tratamiento")
+        // Filtramos por estado "En Tratamiento" (campo correcto: estadoRefugio)
+        Query query = animalCollection
+                .whereEqualTo("estadoRefugio", "En Tratamiento")
                 .orderBy("fechaRegistro", Query.Direction.DESCENDING);
 
         return query.addSnapshotListener((value, error) -> {
             if (error != null) {
                 Log.e(TAG, "Error al escuchar animales urgentes: " + error.getMessage());
-                listener.onError("Error al cargar la lista de animales con atención urgente.");
+                listener.onError("Error al cargar la lista de animales con atención urgente: " + error.getMessage());
                 return;
             }
 
@@ -89,6 +88,45 @@ public class AnimalRepository {
                         // Asignar el ID del documento
                         animal.setIdAnimal(doc.getId());
                         animales.add(animal);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error al mapear documento a Animal: " + e.getMessage());
+                    }
+                }
+                listener.onAnimalesLoaded(animales);
+            }
+        });
+    }
+
+    /**
+     * NUEVO MÉTODO: Obtiene la lista de animales con medicación activa (RF-10).
+     * Filtra animales que tienen condiciones especiales registradas.
+     * @param listener Callback para entregar la lista de animales o errores.
+     * @return Objeto ListenerRegistration para poder detener la escucha.
+     */
+    public ListenerRegistration getAnimalesConMedicacion(final AnimalesListener listener) {
+        // Obtenemos todos los animales y filtramos en el cliente
+        // (Firestore no permite filtrar por arrays no vacíos directamente)
+        Query query = animalCollection.orderBy("fechaRegistro", Query.Direction.DESCENDING);
+
+        return query.addSnapshotListener((value, error) -> {
+            if (error != null) {
+                Log.e(TAG, "Error al escuchar animales con medicación: " + error.getMessage());
+                listener.onError("Error al cargar animales con medicación: " + error.getMessage());
+                return;
+            }
+
+            if (value != null) {
+                List<Animal> animales = new ArrayList<>();
+                for (QueryDocumentSnapshot doc : value) {
+                    try {
+                        Animal animal = doc.toObject(Animal.class);
+                        animal.setIdAnimal(doc.getId());
+
+                        // Filtrar solo los que tienen condiciones especiales
+                        if (animal.getCondicionesEspeciales() != null &&
+                                !animal.getCondicionesEspeciales().isEmpty()) {
+                            animales.add(animal);
+                        }
                     } catch (Exception e) {
                         Log.e(TAG, "Error al mapear documento a Animal: " + e.getMessage());
                     }
