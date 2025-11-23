@@ -27,6 +27,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PawRescue">
         <activity
+            android:name=".ui.admin.DetalleVoluntarioActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.admin.RegistroEventoMedicoActivity"
             android:exported="false" />
         <activity

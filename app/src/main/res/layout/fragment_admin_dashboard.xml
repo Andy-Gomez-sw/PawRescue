@@ -140,8 +140,42 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Ver detalles →"
+                        android:text="Ver detalles de Veterinaria →"
                         android:backgroundTint="#D32F2F"
+                        android:textColor="@android:color/white"
+                        app:cornerRadius="8dp"
+                        style="@style/Widget.MaterialComponents.Button.TextButton" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_alert_meds"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                android:backgroundTint="#FFF3E0">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <TextView
+                        android:id="@+id/tv_alerta_meds_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="💊 Cargando..."
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#FF9800"/>
+                    <Button
+                        android:id="@+id/btn_view_meds_alerts"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Ver detalles de Medicamentos →"
+                        android:backgroundTint="#FF9800"
                         android:textColor="@android:color/white"
                         app:cornerRadius="8dp"
                         style="@style/Widget.MaterialComponents.Button.TextButton" />

@@ -79,6 +79,7 @@
             android:layout_marginBottom="16dp"/>
 
         <TextView
+            android:id="@+id/tv_password_hint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="* Se enviará un correo de bienvenida con la contraseña al usuario."

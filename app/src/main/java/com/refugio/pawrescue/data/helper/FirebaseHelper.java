@@ -281,4 +281,25 @@ public class FirebaseHelper {
         void onSuccess(long idGenerado);
         void onFailure(String error);
     }
+
+    public void actualizarUsuario(String uid, Map<String, Object> updates, final OperacionUsuarioCallback callback) {
+        db.collection("usuarios").document(uid)
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    callback.onSuccess("✅ Datos de usuario actualizados exitosamente.");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al actualizar usuario: ", e);
+                    callback.onFailure("❌ Error al actualizar usuario: " + e.getMessage());
+                });
+    }
+
+    /**
+     * Interfaz de callback para operaciones de usuario (Update/Delete).
+     */
+    public interface OperacionUsuarioCallback {
+        void onSuccess(String message);
+
+        void onFailure(String error);
+    }
 }

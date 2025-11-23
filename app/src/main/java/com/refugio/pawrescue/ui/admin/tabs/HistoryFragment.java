@@ -1,5 +1,6 @@
 package com.refugio.pawrescue.ui.admin.tabs;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -8,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,13 +26,16 @@ import com.refugio.pawrescue.model.HistorialMedico;
 import com.refugio.pawrescue.ui.adapter.HistoryAdapter;
 import com.refugio.pawrescue.ui.admin.RegistroEventoMedicoActivity;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Fragmento que muestra el Historial Médico y de Cuidados (RF-09, RF-10).
  */
-public class HistoryFragment extends Fragment {
+public class HistoryFragment extends Fragment
+        implements HistoryAdapter.HistoryActionListener {
 
     private static final String TAG = "HistoryFragment";
     private static final String ARG_ANIMAL_ID = "animal_id";
@@ -40,7 +45,6 @@ public class HistoryFragment extends Fragment {
     private HistoryAdapter adapter;
     private ProgressBar progressBar;
     private TextView tvEmpty;
-    private FloatingActionButton fabAddEvento;
     private FirebaseFirestore db;
 
     public static HistoryFragment newInstance(String animalId) {
@@ -69,13 +73,12 @@ public class HistoryFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recycler_historial);
         progressBar = view.findViewById(R.id.progress_bar_historial);
         tvEmpty = view.findViewById(R.id.tv_empty_historial);
-        fabAddEvento = view.findViewById(R.id.fab_add_evento);
+        FloatingActionButton fabAddEvento = view.findViewById(R.id.fab_add_evento);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new HistoryAdapter(getContext());
+        adapter = new HistoryAdapter(getContext(), this);
         recyclerView.setAdapter(adapter);
 
-        // Listener para agregar nuevo evento médico (RF-09)
         fabAddEvento.setOnClickListener(v -> abrirRegistroEvento());
 
         cargarHistorial();
@@ -86,7 +89,6 @@ public class HistoryFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Recargar al volver de registrar un evento
         cargarHistorial();
     }
 
@@ -106,17 +108,28 @@ public class HistoryFragment extends Fragment {
         progressBar.setVisibility(View.VISIBLE);
         tvEmpty.setVisibility(View.GONE);
 
+        // Se usa addSnapshotListener para actualizar la lista en tiempo real
         db.collection("animales").document(animalId)
                 .collection("historialMedico")
                 .orderBy("fecha", Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
+                .addSnapshotListener((snapshots, e) -> {
                     progressBar.setVisibility(View.GONE);
+                    if (e != null) {
+                        Log.w(TAG, "Error al escuchar historial:", e);
+                        tvEmpty.setText("Error al cargar historial: " + e.getMessage());
+                        tvEmpty.setVisibility(View.VISIBLE);
+                        return;
+                    }
 
                     List<HistorialMedico> historial = new ArrayList<>();
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        HistorialMedico evento = doc.toObject(HistorialMedico.class);
-                        historial.add(evento);
+                    if (snapshots != null) {
+                        for (QueryDocumentSnapshot doc : snapshots) {
+                            HistorialMedico evento = doc.toObject(HistorialMedico.class);
+                            if (evento != null) {
+                                evento.setIdRegistro(doc.getId()); // <<-- CRUCIAL: Capturar el ID del documento
+                                historial.add(evento);
+                            }
+                        }
                     }
 
                     if (historial.isEmpty()) {
@@ -126,13 +139,89 @@ public class HistoryFragment extends Fragment {
                     } else {
                         adapter.setHistorial(historial);
                         recyclerView.setVisibility(View.VISIBLE);
+                        tvEmpty.setVisibility(View.GONE);
                     }
+                });
+    }
+
+    // =========================================================================
+    // IMPLEMENTACIÓN DE HistoryActionListener
+    // =========================================================================
+
+    @Override
+    public void onItemClick(HistorialMedico evento) {
+        if (getContext() == null) return;
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Detalles: " + evento.getTipoEvento());
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_historial_detalle, null);
+        builder.setView(dialogView);
+
+        // Formateador de fecha
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MMM/yyyy HH:mm", Locale.getDefault());
+
+        // Referencias a los TextViews del diálogo
+        TextView tvTipo = dialogView.findViewById(R.id.tv_dialog_tipo);
+        TextView tvFecha = dialogView.findViewById(R.id.tv_dialog_fecha);
+        TextView tvVeterinario = dialogView.findViewById(R.id.tv_dialog_veterinario);
+        TextView tvDiagnostico = dialogView.findViewById(R.id.tv_dialog_diagnostico);
+        TextView tvTratamiento = dialogView.findViewById(R.id.tv_dialog_tratamiento);
+        TextView tvNotas = dialogView.findViewById(R.id.tv_dialog_notas);
+
+        // Llenado de datos (uso de ternario para manejar posibles nulos o textos vacíos)
+        tvTipo.setText(evento.getTipoEvento());
+
+        if (evento.getFecha() != null) {
+            tvFecha.setText("Fecha: " + sdf.format(evento.getFecha().toDate()));
+        } else {
+            tvFecha.setText("Fecha: N/A");
+        }
+
+        String veterinarioText = evento.getVeterinario() != null ? evento.getVeterinario() : "N/A";
+        String diagnosticoText = evento.getDiagnostico() != null ? evento.getDiagnostico() : "No registrado";
+        String tratamientoText = evento.getTratamiento() != null ? evento.getTratamiento() : "No registrado";
+        String notasText = evento.getNotas() != null ? evento.getNotas() : "Sin notas adicionales";
+
+        tvVeterinario.setText("Dr(a).: " + veterinarioText);
+        tvDiagnostico.setText(diagnosticoText);
+        tvTratamiento.setText(tratamientoText);
+        tvNotas.setText(notasText);
+
+        builder.setPositiveButton("Cerrar", null);
+        builder.show();
+    }
+
+    @Override
+    public void onDeleteClick(HistorialMedico evento) {
+        if (getContext() == null) return;
+
+        // Pedir confirmación antes de eliminar permanentemente
+        new AlertDialog.Builder(getContext())
+                .setTitle("Confirmar Eliminación")
+                .setMessage("¿Estás seguro de que deseas eliminar permanentemente el registro médico: " + evento.getTipoEvento() + " (" + evento.getVeterinario() + ")?")
+                .setPositiveButton("Eliminar", (dialog, which) -> eliminarEventoMedico(evento))
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
+
+    private void eliminarEventoMedico(HistorialMedico evento) {
+        if (animalId == null || evento.getIdRegistro() == null) {
+            Toast.makeText(getContext(), "Error: No se pudo obtener la referencia del evento para eliminar.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        db.collection("animales")
+                .document(animalId)
+                .collection("historialMedico")
+                .document(evento.getIdRegistro()) // USAR idRegistro, el ID del documento
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(getContext(), "✅ Evento eliminado correctamente.", Toast.LENGTH_SHORT).show();
+                    // La recarga es automática gracias al SnapshotListener en cargarHistorial()
                 })
                 .addOnFailureListener(e -> {
-                    progressBar.setVisibility(View.GONE);
-                    tvEmpty.setVisibility(View.VISIBLE);
-                    tvEmpty.setText("Error al cargar historial: " + e.getMessage());
-                    Log.e(TAG, "Error al cargar historial: ", e);
+                    Toast.makeText(getContext(), "❌ Error al eliminar: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Log.e(TAG, "Error eliminando evento:", e);
                 });
     }
 }

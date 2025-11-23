@@ -97,4 +97,5 @@ public class HistorialMedico {
     public void setNotas(String notas) {
         this.notas = notas;
     }
+
 }
