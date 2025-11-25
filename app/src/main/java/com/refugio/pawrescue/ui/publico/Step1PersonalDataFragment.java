@@ -18,9 +18,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import com.refugio.pawrescue.R;
-import androidx.viewpager2.adapter.FragmentStateAdapter;
 
-// ========== Step1PersonalDataFragment.java ==========
 public class Step1PersonalDataFragment extends Fragment {
 
     private TextInputEditText etNombreCompleto;
@@ -99,7 +97,6 @@ public class Step1PersonalDataFragment extends Fragment {
         String direccion = etDireccion.getText().toString().trim();
         String tipoVivienda = actvTipoVivienda.getText().toString().trim();
 
-        // Validar campos obligatorios
         if (nombre.isEmpty() || fecha.isEmpty() || telefono.isEmpty() ||
                 email.isEmpty() || direccion.isEmpty() || tipoVivienda.isEmpty()) {
             return null;
@@ -119,100 +116,6 @@ public class Step1PersonalDataFragment extends Fragment {
             data.put("propiedadVivienda", "Renta");
         }
 
-        return data;
-    }
-}
-
-// ========== AdoptionFormPagerAdapter.java ==========
-class AdoptionFormPagerAdapter extends FragmentStateAdapter {
-    public AdoptionFormPagerAdapter(@NonNull androidx.fragment.app.FragmentActivity fragmentActivity) {
-        super(fragmentActivity);
-    }
-
-    @NonNull
-    @Override
-    public Fragment createFragment(int position) {
-        switch (position) {
-            case 0:
-                return new Step1PersonalDataFragment();
-            case 1:
-                return new Step2FamilyFragment();
-            case 2:
-                return new Step3ExperienceFragment();
-            case 3:
-                return new Step4CommitmentFragment();
-            case 4:
-                return new Step5ReviewFragment();
-            default:
-                return new Step1PersonalDataFragment();
-        }
-    }
-
-    @Override
-    public int getItemCount() {
-        return 5;
-    }
-}
-
-// ========== Fragmentos simplificados para los demás pasos ==========
-class Step2FamilyFragment extends Fragment {
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        // Implementar según diseño
-        View view = new View(requireContext());
-        return view;
-    }
-
-    public Map<String, Object> getData() {
-        Map<String, Object> data = new HashMap<>();
-        // Implementar recolección de datos
-        return data;
-    }
-}
-
-class Step3ExperienceFragment extends Fragment {
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        View view = new View(requireContext());
-        return view;
-    }
-
-    public Map<String, Object> getData() {
-        Map<String, Object> data = new HashMap<>();
-        return data;
-    }
-}
-
-class Step4CommitmentFragment extends Fragment {
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        View view = new View(requireContext());
-        return view;
-    }
-
-    public Map<String, Object> getData() {
-        Map<String, Object> data = new HashMap<>();
-        return data;
-    }
-}
-
-class Step5ReviewFragment extends Fragment {
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        View view = new View(requireContext());
-        return view;
-    }
-
-    public Map<String, Object> getData() {
-        Map<String, Object> data = new HashMap<>();
         return data;
     }
 }

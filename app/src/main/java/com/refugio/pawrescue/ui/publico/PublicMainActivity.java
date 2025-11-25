@@ -15,7 +15,7 @@ import com.refugio.pawrescue.R;
 import com.refugio.pawrescue.model.Animal;
 import com.refugio.pawrescue.databinding.ActivityPublicMainBinding;
 import com.refugio.pawrescue.ui.auth.LoginActivity;
-import com.refugio.pawrescue.ui.adapter.AnimalAdapter; // Usamos tu adaptador existente
+import com.refugio.pawrescue.ui.adapter.AnimalAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +32,6 @@ public class PublicMainActivity extends AppCompatActivity {
         binding = ActivityPublicMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // 1. Inicializar Firestore
         db = FirebaseFirestore.getInstance();
 
         setupToolbar();
@@ -49,7 +48,6 @@ public class PublicMainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Asegúrate de tener res/menu/public_menu.xml creado, si no, comenta esta línea
         getMenuInflater().inflate(R.menu.public_menu, menu);
         return true;
     }
@@ -70,10 +68,7 @@ public class PublicMainActivity extends AppCompatActivity {
     }
 
     private void setupRecyclerView() {
-        // 2. Configurar el adaptador con el click listener
         adapter = new AnimalAdapter(this, animal -> showAnimalDetails(animal));
-
-        // Usamos GridLayoutManager para que se vea en 2 columnas (como en la imagen de muestra)
         binding.rvAnimals.setLayoutManager(new GridLayoutManager(this, 2));
         binding.rvAnimals.setAdapter(adapter);
     }
@@ -86,36 +81,48 @@ public class PublicMainActivity extends AppCompatActivity {
     private void loadAnimalesDisponibles() {
         showLoading(true);
 
-        // 3. Consulta a Firebase CORREGIDA
+        // 🐾 CARGAMOS TODOS LOS ANIMALES SIN FILTRAR
         db.collection("animales")
-                // --- NOTA: He comentado el filtro para que veas TODOS los animales por ahora ---
-                // .whereEqualTo("estadoRefugio", "Disponible Adopcion")
-                // -------------------------------------------------------------------------------
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<Animal> animales = new ArrayList<>();
+
                     for (DocumentSnapshot doc : queryDocumentSnapshots) {
                         try {
                             Animal animal = doc.toObject(Animal.class);
                             if (animal != null) {
-                                // Aseguramos que el ID del documento esté en el objeto
+                                // ✅ ASEGURAMOS QUE EL ID ESTÉ PRESENTE
                                 animal.setIdAnimal(doc.getId());
+                                animal.setId(doc.getId());
+
+                                // 📝 LOG PARA DEBUG
+                                android.util.Log.d("PublicMain", "✅ Animal cargado: " + animal.getNombre() +
+                                        " | ID: " + animal.getId() +
+                                        " | Estado: " + animal.getEstadoRefugio());
+
+                                // ✅ AGREGAMOS TODOS LOS ANIMALES
                                 animales.add(animal);
                             }
                         } catch (Exception e) {
-                            // Ignorar documentos mal formados
+                            android.util.Log.e("PublicMain", "❌ Error parseando animal: " + doc.getId(), e);
                         }
                     }
 
-                    // Actualizar la lista en el adaptador
-                    adapter.setAnimalesList(animales);
+                    android.util.Log.d("PublicMain", "📊 Total de animales cargados: " + animales.size());
 
-                    // Mostrar imagen de "vacío" si no hay datos
+                    adapter.setAnimalesList(animales);
                     updateEmptyState(animales.isEmpty());
                     showLoading(false);
+
+                    if (animales.isEmpty()) {
+                        Toast.makeText(this,
+                                "No hay animales en la base de datos",
+                                Toast.LENGTH_LONG).show();
+                    }
                 })
                 .addOnFailureListener(e -> {
                     showLoading(false);
+                    android.util.Log.e("PublicMain", "❌ Error de Firestore", e);
                     Toast.makeText(this,
                             "Error al cargar animales: " + e.getMessage(),
                             Toast.LENGTH_SHORT).show();
@@ -123,8 +130,9 @@ public class PublicMainActivity extends AppCompatActivity {
     }
 
     private void showAnimalDetails(Animal animal) {
+        // ✅ CAMBIO CRÍTICO: Ahora pasamos el ANIMAL_ID en lugar del objeto completo
         Intent intent = new Intent(this, AnimalDetailsPublicActivity.class);
-        intent.putExtra("animal", animal);
+        intent.putExtra("ANIMAL_ID", animal.getId()); // 👈 Esto es lo que espera AnimalDetailsPublicActivity
         startActivity(intent);
     }
 

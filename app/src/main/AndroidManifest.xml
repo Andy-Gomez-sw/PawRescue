@@ -90,6 +90,18 @@
         <activity
             android:name=".ui.volunteer.VolunteerAnimalDetailActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.publico.AdoptionFormActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.PawRescue" />
+
+        <!-- Si también usas RequestDetailActivity, agrégala -->
+        <activity
+            android:name=".ui.publico.RequestDetailActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.PawRescue" />
 
         <activity
             android:name=".ui.volunteer.VolunteerAccountActivity"
