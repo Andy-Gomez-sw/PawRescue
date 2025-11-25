@@ -80,6 +80,20 @@
                         android:clickable="true"
                         android:focusable="true"
                         app:tint="@android:color/white" />
+
+                    <ImageView
+                        android:id="@+id/ic_assign_volunteer"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginTop="30dp"
+                        android:layout_marginStart="16dp"
+                        android:src="@drawable/ic_volunteer"
+                        android:contentDescription="Asignar voluntario"
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:tint="@android:color/white" />
+
+
                 </LinearLayout>
 
             </androidx.appcompat.widget.Toolbar>
@@ -87,6 +101,7 @@
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
     </com.google.android.material.appbar.AppBarLayout>
+
 
     <!-- Contenedor de Pestañas (CORREGIDO) -->
     <LinearLayout
@@ -127,5 +142,7 @@
         app:tint="@android:color/white"
         android:layout_gravity="bottom|end"
         android:contentDescription="Acción rápida de expediente" />
+
+
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tvAssignTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Asignar voluntario"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:paddingBottom="12dp" />
+
+    <TextView
+        android:id="@+id/tvAssignAnimalName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Animal: "
+        android:textSize="16sp"
+        android:paddingBottom="8dp" />
+
+    <!-- NUEVO: muestra si ya tiene voluntario -->
+    <TextView
+        android:id="@+id/tvCurrentVolunteer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Actualmente asignado a: Refugio (sin voluntario)"
+        android:textSize="14sp"
+        android:textColor="@android:color/darker_gray"
+        android:paddingBottom="12dp" />
+
+    <TextView
+        android:id="@+id/tvAssignInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Selecciona un voluntario activo:"
+        android:textSize="14sp"
+        android:paddingBottom="8dp" />
+
+    <Spinner
+        android:id="@+id/spinnerVoluntarios"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/tvAssignEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No hay voluntarios activos."
+        android:textSize="14sp"
+        android:paddingTop="8dp"
+        android:visibility="gone" />
+
+    <!-- Botón para guardar / cambiar voluntario -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnGuardarAsignacion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Guardar asignación"
+        android:textAllCaps="false"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="@color/colorPrimary"
+        android:textColor="@android:color/white"
+        app:cornerRadius="12dp" />
+
+    <!-- NUEVO: Botón para quitar el voluntario (dejarlo en refugio) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnQuitarAsignacion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Quitar voluntario"
+        android:textAllCaps="false"
+        android:layout_marginTop="8dp"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:textColor="@color/colorPrimary" />
+
+</LinearLayout>

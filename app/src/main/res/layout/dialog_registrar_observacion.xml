@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Registrar observación del día"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:paddingBottom="8dp" />
+
+        <CheckBox
+            android:id="@+id/chkComioBien"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Comió bien" />
+
+        <CheckBox
+            android:id="@+id/chkMedicamentosOk"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Recibió medicamentos" />
+
+        <CheckBox
+            android:id="@+id/chkComportamientoNormal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Comportamiento normal" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Notas adicionales"
+            android:paddingTop="8dp" />
+
+        <EditText
+            android:id="@+id/edtNotas"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:gravity="top|start"
+            android:hint="Describe brevemente el estado del animal..."
+            android:inputType="textMultiLine"
+            android:maxLines="5" />
+    </LinearLayout>
+</ScrollView>

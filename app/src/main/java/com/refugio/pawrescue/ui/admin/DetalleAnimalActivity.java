@@ -39,12 +39,19 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import android.content.Intent;
+import android.widget.Button;
+import android.widget.Toast;
+import com.refugio.pawrescue.ui.admin.AssignVolunteerActivity;
+
+
 public class DetalleAnimalActivity extends AppCompatActivity {
 
     private static final String TAG = "DetalleAnimalActivity";
     private String animalId;
     private Animal currentAnimal;
 
+    private Animal animal;
     // Componentes UI
     private ImageView ivAnimalHeader, icEdit, icShare;
     private Toolbar toolbar;
@@ -74,7 +81,7 @@ public class DetalleAnimalActivity extends AppCompatActivity {
         // Inicialización
         db = FirebaseFirestore.getInstance();
         animalId = getIntent().getStringExtra("animalId");
-
+        animal = (Animal) getIntent().getSerializableExtra("animal");
         // Enlazar UI
         ivAnimalHeader = findViewById(R.id.iv_animal_header);
         toolbar = findViewById(R.id.toolbar_detail);
@@ -83,6 +90,20 @@ public class DetalleAnimalActivity extends AppCompatActivity {
         tabLayout = findViewById(R.id.tab_layout);
         viewPager = findViewById(R.id.view_pager);
         fabAction = findViewById(R.id.fab_action);
+
+        ImageView btnAsignarVoluntario = findViewById(R.id.ic_assign_volunteer);
+
+        btnAsignarVoluntario.setOnClickListener(v -> {
+            if (animalId == null || animalId.isEmpty()) {
+                Toast.makeText(this, "Error: no se pudo obtener el ID del animal.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Intent intent = new Intent(this, AssignVolunteerActivity.class);
+            intent.putExtra("idAnimal", animalId);
+            intent.putExtra("nombreAnimal", currentAnimal != null ? currentAnimal.getNombre() : "Animal");
+            startActivity(intent);
+        });
 
         // Configurar Toolbar
         setSupportActionBar(toolbar);

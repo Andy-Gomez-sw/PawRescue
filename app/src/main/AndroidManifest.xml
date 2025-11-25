@@ -64,6 +64,9 @@
             android:exported="false"
             android:label="Panel de Voluntarios" />
         <activity
+            android:name=".ui.admin.AssignVolunteerActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.admin.RegistroAnimalActivity"
             android:exported="false"
             android:label="Registro Animal" />
@@ -84,6 +87,21 @@
             android:name=".ui.publico.PublicRegisterActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.volunteer.VolunteerAnimalDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.volunteer.VolunteerAccountActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.volunteer.VolunteerMainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.volunteer.VolunteerMainActivity" />
+        </activity>
+
+        <activity android:name=".ui.volunteer.VolunteerCitaDetailActivity" />
+
     </application>
 
 </manifest>
