@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <paths>
-        <!-- Rutas accesibles por el FileProvider para archivos temporales de la cámara -->
-        <!-- Permite acceder al directorio de imágenes de la aplicación (getExternalFilesDir(Environment.DIRECTORY_PICTURES)) -->
-        <external-files-path
-            name="my_images"
-            path="Pictures" />
-    </paths>
-</resources>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <external-files-path
+        name="my_images"
+        path="Pictures" />
+
+    <external-path
+        name="external_files"
+        path="." />
+
+</paths>

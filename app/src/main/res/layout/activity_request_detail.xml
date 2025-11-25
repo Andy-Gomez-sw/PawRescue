@@ -1,363 +1,284 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light"
-    tools:context=".RequestDetailActivity">
+    android:background="#F5F5F5">
 
-    <!-- ScrollView Principal -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/layoutChatInput">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingBottom="20dp">
 
-            <!-- Header con Gradiente -->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/gradient_orange"
+                android:background="@color/design_default_color_primary"
                 android:padding="16dp"
-                android:paddingBottom="24dp">
+                android:paddingBottom="32dp">
 
-                <!-- Botón Atrás -->
                 <ImageButton
                     android:id="@+id/btnBack"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:src="@drawable/ic_arrow_back"
+                    android:src="@android:drawable/ic_menu_revert"
                     app:tint="@android:color/white"
-                    android:contentDescription="@string/back"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"/>
-
-                <!-- Foto del Animal -->
-                <ImageView
-                    android:id="@+id/ivAnimalPhoto"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:scaleType="centerCrop"
-                    android:background="@drawable/bg_animal_round"
-                    android:layout_marginTop="16dp"
-                    app:layout_constraintTop_toBottomOf="@id/btnBack"
                     app:layout_constraintStart_toStartOf="parent"
-                    android:contentDescription="@string/animal_photo"
-                    tools:src="@drawable/placeholder_dog"/>
+                    app:layout_constraintTop_toTopOf="parent"/>
 
-                <!-- Nombre y Detalles -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardPhoto"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:layout_marginTop="16dp"
+                    app:cardCornerRadius="40dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/btnBack">
+
+                    <ImageView
+                        android:id="@+id/ivAnimalPhoto"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@android:drawable/ic_menu_gallery"/>
+                </androidx.cardview.widget.CardView>
+
                 <TextView
                     android:id="@+id/tvAnimalName"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="Nombre"
                     android:textSize="24sp"
                     android:textStyle="bold"
                     android:textColor="@android:color/white"
-                    android:layout_marginStart="12dp"
-                    app:layout_constraintTop_toTopOf="@id/ivAnimalPhoto"
-                    app:layout_constraintStart_toEndOf="@id/ivAnimalPhoto"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    tools:text="Toby"/>
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="8dp"
+                    app:layout_constraintStart_toEndOf="@id/cardPhoto"
+                    app:layout_constraintTop_toTopOf="@id/cardPhoto"/>
 
                 <TextView
                     android:id="@+id/tvAnimalDetails"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="Raza desconocida"
                     android:textSize="14sp"
-                    android:textColor="@android:color/white"
-                    android:alpha="0.9"
-                    android:layout_marginStart="12dp"
-                    android:layout_marginTop="4dp"
-                    app:layout_constraintTop_toBottomOf="@id/tvAnimalName"
-                    app:layout_constraintStart_toEndOf="@id/ivAnimalPhoto"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    tools:text="Labrador • 2 años"/>
+                    android:textColor="#E0E0E0"
+                    app:layout_constraintStart_toStartOf="@id/tvAnimalName"
+                    app:layout_constraintTop_toBottomOf="@id/tvAnimalName"/>
 
-                <!-- Card de Folio -->
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="-20dp"
+                android:paddingHorizontal="16dp">
+
                 <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardFolio"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
                     app:cardCornerRadius="12dp"
-                    app:cardElevation="0dp"
-                    app:cardBackgroundColor="#33FFFFFF"
-                    app:layout_constraintTop_toBottomOf="@id/ivAnimalPhoto"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent">
+                    app:cardElevation="4dp"
+                    android:layout_marginBottom="12dp">
 
-                    <androidx.constraintlayout.widget.ConstraintLayout
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:padding="12dp">
+                        android:orientation="horizontal"
+                        android:padding="16dp"
+                        android:gravity="center_vertical"
+                        android:background="#FFCCBC">
 
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintEnd_toStartOf="@id/btnCopyFolio">
-
+                            android:layout_weight="1"
+                            android:orientation="vertical">
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Folio de seguimiento"
-                                android:textSize="11sp"
-                                android:textColor="@android:color/white"
-                                android:alpha="0.8"/>
-
+                                android:textSize="12sp"
+                                android:textColor="#BF360C"/>
                             <TextView
                                 android:id="@+id/tvFolio"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textSize="18sp"
+                                android:text="#FOL-12345678"
+                                android:textSize="16sp"
                                 android:textStyle="bold"
-                                android:fontFamily="monospace"
-                                android:textColor="@android:color/white"
-                                android:layout_marginTop="2dp"
-                                tools:text="#RF-2024-0123"/>
+                                android:textColor="#BF360C"/>
                         </LinearLayout>
 
                         <ImageButton
                             android:id="@+id/btnCopyFolio"
                             android:layout_width="40dp"
                             android:layout_height="40dp"
-                            android:background="@drawable/bg_button_round_white"
-                            android:src="@drawable/ic_copy"
-                            app:tint="@color/primary_orange"
-                            android:contentDescription="@string/copy_folio"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"/>
-
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:src="@android:drawable/ic_menu_save"
+                            app:tint="#BF360C"/>
+                    </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Estado Actual -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardCurrentStatus"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
                     app:cardCornerRadius="12dp"
-                    app:cardElevation="2dp"
-                    app:cardBackgroundColor="@color/purple"
-                    app:layout_constraintTop_toBottomOf="@id/cardFolio"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent">
+                    app:cardElevation="4dp"
+                    android:layout_marginBottom="16dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
+                        android:padding="16dp"
                         android:gravity="center_vertical"
-                        android:padding="12dp">
+                        android:background="#9C27B0">
 
                         <ImageView
                             android:id="@+id/ivStatusIcon"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_calendar_check"
-                            app:tint="@android:color/white"
-                            android:contentDescription="@string/status"/>
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:src="@android:drawable/ic_menu_info_details"
+                            app:tint="@android:color/white"/>
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:orientation="vertical"
-                            android:layout_marginStart="12dp">
-
+                            android:layout_marginStart="16dp">
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Estado actual"
-                                android:textSize="11sp"
-                                android:textColor="@android:color/white"
-                                android:alpha="0.9"/>
-
+                                android:textSize="12sp"
+                                android:textColor="#E1BEE7"/>
                             <TextView
                                 android:id="@+id/tvCurrentStatus"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textSize="16sp"
+                                android:text="Aprobada"
+                                android:textSize="18sp"
                                 android:textStyle="bold"
-                                android:textColor="@android:color/white"
-                                tools:text="Cita Agendada"/>
+                                android:textColor="@android:color/white"/>
                         </LinearLayout>
-
                     </LinearLayout>
-
                 </com.google.android.material.card.MaterialCardView>
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <!-- Sección Timeline -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSeguimiento"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:text="Enviar Reporte de Seguimiento"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:backgroundTint="#4CAF50"
+                    app:icon="@android:drawable/ic_menu_camera"
+                    app:iconGravity="textStart"
+                    app:cornerRadius="12dp"
+                    android:padding="14dp"
+                    android:layout_marginBottom="16dp"
+                    android:visibility="gone"
+                    tools:visibility="visible"/>
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Progreso de tu Solicitud"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary"
-                        android:layout_marginBottom="16dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Progreso de tu Solicitud"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"
+                    android:layout_marginBottom="8dp"/>
 
-                    <!-- RecyclerView para Timeline -->
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recyclerViewTimeline"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:nestedScrollingEnabled="false"
-                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                        tools:listitem="@layout/item_timeline_step"/>
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Sección Documentos -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerViewTimeline"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:nestedScrollingEnabled="false"/>
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Documentos Requeridos"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary"
-                        android:layout_marginBottom="12dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Documentos Requeridos"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginBottom="8dp"/>
 
-                    <!-- RecyclerView para Documentos -->
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recyclerViewDocuments"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:nestedScrollingEnabled="false"
-                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                        tools:listitem="@layout/item_document"/>
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Sección Mensajes -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerViewDocuments"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:nestedScrollingEnabled="false"/>
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Mensajes"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary"
-                        android:layout_marginBottom="12dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Mensajes"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#333333"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginBottom="8dp"/>
 
-                    <!-- RecyclerView para Mensajes -->
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recyclerViewMessages"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:maxHeight="200dp"
-                        android:nestedScrollingEnabled="false"
-                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                        android:layout_marginBottom="12dp"
-                        tools:listitem="@layout/item_message"/>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerViewMessages"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:nestedScrollingEnabled="true"/>
 
-                    <!-- Input de Mensaje -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <ImageButton
-                            android:id="@+id/btnAttach"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:background="@drawable/bg_button_circle_gray"
-                            android:src="@drawable/ic_attach"
-                            android:contentDescription="@string/attach"/>
-
-                        <EditText
-                            android:id="@+id/etMessage"
-                            android:layout_width="0dp"
-                            android:layout_height="48dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/bg_input_rounded"
-                            android:hint="Escribe un mensaje..."
-                            android:paddingStart="16dp"
-                            android:paddingEnd="16dp"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginEnd="8dp"
-                            android:inputType="textMultiLine"
-                            android:maxLines="3"/>
-
-                        <ImageButton
-                            android:id="@+id/btnSend"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:background="@drawable/bg_button_circle_orange"
-                            android:src="@drawable/ic_send"
-                            app:tint="@android:color/white"
-                            android:contentDescription="@string/send"/>
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
+            </LinearLayout>
         </LinearLayout>
-
     </androidx.core.widget.NestedScrollView>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <LinearLayout
+        android:id="@+id/layoutChatInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="#FFFFFF"
+        android:elevation="8dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnAttach"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@android:drawable/ic_menu_add"
+            android:background="?attr/selectableItemBackgroundBorderless"/>
+
+        <EditText
+            android:id="@+id/etMessage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Escribe un mensaje..."
+            android:background="@drawable/bg_edittext_rounded"
+            android:padding="12dp"
+            android:layout_marginHorizontal="8dp"/>
+
+        <ImageButton
+            android:id="@+id/btnSend"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@android:drawable/ic_menu_send"
+            android:background="@drawable/bg_circle_orange"
+            app:tint="@android:color/white"/>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

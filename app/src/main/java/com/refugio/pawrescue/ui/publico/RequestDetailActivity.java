@@ -3,7 +3,9 @@ package com.refugio.pawrescue.ui.publico;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -13,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -36,35 +39,28 @@ public class RequestDetailActivity extends AppCompatActivity {
     // Vistas
     private ImageButton btnBack;
     private ImageView ivAnimalPhoto;
-    private TextView tvAnimalName;
-    private TextView tvAnimalDetails;
-    private TextView tvFolio;
-    private ImageButton btnCopyFolio;
+    private TextView tvAnimalName, tvAnimalDetails, tvFolio, tvCurrentStatus;
+    private ImageButton btnCopyFolio, btnAttach, btnSend;
     private MaterialCardView cardCurrentStatus;
     private ImageView ivStatusIcon;
-    private TextView tvCurrentStatus;
-    private RecyclerView recyclerViewTimeline;
-    private RecyclerView recyclerViewDocuments;
-    private RecyclerView recyclerViewMessages;
-    private ImageButton btnAttach;
     private EditText etMessage;
-    private ImageButton btnSend;
+    private RecyclerView recyclerViewTimeline, recyclerViewDocuments, recyclerViewMessages;
+    private MaterialButton btnSeguimiento;
 
-    // Firebase
+    // Firebase y Datos
     private FirebaseFirestore db;
     private FirebaseAuth auth;
     private ListenerRegistration messageListener;
-
-    // Datos
     private String solicitudId;
-    private AdoptionRequest request; // Tu modelo completo
+    private AdoptionRequest request;
+
     private TimelineAdapter timelineAdapter;
     private DocumentAdapter documentAdapter;
     private MessageAdapter messageAdapter;
 
-    private List<TimelineStep> timelineSteps;
-    private List<DocumentItem> documents;
-    private List<Message> messages;
+    private List<TimelineStep> timelineSteps = new ArrayList<>();
+    private List<DocumentItem> documents = new ArrayList<>();
+    private List<Message> messages = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,25 +70,39 @@ public class RequestDetailActivity extends AppCompatActivity {
         initViews();
         initFirebase();
 
-        // 1. Recuperar ID de forma segura
-        if (!getSolicitudId()) {
-            return; // Si falla, nos salimos
+        if (getIntentData()) {
+            setupRecyclerViews();
+            setupButtons();
+
+            if (request != null) {
+                displayRequestData();
+                loadTimeline();
+                loadDocuments();
+                listenToMessages();
+            } else {
+                loadRequestData();
+            }
+        }
+    }
+
+    private boolean getIntentData() {
+        if (getIntent().hasExtra("REQUEST_OBJ")) {
+            request = (AdoptionRequest) getIntent().getSerializableExtra("REQUEST_OBJ");
+            if (request != null) solicitudId = request.getId();
+        }
+        if (solicitudId == null) {
+            solicitudId = getIntent().getStringExtra("REQUEST_ID");
+            if (solicitudId == null) {
+                solicitudId = getIntent().getStringExtra("SOLICITUD_ID");
+            }
         }
 
-        setupRecyclerViews();
-        setupButtons();
-
-        // 2. Cargar datos
-        if (request != null) {
-            // Si ya recibimos el objeto completo, lo usamos directo
-            displayRequestData();
-            loadTimeline();
-            loadDocuments();
-            listenToMessages(); // El chat siempre necesita Firebase
-        } else {
-            // Si solo tenemos ID, descargamos todo
-            loadRequestData();
+        if (solicitudId == null || solicitudId.isEmpty()) {
+            Toast.makeText(this, "Error: ID no encontrado", Toast.LENGTH_SHORT).show();
+            finish();
+            return false;
         }
+        return true;
     }
 
     private void initViews() {
@@ -111,10 +121,7 @@ public class RequestDetailActivity extends AppCompatActivity {
         btnAttach = findViewById(R.id.btnAttach);
         etMessage = findViewById(R.id.etMessage);
         btnSend = findViewById(R.id.btnSend);
-
-        timelineSteps = new ArrayList<>();
-        documents = new ArrayList<>();
-        messages = new ArrayList<>();
+        btnSeguimiento = findViewById(R.id.btnSeguimiento);
     }
 
     private void initFirebase() {
@@ -122,46 +129,15 @@ public class RequestDetailActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
     }
 
-    // --- MÉTODO CLAVE PARA EVITAR EL CRASH ---
-    private boolean getSolicitudId() {
-        // Intento 1: Ver si nos pasaron el Objeto completo (REQUEST_OBJ)
-        if (getIntent().hasExtra("REQUEST_OBJ")) {
-            request = (AdoptionRequest) getIntent().getSerializableExtra("REQUEST_OBJ");
-            if (request != null) {
-                solicitudId = request.getId();
-            }
-        }
-
-        // Intento 2: Ver si nos pasaron el ID suelto (REQUEST_ID o SOLICITUD_ID)
-        if (solicitudId == null) {
-            if (getIntent().hasExtra("REQUEST_ID")) {
-                solicitudId = getIntent().getStringExtra("REQUEST_ID");
-            } else if (getIntent().hasExtra("SOLICITUD_ID")) { // Por compatibilidad
-                solicitudId = getIntent().getStringExtra("SOLICITUD_ID");
-            }
-        }
-
-        // Validación Final
-        if (solicitudId == null || solicitudId.isEmpty()) {
-            Toast.makeText(this, "Error: ID de solicitud no encontrado", Toast.LENGTH_LONG).show();
-            finish(); // Cerramos suavemente
-            return false;
-        }
-        return true;
-    }
-
     private void setupRecyclerViews() {
-        // Timeline
         timelineAdapter = new TimelineAdapter(this, timelineSteps);
         recyclerViewTimeline.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewTimeline.setAdapter(timelineAdapter);
 
-        // Documentos
         documentAdapter = new DocumentAdapter(this, documents, this::onDocumentUploadClick);
         recyclerViewDocuments.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewDocuments.setAdapter(documentAdapter);
 
-        // Mensajes
         messageAdapter = new MessageAdapter(this, messages);
         recyclerViewMessages.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewMessages.setAdapter(messageAdapter);
@@ -171,13 +147,10 @@ public class RequestDetailActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> onBackPressed());
         btnCopyFolio.setOnClickListener(v -> copyFolioToClipboard());
         btnSend.setOnClickListener(v -> sendMessage());
-        btnAttach.setOnClickListener(v -> { /* Implementar adjuntar */ });
+        btnAttach.setOnClickListener(v -> Toast.makeText(this, "Función en desarrollo", Toast.LENGTH_SHORT).show());
     }
 
     private void loadRequestData() {
-        // Protección adicional
-        if (solicitudId == null) return;
-
         db.collection("solicitudes_adopcion").document(solicitudId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -191,39 +164,41 @@ public class RequestDetailActivity extends AppCompatActivity {
                             listenToMessages();
                         }
                     } else {
-                        Toast.makeText(this, "La solicitud no existe", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Solicitud no encontrada", Toast.LENGTH_SHORT).show();
                         finish();
                     }
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error al cargar solicitud", Toast.LENGTH_SHORT).show();
-                    finish();
                 });
     }
 
     private void displayRequestData() {
         if (request == null) return;
 
-        // Foto
         if (request.getAnimalFotoUrl() != null) {
-            Glide.with(this)
-                    .load(request.getAnimalFotoUrl())
-                    .placeholder(R.drawable.placeholder_animal)
-                    .into(ivAnimalPhoto);
+            Glide.with(this).load(request.getAnimalFotoUrl()).into(ivAnimalPhoto);
         }
-
-        // Textos
         tvAnimalName.setText(request.getAnimalNombre());
-        tvAnimalDetails.setText(request.getAnimalRaza() != null ? request.getAnimalRaza() : "Raza no especificada");
+        tvAnimalDetails.setText(request.getAnimalRaza());
+        tvFolio.setText("#" + (request.getFolio() != null ? request.getFolio() : solicitudId.substring(0,8)));
+        tvCurrentStatus.setText(request.getEstadoTexto());
+        ivStatusIcon.setImageResource(request.getEstadoIcon());
 
-        String folioText = request.getFolio() != null ? request.getFolio() : request.getId();
-        tvFolio.setText("#" + folioText);
+        // 🟢 LÓGICA DEL BOTÓN DE SEGUIMIENTO (CORREGIDA)
+        String estado = request.getEstado();
+        if (estado != null && (estado.equalsIgnoreCase("aprobada") || estado.equalsIgnoreCase("adoptado"))) {
 
-        // Estado
-        if (request.getEstado() != null) {
-            tvCurrentStatus.setText(request.getEstadoTexto()); // Asegúrate que tu modelo tenga este método
-            // Si tienes iconos en el modelo, úsalos:
-            // ivStatusIcon.setImageResource(request.getEstadoIcon());
+            btnSeguimiento.setVisibility(View.VISIBLE);
+
+            btnSeguimiento.setOnClickListener(v -> {
+                Intent intent = new Intent(RequestDetailActivity.this, PostAdoptionActivity.class);
+                // CORRECCIÓN: Usamos solo los getters que SÍ existen en tu clase AdoptionRequest
+                intent.putExtra("ANIMAL_ID", request.getAnimalId());
+                intent.putExtra("ANIMAL_NAME", request.getAnimalNombre());
+                intent.putExtra("SOLICITUD_ID", request.getId());
+                startActivity(intent);
+            });
+
+        } else {
+            btnSeguimiento.setVisibility(View.GONE);
         }
     }
 
@@ -231,30 +206,13 @@ public class RequestDetailActivity extends AppCompatActivity {
         timelineSteps.clear();
         if (request == null) return;
 
-        String fecha = request.getFechaFormateada(); // Asegúrate que tu modelo tenga esto
+        timelineSteps.add(new TimelineStep("Solicitud Recibida", request.getFechaFormateada(), "completed", "Solicitud registrada", null));
 
-        // Paso 1: Solicitud Recibida
-        timelineSteps.add(new TimelineStep(
-                "Solicitud Recibida",
-                fecha,
-                "completed",
-                "Tu solicitud ha sido registrada exitosamente",
-                null
-        ));
-
-        // Paso 2: En Revisión
-        if (request.getEstado() != null && !request.getEstado().equals("pendiente")) {
-            timelineSteps.add(new TimelineStep(
-                    "En Revisión",
-                    "En proceso",
-                    "completed",
-                    "El administrador está revisando tu perfil",
-                    null
-            ));
+        if (request.getEstado().equals("aprobada")) {
+            timelineSteps.add(new TimelineStep("Aprobada", "Reciente", "completed", "¡Felicidades!", null));
+        } else if (!request.getEstado().equals("pendiente")) {
+            timelineSteps.add(new TimelineStep("En Revisión", "En proceso", "current", "Revisando perfil", null));
         }
-
-        // ... (Puedes agregar más lógica de pasos aquí según el estado)
-
         timelineAdapter.notifyDataSetChanged();
     }
 
@@ -262,71 +220,54 @@ public class RequestDetailActivity extends AppCompatActivity {
         documents.clear();
         documents.add(new DocumentItem("INE / Identificación", true));
         documents.add(new DocumentItem("Comprobante de domicilio", true));
-        documents.add(new DocumentItem("Fotos de la vivienda", false));
         documentAdapter.notifyDataSetChanged();
     }
 
     private void listenToMessages() {
         if (solicitudId == null) return;
-
-        messageListener = db.collection("solicitudes_adopcion")
-                .document(solicitudId)
-                .collection("mensajes")
-                .orderBy("fecha")
+        messageListener = db.collection("solicitudes_adopcion").document(solicitudId)
+                .collection("mensajes").orderBy("fecha")
                 .addSnapshotListener((value, error) -> {
-                    if (error != null) return;
                     if (value != null) {
                         messages.clear();
                         for (QueryDocumentSnapshot doc : value) {
-                            Message message = doc.toObject(Message.class);
-                            messages.add(message);
+                            messages.add(doc.toObject(Message.class));
                         }
                         messageAdapter.notifyDataSetChanged();
-                        if (!messages.isEmpty()) {
-                            recyclerViewMessages.scrollToPosition(messages.size() - 1);
-                        }
+                        if (!messages.isEmpty()) recyclerViewMessages.scrollToPosition(messages.size() - 1);
                     }
                 });
     }
 
     private void sendMessage() {
-        String messageText = etMessage.getText().toString().trim();
-        if (messageText.isEmpty() || solicitudId == null) return;
+        String text = etMessage.getText().toString().trim();
+        if (text.isEmpty() || auth.getCurrentUser() == null) return;
 
-        String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
-        if (userId == null) return;
+        Map<String, Object> msg = new HashMap<>();
+        msg.put("texto", text);
+        msg.put("userId", auth.getCurrentUser().getUid());
+        msg.put("fecha", new Date());
+        msg.put("tipo", "usuario");
 
-        Map<String, Object> mensaje = new HashMap<>();
-        mensaje.put("texto", messageText);
-        mensaje.put("userId", userId);
-        mensaje.put("fecha", new Date());
-        mensaje.put("tipo", "usuario");
-
-        db.collection("solicitudes_adopcion")
-                .document(solicitudId)
-                .collection("mensajes")
-                .add(mensaje)
-                .addOnSuccessListener(doc -> etMessage.setText(""))
-                .addOnFailureListener(e -> Toast.makeText(this, "Error al enviar", Toast.LENGTH_SHORT).show());
+        db.collection("solicitudes_adopcion").document(solicitudId).collection("mensajes").add(msg)
+                .addOnSuccessListener(d -> etMessage.setText(""));
     }
 
     private void copyFolioToClipboard() {
         if (request == null) return;
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        ClipData clip = ClipData.newPlainText("Folio", request.getFolio() != null ? request.getFolio() : request.getId());
+        ClipData clip = ClipData.newPlainText("Folio", request.getFolio());
         clipboard.setPrimaryClip(clip);
         Toast.makeText(this, "Folio copiado", Toast.LENGTH_SHORT).show();
     }
 
     private void onDocumentUploadClick(DocumentItem document) {
-        Toast.makeText(this, "Subir: " + document.getName(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Subir documento...", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (messageListener != null) {
-            messageListener.remove();
-        }
+        if (messageListener != null) messageListener.remove();
     }
 }

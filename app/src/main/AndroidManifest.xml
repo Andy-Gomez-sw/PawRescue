@@ -26,15 +26,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PawRescue">
-        <activity
-            android:name=".ui.admin.DetalleVoluntarioActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.admin.RegistroEventoMedicoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.admin.CitasAdopcionActivity"
-            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -51,18 +42,19 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ui.publico.PublicRegisterActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
         <activity
             android:name=".ui.admin.AdminMainActivity"
             android:exported="false"
             android:label="Panel de Administración" />
-        <activity
-            android:name=".ui.volunteer.VolunteerMainActivity"
-            android:exported="false"
-            android:label="Panel de Voluntarios" />
         <activity
             android:name=".ui.admin.AssignVolunteerActivity"
             android:exported="false" />
@@ -75,34 +67,60 @@
             android:exported="false"
             android:label="Detalle Expediente" />
         <activity
-            android:name=".ui.publico.PublicMainActivity"
+            android:name=".ui.admin.DetalleVoluntarioActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.publico.AnimalDetailsPublicActivity"
+            android:name=".ui.admin.RegistroEventoMedicoActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.admin.CitasAdopcionActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.publico.GalleryActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.publico.FavoritesActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.publico.ProfileActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.publico.PostAdoptionActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" /> <activity
+        android:name=".ui.publico.AnimalDetailsPublicActivity"
+        android:exported="false" />
+
         <activity
             android:name=".ui.publico.MyRequestsActivity"
             android:exported="false" />
-        <activity
-            android:name=".ui.publico.PublicRegisterActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".ui.volunteer.VolunteerAnimalDetailActivity"
-            android:exported="false" />
+
         <activity
             android:name=".ui.publico.AdoptionFormActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.PawRescue" />
+            android:windowSoftInputMode="adjustResize" />
 
-        <!-- Si también usas RequestDetailActivity, agrégala -->
         <activity
             android:name=".ui.publico.RequestDetailActivity"
             android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.PawRescue" />
+            android:screenOrientation="portrait" />
 
+        <activity
+            android:name=".ui.publico.PublicMainActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.volunteer.VolunteerMainActivity"
+            android:exported="false"
+            android:label="Panel de Voluntarios" />
+        <activity
+            android:name=".ui.volunteer.VolunteerAnimalDetailActivity"
+            android:exported="false" />
         <activity
             android:name=".ui.volunteer.VolunteerAccountActivity"
             android:exported="false"
@@ -111,7 +129,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ui.volunteer.VolunteerMainActivity" />
         </activity>
-
         <activity android:name=".ui.volunteer.VolunteerCitaDetailActivity" />
 
     </application>
