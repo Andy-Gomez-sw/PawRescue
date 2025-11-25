@@ -78,7 +78,7 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
         tvAnimalIdHint = view.findViewById(R.id.tv_animal_id_hint);
 
         if (animalId != null && tvAnimalIdHint != null) {
-            tvAnimalIdHint.setText("Solicitudes para ID: " + animalId);
+            tvAnimalIdHint.setText("Solicitudes de adopción:");
         }
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
