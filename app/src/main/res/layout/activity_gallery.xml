@@ -2,177 +2,280 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light"
-    tools:context=".GalleryActivity">
+    android:background="@color/background_light">
 
-    <!-- AppBar Layout -->
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        app:elevation="4dp">
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="16dp">
-
-            <!-- Logo y Usuario -->
-            <TextView
-                android:id="@+id/tvAppTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="🐾 PawRescue"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/searchBar"/>
-
-            <ImageButton
-                android:id="@+id/btnProfile"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_person"
-                android:contentDescription="@string/profile"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/searchBar"/>
-
-            <!-- Barra de Búsqueda -->
-            <LinearLayout
-                android:id="@+id/searchBar"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:orientation="horizontal"
-                android:background="@drawable/bg_search_bar"
-                android:layout_marginTop="12dp"
-                android:layout_marginEnd="8dp"
-                app:layout_constraintTop_toBottomOf="@id/tvAppTitle"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/btnFilter"
-                app:layout_constraintBottom_toTopOf="@id/chipGroupFilters">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginStart="12dp"
-                    android:src="@drawable/ic_search"
-                    android:contentDescription="@string/search"/>
-
-                <EditText
-                    android:id="@+id/etSearch"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:hint="@string/search_placeholder"
-                    android:background="@android:color/transparent"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    android:textSize="14sp"
-                    android:inputType="text"
-                    android:imeOptions="actionSearch"/>
-            </LinearLayout>
-
-            <!-- Botón de Filtros -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnFilter"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:insetLeft="0dp"
-                android:insetTop="0dp"
-                android:insetRight="0dp"
-                android:insetBottom="0dp"
-                app:icon="@drawable/ic_filter"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:cornerRadius="8dp"
-                app:backgroundTint="@color/primary_orange"
-                android:layout_marginTop="12dp"
-                app:layout_constraintTop_toBottomOf="@id/tvAppTitle"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/chipGroupFilters"/>
-
-            <!-- Chips de Filtros -->
-            <HorizontalScrollView
-                android:id="@+id/chipGroupFilters"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scrollbars="none"
-                android:layout_marginTop="12dp"
-                app:layout_constraintTop_toBottomOf="@id/searchBar"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent">
-
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/chipGroup"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:singleSelection="true"
-                    app:selectionRequired="true">
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipTodos"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/filter_all"
-                        android:checked="true"/>
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipPerros"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/filter_dogs"/>
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipGatos"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/filter_cats"/>
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipCachorros"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/filter_puppies"/>
-
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chipUrgentes"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/filter_urgent"/>
-
-                </com.google.android.material.chip.ChipGroup>
-            </HorizontalScrollView>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <!-- RecyclerView para Grid de Mascotas -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewAnimals"
+    <!-- Contenido Principal -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:padding="16dp"
-        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        app:spanCount="2"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        tools:listitem="@layout/item_animal_card"/>
+        android:layout_marginBottom="56dp"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Header con búsqueda -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="@color/white">
+
+                <!-- Título y Perfil -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Encuentra tu amigo"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"/>
+
+                    <ImageButton
+                        android:id="@+id/btnProfile"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_person"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Perfil"/>
+                </LinearLayout>
+
+                <!-- Barra de búsqueda -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:boxBackgroundMode="outline"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:startIconDrawable="@drawable/ic_search">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etSearch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Buscar por nombre o raza"
+                        android:inputType="text"
+                        android:maxLines="1"/>
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <!-- Sección de Filtros -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:background="@color/background_light">
+
+                <!-- Filtro por Especie -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Especie"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginBottom="8dp"/>
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:layout_marginBottom="16dp">
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chipGroupEspecie"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:singleSelection="true"
+                        app:selectionRequired="false">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipTodos"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Todos"
+                            android:checked="true"/>
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipPerros"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Perros"
+                            app:chipIcon="@drawable/ic_pets"/>
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipGatos"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Gatos"
+                            app:chipIcon="@drawable/ic_pets"/>
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipAves"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Aves"
+                            app:chipIcon="@drawable/ic_pets"/>
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipOtros"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Otros"
+                            app:chipIcon="@drawable/ic_pets"/>
+                    </com.google.android.material.chip.ChipGroup>
+                </HorizontalScrollView>
+
+                <!-- Filtro por Edad -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Edad"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginBottom="8dp"/>
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:layout_marginBottom="16dp">
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chipGroupEdad"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:singleSelection="true"
+                        app:selectionRequired="false">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipTodasEdades"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Todas"
+                            android:checked="true"/>
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipCachorro"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Cachorro"/>
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipJoven"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Joven"/>
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipAdulto"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Adulto"/>
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipSenior"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Senior"/>
+                    </com.google.android.material.chip.ChipGroup>
+                </HorizontalScrollView>
+
+                <!-- Filtro por Tamaño -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tamaño"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginBottom="8dp"/>
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chipGroupTamano"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:singleSelection="true"
+                        app:selectionRequired="false">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipTodosTamanos"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Todos"
+                            android:checked="true"/>
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipPequeno"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Pequeño"/>
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipMediano"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Mediano"/>
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipGrande"
+                            style="@style/Widget.Material3.Chip.Filter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Grande"/>
+                    </com.google.android.material.chip.ChipGroup>
+                </HorizontalScrollView>
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/gray_light"/>
+
+            <!-- RecyclerView de Animales -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewAnimals"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:clipToPadding="false"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
     <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -180,8 +283,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:background="@android:color/white"
-        app:elevation="8dp"
+        android:background="@color/white"
         app:menu="@menu/bottom_nav_menu"
         app:labelVisibilityMode="labeled"
         app:itemIconTint="@color/bottom_nav_color"

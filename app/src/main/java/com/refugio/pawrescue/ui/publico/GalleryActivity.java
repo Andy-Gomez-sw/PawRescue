@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -32,10 +33,16 @@ public class GalleryActivity extends AppCompatActivity {
     private List<Animal> filteredList;
     private EditText etSearch;
     private ImageButton btnProfile;
-    private ChipGroup chipGroup;
+    private ChipGroup chipGroupEspecie;
+    private ChipGroup chipGroupEdad;
+    private ChipGroup chipGroupTamano;
     private BottomNavigationView bottomNavigation;
     private FirebaseFirestore db;
-    private String currentFilter = "Todos";
+
+    // Filtros actuales
+    private String currentFilterEspecie = "Todos";
+    private String currentFilterEdad = "Todas";
+    private String currentFilterTamano = "Todos";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +61,9 @@ public class GalleryActivity extends AppCompatActivity {
         recyclerViewAnimals = findViewById(R.id.recyclerViewAnimals);
         etSearch = findViewById(R.id.etSearch);
         btnProfile = findViewById(R.id.btnProfile);
-        chipGroup = findViewById(R.id.chipGroup);
+        chipGroupEspecie = findViewById(R.id.chipGroupEspecie);
+        chipGroupEdad = findViewById(R.id.chipGroupEdad);
+        chipGroupTamano = findViewById(R.id.chipGroupTamano);
         bottomNavigation = findViewById(R.id.bottomNavigation);
         animalList = new ArrayList<>();
         filteredList = new ArrayList<>();
@@ -114,8 +123,8 @@ public class GalleryActivity extends AppCompatActivity {
                             animalList.add(animal);
                             count++;
 
-                            Log.d(TAG, String.format("✅ Animal #%d: ID=%s, Nombre=%s",
-                                    count, docId, animal.getNombre()));
+                            Log.d(TAG, String.format("✅ Animal #%d: ID=%s, Nombre=%s, Especie=%s",
+                                    count, docId, animal.getNombre(), animal.getEspecie()));
 
                         } catch (Exception e) {
                             Log.e(TAG, "❌ Error parseando animal: " + document.getId(), e);
@@ -128,7 +137,7 @@ public class GalleryActivity extends AppCompatActivity {
                         Toast.makeText(this, "No hay animales disponibles para adopción", Toast.LENGTH_SHORT).show();
                     }
 
-                    filterAnimals(etSearch.getText().toString(), currentFilter);
+                    applyFilters();
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "❌ Error cargando animales de Firestore", e);
@@ -136,38 +145,96 @@ public class GalleryActivity extends AppCompatActivity {
                 });
     }
 
-    private void filterAnimals(String searchText, String filterCategory) {
+    private void applyFilters() {
         filteredList.clear();
-        String searchLower = searchText.toLowerCase();
+        String searchLower = etSearch.getText().toString().toLowerCase();
 
         for (Animal animal : animalList) {
-            boolean matchesSearch = searchText.isEmpty() ||
-                    (animal.getNombre() != null && animal.getNombre().toLowerCase().contains(searchLower));
+            // Filtro de búsqueda por texto
+            boolean matchesSearch = searchLower.isEmpty() ||
+                    (animal.getNombre() != null && animal.getNombre().toLowerCase().contains(searchLower)) ||
+                    (animal.getRaza() != null && animal.getRaza().toLowerCase().contains(searchLower));
 
-            boolean matchesFilter = true;
-            if (!filterCategory.equals("Todos")) {
-                if (animal.getEspecie() != null) {
-                    matchesFilter = animal.getEspecie().equalsIgnoreCase(filterCategory);
-                    if (filterCategory.equals("Cachorros")) matchesFilter = animal.getEdad() < 1;
-                } else {
-                    matchesFilter = false;
+            // Filtro por Especie
+            boolean matchesEspecie = currentFilterEspecie.equals("Todos");
+            if (!matchesEspecie && animal.getEspecie() != null) {
+                String especie = animal.getEspecie().toLowerCase();
+                switch (currentFilterEspecie) {
+                    case "Perros":
+                        matchesEspecie = especie.contains("perro");
+                        break;
+                    case "Gatos":
+                        matchesEspecie = especie.contains("gato");
+                        break;
+                    case "Aves":
+                        matchesEspecie = especie.contains("ave") || especie.contains("pájaro");
+                        break;
+                    case "Otros":
+                        matchesEspecie = !especie.contains("perro") &&
+                                !especie.contains("gato") &&
+                                !especie.contains("ave") &&
+                                !especie.contains("pájaro");
+                        break;
                 }
             }
 
-            if (matchesSearch && matchesFilter) {
+            // Filtro por Edad
+            boolean matchesEdad = currentFilterEdad.equals("Todas");
+            if (!matchesEdad && animal.getEdadAprox() != null) {
+                String edad = animal.getEdadAprox().toLowerCase();
+                switch (currentFilterEdad) {
+                    case "Cachorro":
+                        matchesEdad = edad.contains("cachorro") || edad.contains("bebé");
+                        break;
+                    case "Joven":
+                        matchesEdad = edad.contains("joven");
+                        break;
+                    case "Adulto":
+                        matchesEdad = edad.contains("adulto");
+                        break;
+                    case "Senior":
+                        matchesEdad = edad.contains("senior") || edad.contains("anciano");
+                        break;
+                }
+            }
+
+            // Filtro por Tamaño
+            boolean matchesTamano = currentFilterTamano.equals("Todos");
+            if (!matchesTamano && animal.getTamano() != null) {
+                String tamano = animal.getTamano().toLowerCase();
+                switch (currentFilterTamano) {
+                    case "Pequeño":
+                        matchesTamano = tamano.contains("pequeño") || tamano.contains("chico");
+                        break;
+                    case "Mediano":
+                        matchesTamano = tamano.contains("mediano");
+                        break;
+                    case "Grande":
+                        matchesTamano = tamano.contains("grande");
+                        break;
+                }
+            }
+
+            // Si cumple todos los filtros, lo agregamos
+            if (matchesSearch && matchesEspecie && matchesEdad && matchesTamano) {
                 filteredList.add(animal);
             }
         }
 
         Log.d(TAG, "🔎 Filtrados: " + filteredList.size() + " de " + animalList.size());
         animalAdapter.notifyDataSetChanged();
+
+        // Mostrar mensaje si no hay resultados
+        if (filteredList.isEmpty() && !animalList.isEmpty()) {
+            Toast.makeText(this, "No se encontraron resultados con estos filtros", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void setupSearch() {
         etSearch.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterAnimals(s.toString(), currentFilter);
+                applyFilters();
             }
             public void afterTextChanged(Editable s) {}
         });
@@ -175,20 +242,54 @@ public class GalleryActivity extends AppCompatActivity {
     }
 
     private void setupFilters() {
-        chipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
+        // Filtro por Especie
+        chipGroupEspecie.setOnCheckedStateChangeListener((group, checkedIds) -> {
             if (!checkedIds.isEmpty()) {
                 Chip chip = findViewById(checkedIds.get(0));
                 if (chip != null) {
-                    currentFilter = chip.getText().toString();
-                    if(currentFilter.equals("Perros")) currentFilter = "Perro";
-                    if(currentFilter.equals("Gatos")) currentFilter = "Gato";
-                    filterAnimals(etSearch.getText().toString(), currentFilter);
+                    currentFilterEspecie = chip.getText().toString();
+                    Log.d(TAG, "Filtro Especie: " + currentFilterEspecie);
+                    applyFilters();
                 }
             } else {
-                currentFilter = "Todos";
-                filterAnimals(etSearch.getText().toString(), currentFilter);
+                currentFilterEspecie = "Todos";
+                applyFilters();
             }
         });
+
+        // Filtro por Edad
+        if (chipGroupEdad != null) {
+            chipGroupEdad.setOnCheckedStateChangeListener((group, checkedIds) -> {
+                if (!checkedIds.isEmpty()) {
+                    Chip chip = findViewById(checkedIds.get(0));
+                    if (chip != null) {
+                        currentFilterEdad = chip.getText().toString();
+                        Log.d(TAG, "Filtro Edad: " + currentFilterEdad);
+                        applyFilters();
+                    }
+                } else {
+                    currentFilterEdad = "Todas";
+                    applyFilters();
+                }
+            });
+        }
+
+        // Filtro por Tamaño
+        if (chipGroupTamano != null) {
+            chipGroupTamano.setOnCheckedStateChangeListener((group, checkedIds) -> {
+                if (!checkedIds.isEmpty()) {
+                    Chip chip = findViewById(checkedIds.get(0));
+                    if (chip != null) {
+                        currentFilterTamano = chip.getText().toString();
+                        Log.d(TAG, "Filtro Tamaño: " + currentFilterTamano);
+                        applyFilters();
+                    }
+                } else {
+                    currentFilterTamano = "Todos";
+                    applyFilters();
+                }
+            });
+        }
     }
 
     private void setupBottomNavigation() {

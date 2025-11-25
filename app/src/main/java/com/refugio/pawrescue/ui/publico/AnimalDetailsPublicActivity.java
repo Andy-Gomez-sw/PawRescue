@@ -1,17 +1,18 @@
 package com.refugio.pawrescue.ui.publico;
 
 import android.content.Intent;
+import android.graphics.Color; // Importante para cambiar colores
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.viewpager2.widget.ViewPager2;
+
+// Imports
 import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
@@ -23,11 +24,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.refugio.pawrescue.R;
 import com.refugio.pawrescue.model.Animal;
 import com.refugio.pawrescue.ui.adapter.ImagePagerAdapter;
-import java.util.Collections;
 
 public class AnimalDetailsPublicActivity extends AppCompatActivity {
-
-    private static final String TAG = "AnimalDetailsPublic";
 
     private ViewPager2 viewPagerImages;
     private TabLayout tabDots;
@@ -38,11 +36,9 @@ public class AnimalDetailsPublicActivity extends AppCompatActivity {
     private ImageView iconAbout, iconHealth, iconRequirements;
     private FloatingActionButton fabFavorite;
     private MaterialButton btnSolicitar;
-    private ProgressBar progressBar;
 
     private FirebaseFirestore db;
     private Animal animal;
-    private String animalId;
     private boolean isFavorite = false;
 
     @Override
@@ -54,19 +50,27 @@ public class AnimalDetailsPublicActivity extends AppCompatActivity {
         initFirebase();
         setupToolbar();
 
-        animalId = getIntent().getStringExtra("ANIMAL_ID");
-        Log.d(TAG, "📥 ID recibido: " + animalId);
+        // Recibir datos
+        if (getIntent().hasExtra("ANIMAL_OBJETO")) {
+            animal = (Animal) getIntent().getSerializableExtra("ANIMAL_OBJETO");
+        }
 
-        if (animalId == null || animalId.trim().isEmpty()) {
-            Log.e(TAG, "❌ Error: ID no válido");
-            Toast.makeText(this, "Error: No se recibió el ID del animal", Toast.LENGTH_LONG).show();
-            finish();
-            return;
+        if (animal != null) {
+            displayAnimalData();
+            checkIfFavorite();
+        } else {
+            // Plan B: Cargar por ID
+            String animalId = getIntent().getStringExtra("ANIMAL_ID");
+            if (animalId != null) {
+                loadAnimalFromId(animalId);
+            } else {
+                Toast.makeText(this, "Error cargando datos", Toast.LENGTH_SHORT).show();
+                finish();
+            }
         }
 
         setupExpandableSection();
         setupButtons();
-        loadAnimalFromId(animalId);
     }
 
     private void initViews() {
@@ -90,108 +94,10 @@ public class AnimalDetailsPublicActivity extends AppCompatActivity {
         requirementsContent = findViewById(R.id.requirementsContent);
         fabFavorite = findViewById(R.id.fabFavorite);
         btnSolicitar = findViewById(R.id.btnSolicitar);
-        progressBar = findViewById(R.id.progressBar);
     }
 
     private void initFirebase() {
         db = FirebaseFirestore.getInstance();
-    }
-
-    private void loadAnimalFromId(String id) {
-        Log.d(TAG, "🔍 Buscando animal: " + id);
-        showLoading(true);
-
-        db.collection("animales")
-                .document(id)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    showLoading(false);
-
-                    if (!documentSnapshot.exists()) {
-                        Log.e(TAG, "❌ Documento no existe");
-                        Toast.makeText(this, "El animal no existe", Toast.LENGTH_LONG).show();
-                        finish();
-                        return;
-                    }
-
-                    try {
-                        animal = documentSnapshot.toObject(Animal.class);
-                        if (animal == null) {
-                            Log.e(TAG, "❌ Error al convertir documento");
-                            finish();
-                            return;
-                        }
-
-                        animal.setId(documentSnapshot.getId());
-                        animal.setIdAnimal(documentSnapshot.getId());
-                        Log.d(TAG, "✅ Animal cargado: " + animal.getNombre());
-
-                        displayAnimalData();
-                        checkIfFavorite();
-
-                    } catch (Exception e) {
-                        Log.e(TAG, "❌ Excepción", e);
-                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                        finish();
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    showLoading(false);
-                    Log.e(TAG, "❌ Error de conexión", e);
-                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    finish();
-                });
-    }
-
-    private void displayAnimalData() {
-        if (animal == null) return;
-
-        tvAnimalName.setText(animal.getNombre() != null ? animal.getNombre() : "Sin nombre");
-
-        String raza = animal.getRaza() != null ? animal.getRaza() : "Raza desconocida";
-        String edad = animal.getEdadTexto();
-        tvBreedAge.setText(raza + " • " + edad);
-
-        chipGender.setText(animal.getSexo() != null ? animal.getSexo() : "Desconocido");
-
-        String tamano = animal.getTamano();
-        if (tamano == null || tamano.isEmpty()) {
-            tamano = "Perro".equalsIgnoreCase(animal.getEspecie()) ? "Mediano" : "Pequeño";
-        }
-        chipSize.setText(tamano);
-
-        tvLocation.setText(animal.getUbicacionRescate() != null ? animal.getUbicacionRescate() : "No disponible");
-        tvRescueDate.setText("Fecha: " + animal.getFechaRescate());
-
-        String descripcion = animal.getDescripcion();
-        String personalidad = animal.getPersonalidad();
-
-        StringBuilder aboutText = new StringBuilder();
-        if (descripcion != null && !descripcion.isEmpty()) {
-            aboutText.append(descripcion);
-        } else {
-            aboutText.append("Este adorable animal busca un hogar lleno de amor.");
-        }
-
-        if (personalidad != null && !personalidad.isEmpty()) {
-            aboutText.append("\n\nPersonalidad:\n").append(personalidad);
-        }
-
-        tvAboutContent.setText(aboutText.toString());
-
-        if (animal.getFotosUrls() != null && !animal.getFotosUrls().isEmpty()) {
-            ImagePagerAdapter imageAdapter = new ImagePagerAdapter(this, animal.getFotosUrls());
-            viewPagerImages.setAdapter(imageAdapter);
-            new TabLayoutMediator(tabDots, viewPagerImages, (tab, position) -> {}).attach();
-        } else if (animal.getFotoUrl() != null && !animal.getFotoUrl().isEmpty()) {
-            ImagePagerAdapter imageAdapter = new ImagePagerAdapter(this, Collections.singletonList(animal.getFotoUrl()));
-            viewPagerImages.setAdapter(imageAdapter);
-            new TabLayoutMediator(tabDots, viewPagerImages, (tab, position) -> {}).attach();
-        }
-
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle(animal.getNombre());
-        }
     }
 
     private void setupToolbar() {
@@ -204,74 +110,132 @@ public class AnimalDetailsPublicActivity extends AppCompatActivity {
     }
 
     private void setupExpandableSection() {
-        View.OnClickListener toggle = v -> {
+        View.OnClickListener toggleListener = v -> {
             View content = null;
             ImageView icon = null;
+
             if (v == headerAbout) { content = tvAboutContent; icon = iconAbout; }
             else if (v == headerHealth) { content = healthContent; icon = iconHealth; }
             else if (v == headerRequirements) { content = requirementsContent; icon = iconRequirements; }
 
             if (content != null) {
-                boolean show = content.getVisibility() == View.GONE;
-                content.setVisibility(show ? View.VISIBLE : View.GONE);
-                icon.setRotation(show ? 180 : 0);
+                boolean isVisible = content.getVisibility() == View.VISIBLE;
+                content.setVisibility(isVisible ? View.GONE : View.VISIBLE);
+                if (icon != null) icon.setRotation(isVisible ? 0 : 180);
             }
         };
-        headerAbout.setOnClickListener(toggle);
-        headerHealth.setOnClickListener(toggle);
-        headerRequirements.setOnClickListener(toggle);
+
+        headerAbout.setOnClickListener(toggleListener);
+        headerHealth.setOnClickListener(toggleListener);
+        headerRequirements.setOnClickListener(toggleListener);
     }
 
     private void setupButtons() {
         fabFavorite.setOnClickListener(v -> toggleFavorite());
 
         btnSolicitar.setOnClickListener(v -> {
-            if (animal != null && animal.getId() != null) {
-                Log.d(TAG, "🚀 Iniciando solicitud para: " + animal.getNombre());
-                Intent intent = new Intent(this, AdoptionFormActivity.class);
+            // Solo permite clic si está habilitado (aunque visualmente ya lo bloqueamos abajo)
+            if (btnSolicitar.isEnabled() && animal != null && animal.getId() != null) {
+                Intent intent = new Intent(AnimalDetailsPublicActivity.this, AdoptionFormActivity.class);
                 intent.putExtra("ANIMAL_ID", animal.getId());
                 intent.putExtra("ANIMAL_NAME", animal.getNombre());
                 startActivity(intent);
-            } else {
-                Toast.makeText(this, "Error: Datos no disponibles", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void checkIfFavorite() {
-        String uid = FirebaseAuth.getInstance().getCurrentUser() != null ?
-                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+    private void loadAnimalFromId(String id) {
+        db.collection("animales").document(id).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        animal = documentSnapshot.toObject(Animal.class);
+                        if (animal != null) {
+                            animal.setId(documentSnapshot.getId());
+                            displayAnimalData();
+                            checkIfFavorite();
+                        }
+                    }
+                });
+    }
 
-        if (uid != null && animal != null) {
-            db.collection("usuarios")
-                    .document(uid)
+    private void displayAnimalData() {
+        if (animal == null) return;
+
+        tvAnimalName.setText(animal.getNombre());
+        tvBreedAge.setText(animal.getRaza() + " • " + animal.getEdadTexto());
+        chipGender.setText(animal.getSexo());
+        chipSize.setText(animal.getTamano());
+        tvLocation.setText(animal.getUbicacionRescate());
+        tvRescueDate.setText("Ingreso: " + animal.getFechaRescate());
+        tvAboutContent.setText(animal.getDescripcion() + "\n\nPersonalidad:\n" + animal.getPersonalidad());
+
+        if (animal.getFotosUrls() != null && !animal.getFotosUrls().isEmpty()) {
+            ImagePagerAdapter imageAdapter = new ImagePagerAdapter(this, animal.getFotosUrls());
+            viewPagerImages.setAdapter(imageAdapter);
+            new TabLayoutMediator(tabDots, viewPagerImages, (tab, position) -> {}).attach();
+        }
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(animal.getNombre());
+        }
+
+        // 🔴 LÓGICA DE DISPONIBILIDAD (AQUÍ ESTÁ EL CAMBIO)
+        String estado = animal.getEstadoRefugio(); // Ej: "Disponible Adopcion", "En Tratamiento"
+
+        // Normalizamos el texto (quitamos espacios extra y mayúsculas)
+        boolean disponible = estado != null &&
+                (estado.trim().equalsIgnoreCase("Disponible Adopcion") ||
+                        estado.trim().equalsIgnoreCase("Disponible"));
+
+        if (disponible) {
+            // CASO 1: Disponible
+            btnSolicitar.setEnabled(true);
+            btnSolicitar.setText("Solicitar Adopción");
+            // Restauramos el color original (o el que tengas en tu tema)
+            // btnSolicitar.setBackgroundColor(ContextCompat.getColor(this, R.color.primary));
+        } else {
+            // CASO 2: NO Disponible (Adoptado, Enfermo, etc.)
+            btnSolicitar.setEnabled(false); // Deshabilita el clic
+
+            // Mostramos por qué no está disponible
+            String motivo = estado != null ? estado : "No disponible";
+            btnSolicitar.setText(motivo.toUpperCase());
+
+            // Cambiamos color a Gris para indicar deshabilitado
+            btnSolicitar.setBackgroundColor(Color.parseColor("#BDBDBD")); // Gris
+            btnSolicitar.setTextColor(Color.WHITE);
+        }
+    }
+
+    private void checkIfFavorite() {
+        String userId = getCurrentUserId();
+        if (userId != null && animal != null && animal.getId() != null) {
+            db.collection("usuarios").document(userId)
                     .collection("favoritos")
                     .document(animal.getId())
                     .get()
-                    .addOnSuccessListener(doc -> {
-                        isFavorite = doc.exists();
+                    .addOnSuccessListener(documentSnapshot -> {
+                        isFavorite = documentSnapshot.exists();
                         updateFavoriteIcon();
                     });
         }
     }
 
     private void toggleFavorite() {
-        String uid = FirebaseAuth.getInstance().getCurrentUser() != null ?
-                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
-
-        if (uid != null && animal != null) {
+        String userId = getCurrentUserId();
+        if (userId != null && animal != null && animal.getId() != null) {
             if (isFavorite) {
-                db.collection("usuarios").document(uid).collection("favoritos").document(animal.getId()).delete();
+                db.collection("usuarios").document(userId).collection("favoritos").document(animal.getId()).delete();
                 isFavorite = false;
                 Toast.makeText(this, "Eliminado de favoritos", Toast.LENGTH_SHORT).show();
             } else {
-                db.collection("usuarios").document(uid).collection("favoritos").document(animal.getId()).set(animal);
+                db.collection("usuarios").document(userId).collection("favoritos").document(animal.getId()).set(animal);
                 isFavorite = true;
-                Toast.makeText(this, "Guardado en favoritos", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Agregado a favoritos", Toast.LENGTH_SHORT).show();
             }
             updateFavoriteIcon();
         } else {
-            Toast.makeText(this, "Inicia sesión para guardar favoritos", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Inicia sesión para favoritos", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -279,9 +243,8 @@ public class AnimalDetailsPublicActivity extends AppCompatActivity {
         fabFavorite.setImageResource(isFavorite ? R.drawable.ic_favorite_filled : R.drawable.ic_favorite_border);
     }
 
-    private void showLoading(boolean show) {
-        if (progressBar != null) {
-            progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
-        }
+    private String getCurrentUserId() {
+        return FirebaseAuth.getInstance().getCurrentUser() != null ?
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
     }
 }
