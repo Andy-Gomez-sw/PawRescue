@@ -1,6 +1,7 @@
 package com.refugio.pawrescue.ui.admin;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -38,12 +39,19 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import android.content.Intent;
+import android.widget.Button;
+import android.widget.Toast;
+import com.refugio.pawrescue.ui.admin.AssignVolunteerActivity;
+
+
 public class DetalleAnimalActivity extends AppCompatActivity {
 
     private static final String TAG = "DetalleAnimalActivity";
     private String animalId;
     private Animal currentAnimal;
 
+    private Animal animal;
     // Componentes UI
     private ImageView ivAnimalHeader, icEdit, icShare;
     private Toolbar toolbar;
@@ -51,6 +59,9 @@ public class DetalleAnimalActivity extends AppCompatActivity {
     private ViewPager viewPager;
     private FloatingActionButton fabAction;
     private FirebaseFirestore db;
+
+    // NUEVO: Referencia al adaptador
+    private ViewPagerAdapter pagerAdapter;
 
     // Estados del animal (RF-08)
     private final String[] estadosAnimal = {
@@ -70,7 +81,7 @@ public class DetalleAnimalActivity extends AppCompatActivity {
         // Inicialización
         db = FirebaseFirestore.getInstance();
         animalId = getIntent().getStringExtra("animalId");
-
+        animal = (Animal) getIntent().getSerializableExtra("animal");
         // Enlazar UI
         ivAnimalHeader = findViewById(R.id.iv_animal_header);
         toolbar = findViewById(R.id.toolbar_detail);
@@ -80,6 +91,20 @@ public class DetalleAnimalActivity extends AppCompatActivity {
         viewPager = findViewById(R.id.view_pager);
         fabAction = findViewById(R.id.fab_action);
 
+        ImageView btnAsignarVoluntario = findViewById(R.id.ic_assign_volunteer);
+
+        btnAsignarVoluntario.setOnClickListener(v -> {
+            if (animalId == null || animalId.isEmpty()) {
+                Toast.makeText(this, "Error: no se pudo obtener el ID del animal.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Intent intent = new Intent(this, AssignVolunteerActivity.class);
+            intent.putExtra("idAnimal", animalId);
+            intent.putExtra("nombreAnimal", currentAnimal != null ? currentAnimal.getNombre() : "Animal");
+            startActivity(intent);
+        });
+
         // Configurar Toolbar
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -87,10 +112,19 @@ public class DetalleAnimalActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("");
         }
 
-        // Listener de Edición (RF-08) -> Muestra diálogo para cambiar estado
-        icEdit.setOnClickListener(v -> mostrarDialogoEdicionEstado());
+        // Listener de Edición (RF-07) -> Navega a RegistroAnimalActivity en modo edición
+        icEdit.setOnClickListener(v -> {
+            if (currentAnimal != null) {
+                Intent editIntent = new Intent(DetalleAnimalActivity.this, RegistroAnimalActivity.class);
+                editIntent.putExtra("animalId", animalId);
+                editIntent.putExtra("isEditMode", true);
+                startActivity(editIntent);
+            } else {
+                Toast.makeText(DetalleAnimalActivity.this, "Esperando datos del animal...", Toast.LENGTH_SHORT).show();
+            }
+        });
 
-        // FAB también permite cambiar estado
+        // FAB también permite cambiar estado (función más rápida y controlada)
         fabAction.setOnClickListener(v -> mostrarDialogoEdicionEstado());
 
         // Listener de Exportar/Compartir
@@ -103,6 +137,15 @@ public class DetalleAnimalActivity extends AppCompatActivity {
         } else {
             Toast.makeText(this, "Error: ID de animal no proporcionado.", Toast.LENGTH_LONG).show();
             finish();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Recargar el detalle cuando se regresa de la edición
+        if (animalId != null) {
+            cargarDetalleAnimal(animalId);
         }
     }
 
@@ -199,6 +242,8 @@ public class DetalleAnimalActivity extends AppCompatActivity {
                         if (task.isSuccessful() && task.getResult().exists()) {
                             currentAnimal = task.getResult().toObject(Animal.class);
                             if (currentAnimal != null) {
+                                // Asegurar que el ID del documento esté en el objeto
+                                currentAnimal.setIdAnimal(task.getResult().getId());
 
                                 // Formateo del ID Numérico
                                 String idDisplay = String.format(Locale.US, "#%04d", currentAnimal.getIdNumerico());
@@ -215,9 +260,14 @@ public class DetalleAnimalActivity extends AppCompatActivity {
                                         .error(R.drawable.ic_pet_error)
                                         .into(ivAnimalHeader);
 
-                                // Inicializar Pestañas
-                                setupViewPagerAndTabs(viewPager, currentAnimal);
-                                tabLayout.setupWithViewPager(viewPager);
+                                // CAMBIO IMPORTANTE: Si el adaptador ya existe, actualizar fragmentos
+                                if (pagerAdapter != null) {
+                                    actualizarFragmentos(currentAnimal);
+                                } else {
+                                    // Primera carga: Inicializar Pestañas
+                                    setupViewPagerAndTabs(viewPager, currentAnimal);
+                                    tabLayout.setupWithViewPager(viewPager);
+                                }
 
                             } else {
                                 Toast.makeText(DetalleAnimalActivity.this,
@@ -230,32 +280,58 @@ public class DetalleAnimalActivity extends AppCompatActivity {
                                     Toast.LENGTH_LONG).show();
                             Log.e(TAG, "Error al cargar el documento: " +
                                     (task.getException() != null ? task.getException().getMessage() : "Desconocido"));
-                            finish();
                         }
                     }
                 });
     }
 
     /**
+     * NUEVO: Actualiza los fragmentos existentes con los nuevos datos
+     */
+    private void actualizarFragmentos(Animal animal) {
+        if (pagerAdapter == null) return;
+
+        // Obtener los fragmentos actuales y actualizarlos
+        for (int i = 0; i < pagerAdapter.getCount(); i++) {
+            Fragment fragment = pagerAdapter.getItem(i);
+
+            if (fragment instanceof InfoFragment) {
+                // Recrear el fragmento de información con los nuevos datos
+                Fragment nuevoFragment = InfoFragment.newInstance(animal);
+                pagerAdapter.replaceFragment(i, nuevoFragment);
+            }
+            // Los otros fragmentos (Historial, Adopciones) no necesitan actualizarse
+            // porque cargan sus propios datos desde Firestore
+        }
+
+        pagerAdapter.notifyDataSetChanged();
+
+        // Forzar la recreación de la vista actual
+        int currentItem = viewPager.getCurrentItem();
+        viewPager.setAdapter(pagerAdapter);
+        viewPager.setCurrentItem(currentItem);
+    }
+
+    /**
      * Configura el ViewPager con las pestañas.
      */
     private void setupViewPagerAndTabs(ViewPager viewPager, Animal animal) {
-        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        pagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
 
         // Pestaña 1: Información General (RF-06)
-        adapter.addFragment(InfoFragment.newInstance(animal), "Información");
+        pagerAdapter.addFragment(InfoFragment.newInstance(animal), "Información");
 
         // Pestaña 2: Historial Médico/Cuidados (RF-09, RF-10)
-        adapter.addFragment(HistoryFragment.newInstance(animal.getIdAnimal()), "Historial");
+        pagerAdapter.addFragment(HistoryFragment.newInstance(animal.getIdAnimal()), "Historial");
 
         // Pestaña 3: Adopciones (RF-14, RF-16)
-        adapter.addFragment(AdoptionFragment.newInstance(animal.getIdAnimal()), "Adopciones");
+        pagerAdapter.addFragment(AdoptionFragment.newInstance(animal.getIdAnimal()), "Adopciones");
 
-        viewPager.setAdapter(adapter);
+        viewPager.setAdapter(pagerAdapter);
     }
 
-    // Adaptador para el ViewPager
-    static class ViewPagerAdapter extends FragmentPagerAdapter {
+    // Adaptador para el ViewPager - MODIFICADO
+    class ViewPagerAdapter extends FragmentPagerAdapter {
         private final List<Fragment> mFragmentList = new ArrayList<>();
         private final List<String> mFragmentTitleList = new ArrayList<>();
 
@@ -279,9 +355,22 @@ public class DetalleAnimalActivity extends AppCompatActivity {
             mFragmentTitleList.add(title);
         }
 
+        // NUEVO: Método para reemplazar un fragmento
+        public void replaceFragment(int position, Fragment fragment) {
+            if (position >= 0 && position < mFragmentList.size()) {
+                mFragmentList.set(position, fragment);
+            }
+        }
+
         @Override
         public CharSequence getPageTitle(int position) {
             return mFragmentTitleList.get(position);
+        }
+
+        // IMPORTANTE: Forzar la actualización de fragmentos
+        @Override
+        public int getItemPosition(@NonNull Object object) {
+            return POSITION_NONE;
         }
     }
 }

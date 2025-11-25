@@ -26,16 +26,45 @@ import java.util.List;
 
 /**
  * Fragmento que muestra la lista de animales rescatados (RF-06).
- * Incluye un FAB para iniciar el registro (RF-05).
+ * Incluye un FAB para iniciar el registro (RF-05) y lógica de filtrado por alertas (RF-09, RF-10).
  */
 public class AnimalesListFragment extends Fragment implements AnimalAdapter.OnAnimalClickListener {
 
     private static final String TAG = "AnimalesListFragment";
+
+    // Constantes de Filtro (Usadas por el Dashboard)
+    public static final String ARG_FILTER = "filter_key";
+    public static final String FILTER_ATTENTION = "ATENCION_VETERINARIA";
+    public static final String FILTER_MEDICATION = "MEDICACION_ACTIVA";
+
     private RecyclerView recyclerView;
     private AnimalAdapter adapter;
     private AnimalRepository repository;
     private ProgressBar progressBar;
     private ListenerRegistration listenerRegistration;
+
+    // Campo para almacenar el filtro pasado en argumentos
+    private String initialFilter = null;
+
+    /**
+     * Método de fábrica para crear la instancia con un filtro inicial (usado por AdminMainActivity).
+     */
+    public static AnimalesListFragment newInstance(String filterKey) {
+        AnimalesListFragment fragment = new AnimalesListFragment();
+        Bundle args = new Bundle();
+        args.putString(ARG_FILTER, filterKey);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // Recuperar el filtro si existe
+        if (getArguments() != null) {
+            initialFilter = getArguments().getString(ARG_FILTER);
+        }
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -68,18 +97,28 @@ public class AnimalesListFragment extends Fragment implements AnimalAdapter.OnAn
     }
 
     /**
-     * Inicia la escucha en tiempo real de la colección de animales (RF-06).
+     * Inicia la escucha en tiempo real de la colección de animales, aplicando un filtro
+     * si fue especificado desde el Dashboard.
      */
     private void cargarAnimales() {
         progressBar.setVisibility(View.VISIBLE);
-        listenerRegistration = repository.getAnimalesEnTiempoReal(new AnimalRepository.AnimalesListener() {
+
+        AnimalRepository.AnimalesListener listener = new AnimalRepository.AnimalesListener() {
             @Override
             public void onAnimalesLoaded(List<Animal> animales) {
                 progressBar.setVisibility(View.GONE);
+
+                String message = null;
                 if (animales.isEmpty()) {
-                    Toast.makeText(getContext(), "No hay animales registrados.", Toast.LENGTH_SHORT).show();
-                    // Aquí se podría mostrar una vista de estado vacío (RF-06, Excepción 1.1)
+                    message = (initialFilter != null) ?
+                            "No se encontraron animales con el filtro aplicado." :
+                            "No hay animales registrados.";
                 }
+
+                if (message != null) {
+                    Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                }
+
                 adapter.setAnimalesList(animales);
             }
 
@@ -89,7 +128,26 @@ public class AnimalesListFragment extends Fragment implements AnimalAdapter.OnAn
                 Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
                 Log.e(TAG, "Error al cargar animales: " + message);
             }
-        });
+        };
+
+        // LÓGICA DE FILTRADO: Llama al método apropiado del repositorio
+        if (initialFilter != null) {
+            if (initialFilter.equals(FILTER_ATTENTION)) {
+                // Filtro de atención veterinaria urgente
+                listenerRegistration = repository.getAnimalesConAtencionUrgente(listener);
+                Toast.makeText(getContext(), "Filtro activo: Atención Veterinaria Urgente", Toast.LENGTH_SHORT).show();
+            } else if (initialFilter.equals(FILTER_MEDICATION)) {
+                // Filtro de medicación activa
+                listenerRegistration = repository.getAnimalesConMedicacion(listener);
+                Toast.makeText(getContext(), "Filtro activo: Animales con Medicación Activa", Toast.LENGTH_SHORT).show();
+            } else {
+                // Filtro desconocido, cargar todos
+                listenerRegistration = repository.getAnimalesEnTiempoReal(listener);
+            }
+        } else {
+            // Carga normal de todos los animales
+            listenerRegistration = repository.getAnimalesEnTiempoReal(listener);
+        }
     }
 
     /**

@@ -9,8 +9,12 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -22,6 +26,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PawRescue">
+        <activity
+            android:name=".ui.admin.DetalleVoluntarioActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.admin.RegistroEventoMedicoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.admin.CitasAdopcionActivity"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -38,75 +51,56 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name=".ui.publico.PublicRegisterActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-
-        <activity
-            android:name=".ui.publico.OnboardingActivity"
-            android:exported="false" />
-
         <activity
             android:name=".ui.admin.AdminMainActivity"
             android:exported="false"
             android:label="Panel de Administración" />
-
-        <activity
-            android:name=".ui.admin.RegistroAnimalActivity"
-            android:exported="false"
-            android:label="Registro Animal"/>
-
-        <activity
-            android:name=".ui.admin.DetalleAnimalActivity"
-            android:exported="false"
-            android:label="Detalle Expediente"/>
-
         <activity
             android:name=".ui.volunteer.VolunteerMainActivity"
             android:exported="false"
             android:label="Panel de Voluntarios" />
-
         <activity
-            android:name=".ui.publico.GalleryActivity"
+            android:name=".ui.admin.AssignVolunteerActivity"
             android:exported="false" />
-
         <activity
-            android:name=".ui.publico.ProfileActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".ui.publico.AnimalDetailsPublicActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".ui.publico.AdoptionFormActivity"
+            android:name=".ui.admin.RegistroAnimalActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-
+            android:label="Registro Animal" />
         <activity
-            android:name=".ui.publico.MyRequestsActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".ui.publico.RequestDetailActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".ui.publico.FavoritesActivity"
-            android:exported="false" />
-
+            android:name=".ui.admin.DetalleAnimalActivity"
+            android:exported="false"
+            android:label="Detalle Expediente" />
         <activity
             android:name=".ui.publico.PublicMainActivity"
             android:exported="false" />
-
+        <activity
+            android:name=".ui.publico.AnimalDetailsPublicActivity"
+            android:exported="false" />
         <activity
             android:name=".ui.publico.MyAdoptionRequestsActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.publico.PublicRegisterActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.volunteer.VolunteerAnimalDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.volunteer.VolunteerAccountActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.volunteer.VolunteerMainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.volunteer.VolunteerMainActivity" />
+        </activity>
+
+        <activity android:name=".ui.volunteer.VolunteerCitaDetailActivity" />
 
     </application>
 

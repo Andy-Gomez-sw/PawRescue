@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F5F5F5"
-    tools:context=".ui.admin.dashboard.AdminDashboardFragment">
+    tools:context=".ui.admin.AdminDashboardFragment">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -128,9 +128,10 @@
                     android:orientation="vertical"
                     android:padding="16dp">
                     <TextView
+                        android:id="@+id/tv_alerta_vet_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="⚠️ 3 animales requieren atención veterinaria urgente"
+                        android:text="⚠️ Cargando..."
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="#D32F2F"/>
@@ -139,8 +140,42 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Ver detalles →"
+                        android:text="Ver detalles de Veterinaria →"
                         android:backgroundTint="#D32F2F"
+                        android:textColor="@android:color/white"
+                        app:cornerRadius="8dp"
+                        style="@style/Widget.MaterialComponents.Button.TextButton" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_alert_meds"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                android:backgroundTint="#FFF3E0">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <TextView
+                        android:id="@+id/tv_alerta_meds_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="💊 Cargando..."
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#FF9800"/>
+                    <Button
+                        android:id="@+id/btn_view_meds_alerts"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Ver detalles de Medicamentos →"
+                        android:backgroundTint="#FF9800"
                         android:textColor="@android:color/white"
                         app:cornerRadius="8dp"
                         style="@style/Widget.MaterialComponents.Button.TextButton" />
@@ -162,9 +197,10 @@
                     android:orientation="vertical"
                     android:padding="16dp">
                     <TextView
+                        android:id="@+id/tv_citas_hoy_count"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🗓️ 2 citas de adopción agendadas para hoy"
+                        android:text="🗓️ Cargando..."
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="#388E3C"/>
@@ -201,16 +237,31 @@
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
+                android:layout_height="250dp"
                 app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                android:padding="16dp">
-                <TextView
+                app:cardElevation="4dp">
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:text="Gráfica de Balance Financiero (Donaciones vs. Gastos) - Módulo 4.4"
-                    android:textColor="#AAAAAA" />
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Balance Mensual"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        android:layout_marginBottom="8dp"/>
+
+                    <com.refugio.pawrescue.ui.admin.BalanceChartView
+                        android:id="@+id/balance_chart"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"/>
+                </LinearLayout>
             </androidx.cardview.widget.CardView>
 
 

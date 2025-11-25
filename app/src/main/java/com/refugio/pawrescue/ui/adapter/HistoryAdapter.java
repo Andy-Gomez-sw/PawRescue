@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -19,12 +20,19 @@ import java.util.Locale;
 
 public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistorialViewHolder> {
 
-    private Context context;
+    private final Context context;
     private List<HistorialMedico> historialList;
+    private final HistoryActionListener listener;
 
-    public HistoryAdapter(Context context) {
+    public interface HistoryActionListener {
+        void onDeleteClick(HistorialMedico evento);
+        void onItemClick(HistorialMedico evento); // Para ver los detalles
+    }
+
+    public HistoryAdapter(Context context, HistoryActionListener listener) {
         this.context = context;
         this.historialList = new ArrayList<>();
+        this.listener = listener;
     }
 
     public void setHistorial(List<HistorialMedico> historial) {
@@ -52,6 +60,20 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.Historia
         }
 
         holder.tvVeterinario.setText("Dr. " + evento.getVeterinario());
+
+        // Listener para ver detalles (Clic en la tarjeta)
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onItemClick(evento);
+            }
+        });
+
+        // Listener para eliminar (Clic en el botón)
+        holder.btnDeleteEvento.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onDeleteClick(evento);
+            }
+        });
     }
 
     @Override
@@ -61,6 +83,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.Historia
 
     static class HistorialViewHolder extends RecyclerView.ViewHolder {
         TextView tvTipoEvento, tvDiagnostico, tvFecha, tvVeterinario;
+        ImageButton btnDeleteEvento;
 
         public HistorialViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -68,6 +91,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.Historia
             tvDiagnostico = itemView.findViewById(R.id.tv_diagnostico);
             tvFecha = itemView.findViewById(R.id.tv_fecha);
             tvVeterinario = itemView.findViewById(R.id.tv_veterinario);
+            btnDeleteEvento = itemView.findViewById(R.id.btn_delete_evento);
         }
     }
 }

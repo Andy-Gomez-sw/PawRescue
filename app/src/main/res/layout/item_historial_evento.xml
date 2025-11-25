@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -9,57 +10,73 @@
     app:cardCornerRadius="8dp"
     app:cardElevation="2dp">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:padding="16dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/tv_tipo_evento"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btn_delete_evento"
+            android:layout_marginEnd="8dp"
+            tools:text="Consulta Veterinaria"/>
 
-            <TextView
-                android:id="@+id/tv_tipo_evento"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                tools:text="Consulta Veterinaria"/>
-
-            <TextView
-                android:id="@+id/tv_fecha"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="#666666"
-                tools:text="19/11/2025"/>
-
-        </LinearLayout>
+        <TextView
+            android:id="@+id/tv_fecha"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="12sp"
+            android:textColor="#666666"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_tipo_evento"
+            app:layout_constraintEnd_toStartOf="@+id/btn_delete_evento"
+            tools:text="19/11/2025"/>
 
         <TextView
             android:id="@+id/tv_diagnostico"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:textSize="14sp"
             android:textColor="#555555"
-            tools:text="Animal presenta signos de desnutrición. Se recomienda dieta especial."/>
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_fecha"
+            app:layout_constraintEnd_toStartOf="@+id/btn_delete_evento"
+            android:layout_marginEnd="8dp"
+            tools:text="Animal presenta signos de desnutrición."/>
 
         <TextView
             android:id="@+id/tv_veterinario"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textSize="12sp"
             android:textStyle="italic"
             android:textColor="#999999"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_diagnostico"
+            app:layout_constraintEnd_toStartOf="@+id/btn_delete_evento"
             tools:text="Dr. García"/>
 
-    </LinearLayout>
+        <ImageButton
+            android:id="@+id/btn_delete_evento"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_remove"
+            app:tint="@color/status_error"
+            android:contentDescription="Eliminar evento médico"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.cardview.widget.CardView>

@@ -4,17 +4,102 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#F5F5F5"
     tools:context=".ui.volunteer.VolunteerMainActivity">
 
+    <!-- BANNER SUPERIOR VERDE PEGADO ARRIBA -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#4CAF50"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:contentInsetStartWithNavigation="0dp"
+        app:contentInsetLeft="0dp"
+        app:contentInsetRight="0dp">
+
+        <TextView
+            android:id="@+id/tvToolbarTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:gravity="left"
+            android:text="PawRescue - Voluntario"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </androidx.appcompat.widget.Toolbar>
+
+    <!-- TÍTULO SECCIÓN -->
     <TextView
+        android:id="@+id/tv_section_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Bienvenido Voluntario. Módulo en desarrollo."
-        android:textSize="24sp"
+        android:text="Galería de Animales"
+        android:textSize="22sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textColor="#1976D2"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="8dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/toolbar" />
+
+    <!-- LEYENDA SECCIÓN -->
+    <TextView
+        android:id="@+id/tv_section_subtitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Leyenda: 🔴 Disponible Adopción    🟡 Medicación activa"
+        android:textSize="14sp"
+        android:textColor="#666666"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="4dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_section_title" />
+
+    <!-- TEXTO CUANDO NO HAY ANIMALES -->
+    <TextView
+        android:id="@+id/tv_empty"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Actualmente no tienes animales asignados."
+        android:textSize="16sp"
+        android:textStyle="italic"
+        android:textColor="#999999"
+        android:gravity="center"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/tv_section_subtitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- LISTA DE ANIMALES -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_animales"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_empty"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_volunteer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:listitem="@layout/item_animal_card" />
+
+    <!-- BOTTOM NAV VOLUNTARIO (SIN COLORES PERSONALIZADOS) -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation_volunteer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        app:menu="@menu/bottom_nav_volunteer_menu"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
