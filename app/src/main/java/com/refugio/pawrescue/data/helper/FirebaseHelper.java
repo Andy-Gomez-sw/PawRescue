@@ -15,7 +15,8 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.refugio.pawrescue.model.Animal;
-import com.refugio.pawrescue.model.Usuario; // Asegúrate de importar tu modelo Usuario
+import com.refugio.pawrescue.model.Usuario;
+import com.refugio.pawrescue.ui.publico.SolicitudAdopcion; // <--- IMPORTANTE: Asegúrate de tener este modelo creado
 
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
@@ -27,7 +28,7 @@ import androidx.annotation.NonNull;
 /**
  * Clase auxiliar para encapsular operaciones complejas de Firebase.
  * Maneja la subida de imágenes a Storage y el guardado de datos en Firestore.
- * VERSIÓN CORREGIDA con mejor manejo de errores y compresión optimizada.
+ * VERSIÓN ACTUALIZADA: Incluye gestión de Solicitudes de Adopción.
  */
 public class FirebaseHelper {
 
@@ -253,6 +254,58 @@ public class FirebaseHelper {
      */
     public interface RegistroUsuarioCallback {
         void onSuccess(long idGenerado);
+        void onFailure(String error);
+    }
+
+    // ============================================================================================
+    //                                  NUEVOS MÉTODOS PARA SOLICITUDES DE ADOPCIÓN
+    // ============================================================================================
+
+    /**
+     * Registra una solicitud de adopción asignando un ID numérico (Folio) incremental.
+     * Usa la colección "counters" -> documento "solicitudes_id"
+     */
+    public void registrarSolicitudAdopcion(final SolicitudAdopcion solicitud, final RegistroSolicitudCallback callback) {
+        final DocumentReference counterRef = db.collection("counters").document("solicitudes_id");
+        final DocumentReference requestRef = db.collection("solicitudes_adopcion").document(); // Genera ID automático
+
+        db.runTransaction((Transaction.Function<Void>) transaction -> {
+            // 1. Leer el contador actual de solicitudes
+            DocumentSnapshot snapshot = transaction.get(counterRef);
+            long newId = 1;
+
+            if (snapshot.exists()) {
+                Long currentId = snapshot.getLong("currentId");
+                if (currentId != null) {
+                    newId = currentId + 1;
+                }
+            }
+
+            // 2. Actualizar el contador en Firestore
+            Map<String, Object> counterData = new HashMap<>();
+            counterData.put("currentId", newId);
+            transaction.set(counterRef, counterData);
+
+            // 3. Asignar el nuevo ID numérico (Folio) y el ID de documento al objeto
+            solicitud.setIdNumerico(newId);
+            solicitud.setIdSolicitud(requestRef.getId());
+
+            // 4. Guardar la solicitud
+            transaction.set(requestRef, solicitud);
+
+            return null;
+        }).addOnSuccessListener(aVoid -> {
+            callback.onSuccess(solicitud.getIdNumerico());
+        }).addOnFailureListener(e -> {
+            callback.onFailure(e.getMessage());
+        });
+    }
+
+    /**
+     * Interfaz de callback para manejar el resultado del registro de SOLICITUDES.
+     */
+    public interface RegistroSolicitudCallback {
+        void onSuccess(long idFolio);
         void onFailure(String error);
     }
 }

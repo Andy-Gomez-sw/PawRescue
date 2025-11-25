@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <View
+        android:id="@+id/viewTimelineLine"
+        android:layout_width="2dp"
+        android:layout_height="0dp"
+        android:background="#BDBDBD"
+        android:layout_marginStart="24dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <View
+        android:id="@+id/viewTimelineDot"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:background="@drawable/ic_check_circle"
+        android:backgroundTint="#BDBDBD"
+        app:layout_constraintStart_toStartOf="@id/viewTimelineLine"
+        app:layout_constraintEnd_toEndOf="@id/viewTimelineLine"
+        app:layout_constraintTop_toTopOf="@id/tvTimelineTitle"
+        app:layout_constraintBottom_toBottomOf="@id/tvTimelineTitle" />
+
+    <TextView
+        android:id="@+id/tvTimelineTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        tools:text="Solicitud Recibida"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        app:layout_constraintStart_toEndOf="@id/viewTimelineDot"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/tvTimelineDate"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        tools:text="20 Oct 2023"
+        android:textSize="12sp"
+        android:textColor="#757575"
+        app:layout_constraintStart_toStartOf="@id/tvTimelineTitle"
+        app:layout_constraintTop_toBottomOf="@id/tvTimelineTitle"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/tvTimelineDescription"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        tools:text="Hemos recibido tu solicitud y la estamos revisando."
+        android:textSize="14sp"
+        android:textColor="#555555"
+        app:layout_constraintStart_toStartOf="@id/tvTimelineTitle"
+        app:layout_constraintTop_toBottomOf="@id/tvTimelineDate"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

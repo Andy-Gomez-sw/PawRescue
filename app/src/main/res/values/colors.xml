@@ -46,6 +46,96 @@
     <color name="overlay_dark">#80000000</color>
     <color name="overlay_light">#80FFFFFF</color>
 
+    <color name="primary_orange">#FF6F3C</color>
+    <color name="primary_orange_dark">#E55A28</color>
+    <color name="primary_orange_light">#FF9966</color>
+
+    <color name="secondary_blue_dark">#3A7BC8</color>
+    <color name="secondary_blue_light">#7BB3F0</color>
+
+    <!-- Colores de Estado -->
+    <color name="success_green">#4CAF50</color>
+    <color name="green">#4CAF50</color>
+    <color name="green_dark">#388E3C</color>
+    <color name="green_light">#C8E6C9</color>
+
+    <color name="warning_yellow">#FFC107</color>
+    <color name="yellow">#FFC107</color>
+    <color name="yellow_dark">#FFA000</color>
+    <color name="yellow_light">#FFF9C4</color>
+
+    <color name="error_red">#F44336</color>
+    <color name="red">#F44336</color>
+    <color name="red_dark">#D32F2F</color>
+    <color name="red_light">#FFCDD2</color>
+
+    <color name="info_blue">#2196F3</color>
+    <color name="blue">#2196F3</color>
+    <color name="blue_dark">#1976D2</color>
+    <color name="blue_light">#BBDEFB</color>
+
+    <color name="purple">#9C27B0</color>
+    <color name="purple_dark">#7B1FA2</color>
+    <color name="purple_light">#E1BEE7</color>
+
+    <!-- Colores de Texto -->
+    <color name="text_tertiary">#9E9E9E</color>
+
+    <!-- Colores de Fondo -->
+    <color name="background_white">#FFFFFF</color>
+    <color name="background_gray">#F5F5F5</color>
+    <!-- Grises -->
+    <color name="gray_light">#E0E0E0</color>
+    <color name="gray">#9E9E9E</color>
+    <color name="gray_dark">#616161</color>
+    <!-- Colores Naranja (variaciones) -->
+    <color name="orange_50">#FFF3E0</color>
+    <color name="orange_100">#FFE0B2</color>
+    <color name="orange_200">#FFCC80</color>
+    <color name="orange_300">#FFB74D</color>
+    <color name="orange_light">#FFF3E0</color>
+
+    <!-- Estados de Solicitud -->
+    <color name="status_pending_bg">#FFF9C4</color>
+    <color name="status_pending_text">#F57F17</color>
+    <color name="status_pending_border">#FFE082</color>
+    <color name="status_review_bg">#BBDEFB</color>
+    <color name="status_review_text">#1565C0</color>
+    <color name="status_review_border">#90CAF9</color>
+
+    <color name="status_scheduled_bg">#E1BEE7</color>
+    <color name="status_scheduled_text">#6A1B9A</color>
+    <color name="status_scheduled_border">#CE93D8</color>
+
+    <color name="status_approved_bg">#C8E6C9</color>
+    <color name="status_approved_text">#2E7D32</color>
+    <color name="status_approved_border">#A5D6A7</color>
+
+    <color name="status_rejected_bg">#FFCDD2</color>
+    <color name="status_rejected_text">#C62828</color>
+    <color name="status_rejected_border">#EF9A9A</color>
+
+    <!-- Colores para Bottom Navigation -->
+    <color name="bottom_nav_selected">@color/primary_orange</color>
+    <color name="bottom_nav_unselected">#9E9E9E</color>
+
+    <!-- Colores de Mood Selector -->
+    <color name="mood_selector">@color/primary_orange</color>
+    <color name="mood_background">#FFF3E0</color>
+
+    <!-- Transparencias -->
+    <color name="black_overlay">#80000000</color>
+    <color name="white_overlay">#80FFFFFF</color>
+
+    <!-- Material Design Colors -->
+    <color name="colorPrimary1">@color/primary_orange</color>
+    <color name="colorPrimaryDark">@color/primary_orange_dark</color>
+
     <color name="light">#CBE4B7</color>
+
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="status_border">#CCCCCC</color>
+    <color name="status_background">#F0F0F0</color>
 
 </resources>

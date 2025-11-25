@@ -13,7 +13,6 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
     <uses-permission android:name="android.permission.INTERNET" />
 
-
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -44,14 +43,18 @@
         </activity>
 
         <activity
+            android:name=".ui.publico.PublicRegisterActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.publico.OnboardingActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.admin.AdminMainActivity"
             android:exported="false"
             android:label="Panel de Administración" />
-
-        <activity
-            android:name=".ui.volunteer.VolunteerMainActivity"
-            android:exported="false"
-            android:label="Panel de Voluntarios" />
 
         <activity
             android:name=".ui.admin.RegistroAnimalActivity"
@@ -64,7 +67,16 @@
             android:label="Detalle Expediente"/>
 
         <activity
-            android:name=".ui.publico.PublicMainActivity"
+            android:name=".ui.volunteer.VolunteerMainActivity"
+            android:exported="false"
+            android:label="Panel de Voluntarios" />
+
+        <activity
+            android:name=".ui.publico.GalleryActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.publico.ProfileActivity"
             android:exported="false" />
 
         <activity
@@ -72,13 +84,29 @@
             android:exported="false" />
 
         <activity
-            android:name=".ui.publico.MyAdoptionRequestsActivity"
+            android:name=".ui.publico.AdoptionFormActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.publico.MyRequestsActivity"
             android:exported="false" />
 
         <activity
-            android:name=".ui.publico.PublicRegisterActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
+            android:name=".ui.publico.RequestDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.publico.FavoritesActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.publico.PublicMainActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.publico.MyAdoptionRequestsActivity"
+            android:exported="false" />
 
     </application>
 

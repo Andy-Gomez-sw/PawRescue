@@ -10,7 +10,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.refugio.pawrescue.R;
 import com.refugio.pawrescue.model.Animal;
-
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Locale;

@@ -19,4 +19,40 @@
     </string-array>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+
+    <string name="about_animal">Sobre mí</string>
+    <string name="location">Ubicación</string>
+    <string name="date">Fecha</string>
+    <string name="expand">Expandir detalles</string>
+    <string name="add_favorite">Agregar a favoritos</string>
+    <string name="request_adoption">SOLICITAR ADOPCIÓN ❤️</string>
+
+    <string name="previous">Anterior</string>
+    <string name="next">Siguiente</string>
+    <string name="profile">Perfil</string>
+    <string name="search">Buscar</string>
+    <string name="search_placeholder">Buscar mascota...</string>
+
+    <string name="filter_all">Todos</string>
+    <string name="filter_dogs">Perros</string>
+    <string name="filter_cats">Gatos</string>
+    <string name="filter_puppies">Cachorros</string>
+    <string name="filter_urgent">Urgente</string>
+
+    <string name="no_requests">No hay solicitudes</string>
+    <string name="back">Atrás</string>
+    <string name="animal_photo">Foto del animal</string>
+    <string name="copy_folio">Copiar Folio</string>
+    <string name="status">Estado</string>
+    <string name="attach">Adjuntar</string>
+    <string name="send">Enviar</string>
+    <string name="folio">Folio</string>
+    <string name="appointment">Cita</string>
+    <string name="menu_home">Inicio</string>
+    <string name="menu_favorites">Favoritos</string>
+    <string name="menu_requests">Solicitudes</string>
+    <string name="menu_profile">Perfil</string>
+
+    <string name="appbar_scrolling_view_behavior">com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior</string>
 </resources>
