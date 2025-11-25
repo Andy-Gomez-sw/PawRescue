@@ -38,37 +38,9 @@ public class SolicitudAdopcion implements Serializable {
     public SolicitudAdopcion() {}
 
     // =========================================================
-    // MÉTODOS DE COMPATIBILIDAD (Alias para evitar errores)
+    // GETTERS Y SETTERS PRINCIPALES
     // =========================================================
 
-    // 1. Para arreglar el error de VolunteerCitaDetailActivity
-    public String getCorreoAdoptante() {
-        return email != null ? email : "Sin correo";
-    }
-
-    // 2. El método estándar
-    public String getEmailAdoptante() {
-        return email != null ? email : "Sin email";
-    }
-
-    public String getNombreAdoptante() {
-        return nombreCompleto != null ? nombreCompleto : "Usuario Desconocido";
-    }
-
-    public String getTelefonoAdoptante() {
-        return telefono != null ? telefono : "Sin teléfono";
-    }
-
-    // =========================================================
-    // SETTERS
-    // =========================================================
-    public void setNombreCompleto(String nombreCompleto) { this.nombreCompleto = nombreCompleto; }
-    public void setTelefono(String telefono) { this.telefono = telefono; }
-    public void setEmail(String email) { this.email = email; }
-
-    // =========================================================
-    // GETTERS Y SETTERS ESTÁNDAR
-    // =========================================================
     public String getIdSolicitud() { return idSolicitud; }
     public void setIdSolicitud(String idSolicitud) { this.idSolicitud = idSolicitud; }
 
@@ -78,8 +50,25 @@ public class SolicitudAdopcion implements Serializable {
     public String getIdAnimal() { return idAnimal; }
     public void setIdAnimal(String idAnimal) { this.idAnimal = idAnimal; }
 
+    // 🔴 CORRECCIÓN CRÍTICA: estadoSolicitud debe mapear correctamente
+    @PropertyName("estadoSolicitud")
     public String getEstadoSolicitud() { return estadoSolicitud; }
+
+    @PropertyName("estadoSolicitud")
     public void setEstadoSolicitud(String estadoSolicitud) { this.estadoSolicitud = estadoSolicitud; }
+
+    // Alias para compatibilidad
+    public String getEstado() { return estadoSolicitud; }
+    public void setEstado(String estado) { this.estadoSolicitud = estado; }
+
+    public String getNombreCompleto() { return nombreCompleto; }
+    public void setNombreCompleto(String nombreCompleto) { this.nombreCompleto = nombreCompleto; }
+
+    public String getTelefono() { return telefono; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
     public Date getFechaSolicitud() { return fechaSolicitud; }
     public void setFechaSolicitud(Date fechaSolicitud) { this.fechaSolicitud = fechaSolicitud; }
@@ -90,7 +79,24 @@ public class SolicitudAdopcion implements Serializable {
     public String getUsuarioId() { return usuarioId; }
     public void setUsuarioId(String usuarioId) { this.usuarioId = usuarioId; }
 
-    // Alias extra
-    public String getEstado() { return estadoSolicitud; }
-    public void setEstado(String estado) { this.estadoSolicitud = estado; }
+    // =========================================================
+    // MÉTODOS DE COMPATIBILIDAD (para los Adapters)
+    // =========================================================
+
+    public String getNombreAdoptante() {
+        return nombreCompleto != null ? nombreCompleto : "Usuario Desconocido";
+    }
+
+    public String getTelefonoAdoptante() {
+        return telefono != null ? telefono : "Sin teléfono";
+    }
+
+    public String getEmailAdoptante() {
+        return email != null ? email : "Sin email";
+    }
+
+    // Alias adicional para VolunteerCitaDetailActivity
+    public String getCorreoAdoptante() {
+        return email != null ? email : "Sin correo";
+    }
 }

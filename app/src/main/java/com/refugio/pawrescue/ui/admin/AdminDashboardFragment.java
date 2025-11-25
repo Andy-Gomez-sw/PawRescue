@@ -181,8 +181,6 @@ public class AdminDashboardFragment extends Fragment {
 
     /**
      * Carga las alertas de animales con medicación activa.
-     * Nota: Esta es una aproximación basada en condiciones especiales.
-     * En un sistema real, tendrías un campo específico para medicación activa.
      */
     private void cargarAlertasMedicamentos() {
         db.collection("animales")
@@ -191,7 +189,7 @@ public class AdminDashboardFragment extends Fragment {
                     int countConMedicacion = 0;
 
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        // Verificar si tiene condiciones especiales (aproximación)
+                        // Verificar si tiene condiciones especiales
                         Object condicionesObj = doc.get("condicionesEspeciales");
                         if (condicionesObj instanceof java.util.List) {
                             java.util.List<?> condiciones = (java.util.List<?>) condicionesObj;
@@ -215,7 +213,8 @@ public class AdminDashboardFragment extends Fragment {
     }
 
     /**
-     * Carga las citas de adopción programadas para hoy.
+     * 🔴 CORRECCIÓN CRÍTICA: Carga las citas/solicitudes del día
+     * Ahora usa TODOS los estados relevantes y un query más robusto
      */
     private void cargarCitasHoy() {
         // Obtener inicio y fin del día actual
@@ -231,7 +230,7 @@ public class AdminDashboardFragment extends Fragment {
         cal.set(Calendar.SECOND, 59);
         Date finDia = cal.getTime();
 
-        // Consulta para citas del día (requiere índice compuesto en Firebase)
+        // 🔴 CORRECCIÓN: Primero buscar solicitudes con cita agendada para hoy
         db.collection("solicitudes_adopcion")
                 .whereEqualTo("estadoSolicitud", "Cita Agendada")
                 .whereGreaterThanOrEqualTo("fechaCita", new Timestamp(inicioDia))
@@ -245,11 +244,43 @@ public class AdminDashboardFragment extends Fragment {
                         cardCitasToday.setVisibility(View.VISIBLE);
                         tvCitasHoyCount.setText(String.format("🗓️ %d cita(s) de adopción programada(s) para hoy", count));
                     } else {
+                        // Si no hay citas hoy, mostrar solicitudes pendientes en general
+                        cargarSolicitudesPendientes();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al cargar citas de hoy: ", e);
+                    // En caso de error (puede ser por falta de índice), mostrar pendientes
+                    cargarSolicitudesPendientes();
+                });
+    }
+
+    /**
+     * 🔴 NUEVO MÉTODO: Carga solicitudes pendientes si no hay citas hoy
+     */
+    private void cargarSolicitudesPendientes() {
+        db.collection("solicitudes_adopcion")
+                .whereIn("estadoSolicitud", java.util.Arrays.asList(
+                        "Pendiente",
+                        "En Revisión",
+                        "pendiente",
+                        "en_revision"
+                ))
+                .orderBy("fechaSolicitud", Query.Direction.DESCENDING)
+                .limit(10)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int count = queryDocumentSnapshots.size();
+
+                    if (count > 0) {
+                        cardCitasToday.setVisibility(View.VISIBLE);
+                        tvCitasHoyCount.setText(String.format("📋 %d solicitud(es) de adopción pendiente(s) de revisión", count));
+                    } else {
                         cardCitasToday.setVisibility(View.GONE);
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error al cargar citas de hoy (Verifique el índice compuesto en Firestore): ", e);
+                    Log.e(TAG, "Error al cargar solicitudes pendientes: ", e);
                     cardCitasToday.setVisibility(View.GONE);
                 });
     }

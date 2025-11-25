@@ -93,27 +93,72 @@ public class CitasAdopcionActivity extends AppCompatActivity implements CitasAda
                         if (solicitud != null) {
                             solicitud.setIdSolicitud(doc.getId());
 
-                            // --- PARCHE CORREGIDO (Usando tus nombres originales) ---
+                            // 🔴 PARCHE MEJORADO: Lectura robusta de campos
+                            // Solo aplicamos el parche si el campo está vacío en el objeto
 
-                            // 1. Nombre del Animal (getNombreAnimal)
-                            if (solicitud.getNombreAnimal() == null && doc.contains("animalNombre")) {
-                                solicitud.setNombreAnimal(doc.getString("animalNombre"));
+                            // 1. Nombre del Animal
+                            if (solicitud.getNombreAnimal() == null) {
+                                String animalNombre = doc.getString("animalNombre");
+                                if (animalNombre != null) {
+                                    solicitud.setNombreAnimal(animalNombre);
+                                }
                             }
 
-                            // 2. Estado (getEstadoSolicitud)
-                            if (solicitud.getEstadoSolicitud() == null && doc.contains("estado")) {
-                                solicitud.setEstadoSolicitud(doc.getString("estado"));
+                            // 2. Estado
+                            if (solicitud.getEstadoSolicitud() == null) {
+                                String estado = doc.getString("estado");
+                                if (estado == null) {
+                                    estado = doc.getString("estadoSolicitud");
+                                }
+                                if (estado != null) {
+                                    solicitud.setEstadoSolicitud(estado);
+                                }
                             }
 
-                            // 3. ID del Animal (getIdAnimal)
-                            if (solicitud.getIdAnimal() == null && doc.contains("animalId")) {
-                                solicitud.setIdAnimal(doc.getString("animalId"));
+                            // 3. ID del Animal
+                            if (solicitud.getIdAnimal() == null) {
+                                String animalId = doc.getString("animalId");
+                                if (animalId != null) {
+                                    solicitud.setIdAnimal(animalId);
+                                }
+                            }
+
+                            // 4. Nombre completo del adoptante
+                            if (solicitud.getNombreCompleto() == null) {
+                                String nombreCompleto = doc.getString("nombreCompleto");
+                                if (nombreCompleto != null) {
+                                    solicitud.setNombreCompleto(nombreCompleto);
+                                }
+                            }
+
+                            // 5. Teléfono
+                            if (solicitud.getTelefono() == null) {
+                                String telefono = doc.getString("telefono");
+                                if (telefono != null) {
+                                    solicitud.setTelefono(telefono);
+                                }
+                            }
+
+                            // 6. Email
+                            if (solicitud.getEmail() == null) {
+                                String email = doc.getString("email");
+                                if (email != null) {
+                                    solicitud.setEmail(email);
+                                }
                             }
 
                             listaMix.add(solicitud);
+
+                            // Log para debug
+                            Log.d(TAG, String.format("Solicitud cargada - ID: %s, Animal: %s, Estado: %s, Adoptante: %s",
+                                    solicitud.getIdSolicitud(),
+                                    solicitud.getNombreAnimal(),
+                                    solicitud.getEstadoSolicitud(),
+                                    solicitud.getNombreAdoptante()
+                            ));
                         }
                     } catch (Exception ex) {
-                        Log.w(TAG, "Error leyendo solicitud: " + doc.getId());
+                        Log.w(TAG, "Error leyendo solicitud: " + doc.getId(), ex);
                     }
                 }
 
@@ -126,6 +171,7 @@ public class CitasAdopcionActivity extends AppCompatActivity implements CitasAda
                 } else {
                     tvEmpty.setVisibility(View.GONE);
                     recyclerView.setVisibility(View.VISIBLE);
+                    Log.d(TAG, "Total de solicitudes cargadas: " + listaMix.size());
                 }
             }
         });
@@ -133,12 +179,13 @@ public class CitasAdopcionActivity extends AppCompatActivity implements CitasAda
 
     @Override
     public void onCitaClick(SolicitudAdopcion solicitud) {
-        if (solicitud.getIdAnimal() != null) {
+        if (solicitud.getIdAnimal() != null && !solicitud.getIdAnimal().isEmpty()) {
             Intent intent = new Intent(this, DetalleAnimalActivity.class);
             intent.putExtra("animalId", solicitud.getIdAnimal());
             startActivity(intent);
         } else {
-            Toast.makeText(this, "ID de animal no encontrado", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "ID de animal no encontrado en esta solicitud", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "Solicitud sin idAnimal: " + solicitud.getIdSolicitud());
         }
     }
 
