@@ -57,7 +57,7 @@ public class PublicMainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == R.id.action_my_requests) {
-            startActivity(new Intent(this, MyAdoptionRequestsActivity.class));
+            startActivity(new Intent(this, MyRequestsActivity.class));
             return true;
         } else if (id == R.id.action_logout) {
             logout();

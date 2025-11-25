@@ -5,117 +5,116 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.refugio.pawrescue.R;
 import com.refugio.pawrescue.model.SolicitudAdopcion;
-
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Adaptador para el RecyclerView que muestra las solicitudes de adopción (RF-14).
- */
-public class SolicitudAdopcionAdapter extends RecyclerView.Adapter<SolicitudAdopcionAdapter.SolicitudViewHolder> {
+public class SolicitudAdopcionAdapter extends RecyclerView.Adapter<SolicitudAdopcionAdapter.ViewHolder> {
 
-    private final Context context;
-    private List<SolicitudAdopcion> solicitudList;
-    private final SolicitudInteractionListener listener;
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MMM/yyyy", new Locale("es", "ES"));
+    private Context context;
+    private List<SolicitudAdopcion> listaSolicitudes;
+    private SolicitudInteractionListener listener;
 
+    // Interfaz para comunicación
     public interface SolicitudInteractionListener {
-        void onAgendarCitaClick(SolicitudAdopcion solicitud);
-        void onRegistrarResultadoClick(SolicitudAdopcion solicitud);
+        void onSolicitudClick(SolicitudAdopcion solicitud);
     }
 
-    public SolicitudAdopcionAdapter(Context context, SolicitudInteractionListener listener) {
+    public SolicitudAdopcionAdapter(Context context, List<SolicitudAdopcion> listaSolicitudes, SolicitudInteractionListener listener) {
         this.context = context;
-        this.solicitudList = new ArrayList<>();
+        this.listaSolicitudes = listaSolicitudes;
         this.listener = listener;
     }
 
-    public void setSolicitudList(List<SolicitudAdopcion> solicitudList) {
-        this.solicitudList = solicitudList;
+    public void setListaSolicitudes(List<SolicitudAdopcion> listaSolicitudes) {
+        this.listaSolicitudes = listaSolicitudes;
         notifyDataSetChanged();
+    }
+
+    // Método de compatibilidad
+    public void setSolicitudList(List<SolicitudAdopcion> listaSolicitudes) {
+        setListaSolicitudes(listaSolicitudes);
     }
 
     @NonNull
     @Override
-    public SolicitudViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_solicitud_adopcion, parent, false);
-        return new SolicitudViewHolder(view);
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // Usamos el layout item_cita_adopcion.xml (asegúrate de que exista)
+        View view = LayoutInflater.from(context).inflate(R.layout.item_cita_adopcion, parent, false);
+        return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull SolicitudViewHolder holder, int position) {
-        SolicitudAdopcion solicitud = solicitudList.get(position);
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        SolicitudAdopcion solicitud = listaSolicitudes.get(position);
 
-        holder.tvNombre.setText(solicitud.getNombreAdoptante());
-        holder.tvTelefono.setText("Tel: " + solicitud.getTelefonoAdoptante());
-        holder.tvEstado.setText("Estado: " + solicitud.getEstadoSolicitud());
+        // 🔴 CORRECCIÓN: Usamos getNombreAnimal() que es el que tiene tu modelo
+        String animal = solicitud.getNombreAnimal();
+        holder.tvMascota.setText(animal != null ? animal : "Mascota");
 
+        // Nombre Adoptante
+        // Si te marca error aquí en el futuro, es porque falta actualizar el modelo SolicitudAdopcion.java
+        // Por ahora lo dejamos así:
+        if (solicitud.getNombreAdoptante() != null) {
+            holder.tvAdoptante.setText(solicitud.getNombreAdoptante());
+        } else {
+            holder.tvAdoptante.setText("Usuario");
+        }
+
+        // Estado
+        String estado = solicitud.getEstado() != null ? solicitud.getEstado() : "Pendiente";
+        holder.tvEstado.setText(estado.toUpperCase());
+
+        if (estado.equalsIgnoreCase("aprobada")) {
+            holder.tvEstado.setTextColor(Color.parseColor("#4CAF50"));
+        } else if (estado.equalsIgnoreCase("pendiente")) {
+            holder.tvEstado.setTextColor(Color.parseColor("#FF9800"));
+        }
+
+        // Fecha
         if (solicitud.getFechaSolicitud() != null) {
-            holder.tvFecha.setText(dateFormat.format(solicitud.getFechaSolicitud().toDate()));
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            holder.tvFecha.setText(dateFormat.format(solicitud.getFechaSolicitud()));
+        } else {
+            holder.tvFecha.setText("--/--/----");
         }
 
-        // Lógica de color y visibilidad según el estado
-        int colorEstado;
-        boolean enableCita = false;
-        boolean enableResultado = false;
-
-        switch (solicitud.getEstadoSolicitud()) {
-            case "Pendiente":
-                colorEstado = ContextCompat.getColor(context, R.color.accent_orange);
-                enableCita = true;
-                break;
-            case "Aprobada":
-                colorEstado = ContextCompat.getColor(context, R.color.status_success);
-                enableResultado = true;
-                break;
-            case "Rechazada":
-                colorEstado = ContextCompat.getColor(context, R.color.status_error);
-                break;
-            case "Cita Agendada":
-                colorEstado = ContextCompat.getColor(context, R.color.accent_blue);
-                enableResultado = true;
-                break;
-            default:
-                colorEstado = ContextCompat.getColor(context, R.color.text_secondary);
+        // Teléfono
+        if (solicitud.getTelefonoAdoptante() != null) {
+            holder.tvContacto.setText(solicitud.getTelefonoAdoptante());
+        } else {
+            holder.tvContacto.setText("Sin contacto");
         }
 
-        holder.tvEstado.setTextColor(colorEstado);
-
-        // Habilitar/Deshabilitar botones
-        holder.btnAgendarCita.setEnabled(enableCita);
-        holder.btnRegistrarResultado.setEnabled(enableResultado);
-
-        // Listeners
-        holder.btnAgendarCita.setOnClickListener(v -> listener.onAgendarCitaClick(solicitud));
-        holder.btnRegistrarResultado.setOnClickListener(v -> listener.onRegistrarResultadoClick(solicitud));
+        // Click Listener
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onSolicitudClick(solicitud);
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
-        return solicitudList.size();
+        return listaSolicitudes != null ? listaSolicitudes.size() : 0;
     }
 
-    static class SolicitudViewHolder extends RecyclerView.ViewHolder {
-        final TextView tvNombre, tvTelefono, tvFecha, tvEstado;
-        final Button btnAgendarCita, btnRegistrarResultado;
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView tvMascota, tvAdoptante, tvFecha, tvEstado, tvContacto;
 
-        public SolicitudViewHolder(@NonNull View itemView) {
+        public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvNombre = itemView.findViewById(R.id.tv_adoptante_nombre);
-            tvTelefono = itemView.findViewById(R.id.tv_adoptante_telefono);
-            tvFecha = itemView.findViewById(R.id.tv_fecha_solicitud);
-            tvEstado = itemView.findViewById(R.id.tv_solicitud_estado);
-            btnAgendarCita = itemView.findViewById(R.id.btn_agendar_cita);
-            btnRegistrarResultado = itemView.findViewById(R.id.btn_registrar_resultado);
+            // IDs deben coincidir con item_cita_adopcion.xml
+            tvMascota = itemView.findViewById(R.id.tvMascotaName);
+            tvAdoptante = itemView.findViewById(R.id.tvAdoptanteName);
+            tvFecha = itemView.findViewById(R.id.tvFechaCita);
+            tvEstado = itemView.findViewById(R.id.tvEstadoSolicitud);
+            tvContacto = itemView.findViewById(R.id.tvContactoInfo);
         }
     }
 }

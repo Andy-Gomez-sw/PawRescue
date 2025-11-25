@@ -2,8 +2,7 @@ package com.refugio.pawrescue.ui.publico;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.TextView;
+import android.view.View; // Importante
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -12,21 +11,19 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.refugio.pawrescue.R;
-
-// --- IMPORTANTE: Usamos el modelo correcto ---
-import com.refugio.pawrescue.model.AdoptionRequest;
 import com.refugio.pawrescue.ui.adapter.RequestAdapter;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class MyRequestsActivity extends AppCompatActivity {
 
     private RecyclerView rvRequests;
-    private TextView tvEmptyRequests;
+
+    // 🔴 CORRECCIÓN: Cambiamos TextView por View (para que acepte el LinearLayout del XML)
+    private View tvEmptyRequests;
+
     private RequestAdapter requestAdapter;
     private List<AdoptionRequest> requestList;
-    private List<AdoptionRequest> filteredList; // Por si quisieras filtrar después
     private FirebaseFirestore db;
 
     @Override
@@ -34,24 +31,26 @@ public class MyRequestsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_requests);
 
-        rvRequests = findViewById(R.id.rvRequests);
-        tvEmptyRequests = findViewById(R.id.tvEmptyRequests); // Asegúrate de tener este ID en el XML
-
-        db = FirebaseFirestore.getInstance();
-        requestList = new ArrayList<>();
-        filteredList = new ArrayList<>();
-
+        initViews();
+        initFirebase();
         setupRecyclerView();
         loadRequests();
     }
 
+    private void initViews() {
+        rvRequests = findViewById(R.id.rvRequests);
+        // Ahora esto funcionará porque View es compatible con LinearLayout
+        tvEmptyRequests = findViewById(R.id.tvEmptyRequests);
+    }
+
+    private void initFirebase() {
+        db = FirebaseFirestore.getInstance();
+    }
+
     private void setupRecyclerView() {
-        // Inicializamos el adaptador con la lista filtrada (que al inicio es igual a la original)
-        requestAdapter = new RequestAdapter(this, filteredList, request -> {
-            // Al hacer click, vamos al detalle
+        requestList = new ArrayList<>();
+        requestAdapter = new RequestAdapter(this, requestList, request -> {
             Intent intent = new Intent(MyRequestsActivity.this, RequestDetailActivity.class);
-            intent.putExtra("REQUEST_ID", request.getFolio()); // O el ID del documento
-            // También podemos pasar el objeto si es Serializable
             intent.putExtra("REQUEST_OBJ", request);
             startActivity(intent);
         });
@@ -64,10 +63,12 @@ public class MyRequestsActivity extends AppCompatActivity {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
                 FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
 
-        if (userId == null) return;
+        if (userId == null) {
+            Toast.makeText(this, "Debes iniciar sesión", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        // Buscamos las solicitudes donde el usuario sea el solicitante
-        db.collection("solicitudes")
+        db.collection("solicitudes_adopcion")
                 .whereEqualTo("usuarioId", userId)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -77,19 +78,23 @@ public class MyRequestsActivity extends AppCompatActivity {
                     } else {
                         showEmptyState(false);
                         for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                            AdoptionRequest req = doc.toObject(AdoptionRequest.class);
-                            // Asignamos datos extra si faltan (como el ID del documento)
-                            // req.setId(doc.getId());
-                            requestList.add(req);
+                            try {
+                                AdoptionRequest req = doc.toObject(AdoptionRequest.class);
+                                req.setId(doc.getId());
+
+                                if (req.getAnimalNombre() == null && doc.contains("animalNombre")) {
+                                    req.setAnimalNombre(doc.getString("animalNombre"));
+                                }
+                                requestList.add(req);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
-                        // Actualizamos la lista que usa el adaptador
-                        filteredList.clear();
-                        filteredList.addAll(requestList);
                         requestAdapter.notifyDataSetChanged();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error al cargar solicitudes", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     showEmptyState(true);
                 });
     }

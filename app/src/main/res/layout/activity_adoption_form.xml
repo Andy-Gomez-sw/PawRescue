@@ -5,267 +5,83 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light"
-    tools:context=".AdoptionFormActivity">
+    android:background="#FFFFFF">
 
-    <!-- Header -->
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        android:elevation="4dp"
-        app:title="Solicitud de Adopción"
-        app:titleTextColor="@color/text_primary"
-        app:navigationIcon="@drawable/ic_arrow_back"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <!-- Progress Container -->
     <LinearLayout
-        android:id="@+id/progressContainer"
+        android:id="@+id/headerLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:padding="16dp"
-        android:background="@android:color/white"
-        android:elevation="2dp"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Progress Text -->
-        <LinearLayout
-            android:layout_width="match_parent"
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="@color/black"
+            android:contentDescription="@string/back" />
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
-
-            <TextView
-                android:id="@+id/tvProgressText"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Paso 1 de 5"
-                android:textSize="12sp"
-                android:textColor="@color/text_secondary"/>
-
-            <TextView
-                android:id="@+id/tvProgressPercent"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="20%"
-                android:textSize="12sp"
-                android:textColor="@color/text_secondary"/>
-        </LinearLayout>
-
-        <!-- Progress Bar -->
-        <com.google.android.material.progressindicator.LinearProgressIndicator
-            android:id="@+id/progressBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:indicatorColor="@color/primary_orange"
-            app:trackColor="@color/gray_light"
-            app:trackThickness="8dp"
-            app:trackCornerRadius="4dp"
-            android:progress="20"/>
-
-        <!-- Stepper Horizontal -->
-        <LinearLayout
-            android:id="@+id/stepperContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="16dp"
-            android:gravity="center">
-
-            <!-- Step 1 -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
-
-                <TextView
-                    android:id="@+id/stepCircle1"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:background="@drawable/step_circle_active"
-                    android:text="1"
-                    android:textColor="@android:color/white"
-                    android:textStyle="bold"
-                    android:gravity="center"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Datos"
-                    android:textSize="10sp"
-                    android:textColor="@color/primary_orange"
-                    android:layout_marginTop="4dp"/>
-            </LinearLayout>
-
-            <!-- Step 2 -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
-
-                <TextView
-                    android:id="@+id/stepCircle2"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:background="@drawable/step_circle_inactive"
-                    android:text="2"
-                    android:textColor="@color/text_tertiary"
-                    android:textStyle="bold"
-                    android:gravity="center"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Familia"
-                    android:textSize="10sp"
-                    android:textColor="@color/text_tertiary"
-                    android:layout_marginTop="4dp"/>
-            </LinearLayout>
-
-            <!-- Step 3 -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
-
-                <TextView
-                    android:id="@+id/stepCircle3"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:background="@drawable/step_circle_inactive"
-                    android:text="3"
-                    android:textColor="@color/text_tertiary"
-                    android:textStyle="bold"
-                    android:gravity="center"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Experiencia"
-                    android:textSize="10sp"
-                    android:textColor="@color/text_tertiary"
-                    android:layout_marginTop="4dp"/>
-            </LinearLayout>
-
-            <!-- Step 4 -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
-
-                <TextView
-                    android:id="@+id/stepCircle4"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:background="@drawable/step_circle_inactive"
-                    android:text="4"
-                    android:textColor="@color/text_tertiary"
-                    android:textStyle="bold"
-                    android:gravity="center"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Compromiso"
-                    android:textSize="10sp"
-                    android:textColor="@color/text_tertiary"
-                    android:layout_marginTop="4dp"/>
-            </LinearLayout>
-
-            <!-- Step 5 -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
-
-                <TextView
-                    android:id="@+id/stepCircle5"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:background="@drawable/step_circle_inactive"
-                    android:text="5"
-                    android:textColor="@color/text_tertiary"
-                    android:textStyle="bold"
-                    android:gravity="center"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Revisión"
-                    android:textSize="10sp"
-                    android:textColor="@color/text_tertiary"
-                    android:layout_marginTop="4dp"/>
-            </LinearLayout>
-
-        </LinearLayout>
-
+            android:layout_marginStart="16dp"
+            android:text="Solicitud de Adopción"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"/>
     </LinearLayout>
 
-    <!-- ViewPager2 para los pasos -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:progress="20"
+        android:max="100"
+        app:layout_constraintTop_toBottomOf="@id/headerLayout" />
+
     <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/viewPagerForm"
+        android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/progressContainer"
-        app:layout_constraintBottom_toTopOf="@id/navigationButtons"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        android:layout_marginVertical="16dp"
+        app:layout_constraintTop_toBottomOf="@id/progressBar"
+        app:layout_constraintBottom_toTopOf="@id/footerLayout"/>
 
-    <!-- Navigation Buttons -->
     <LinearLayout
-        android:id="@+id/navigationButtons"
+        android:id="@+id/footerLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="16dp"
-        android:background="@android:color/white"
-        android:elevation="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:gravity="end"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPrevious"
-            android:layout_width="0dp"
-            android:layout_height="56dp"
-            android:layout_weight="1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="@string/previous"
-            android:textSize="16sp"
-            android:textAllCaps="false"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            app:cornerRadius="8dp"
-            android:layout_marginEnd="8dp"/>
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:textColor="#757575"
+            android:visibility="invisible"/>
+
+        <Space
+            android:layout_width="16dp"
+            android:layout_height="wrap_content"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnNext"
-            android:layout_width="0dp"
-            android:layout_height="56dp"
-            android:layout_weight="1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="@string/next"
-            android:textSize="16sp"
-            android:textAllCaps="false"
-            app:cornerRadius="8dp"
-            app:backgroundTint="@color/primary_orange"
-            android:layout_marginStart="8dp"/>
+            android:backgroundTint="@color/design_default_color_primary"/>
 
     </LinearLayout>
 

@@ -7,12 +7,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,7 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.Timestamp;
-import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
@@ -36,13 +33,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
-/**
- * Fragmento que gestiona las Solicitudes de Adopción (RF-14, RF-15, RF-16).
- * Se muestra dentro de DetalleAnimalActivity.
- */
 public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapter.SolicitudInteractionListener {
 
     private static final String TAG = "AdoptionFragment";
@@ -53,8 +45,8 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
     private SolicitudAdopcionAdapter adapter;
     private ProgressBar progressBar;
     private TextView tvEmpty, tvAnimalIdHint;
+
     private FirebaseFirestore db;
-    private FirebaseAuth mAuth;
     private ListenerRegistration listenerRegistration;
 
     public static AdoptionFragment newInstance(String animalId) {
@@ -72,12 +64,12 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
             animalId = getArguments().getString(ARG_ANIMAL_ID);
         }
         db = FirebaseFirestore.getInstance();
-        mAuth = FirebaseAuth.getInstance();
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // Usamos el layout que ya tienes (fragment_adoption)
         View view = inflater.inflate(R.layout.fragment_adoption, container, false);
 
         recyclerView = view.findViewById(R.id.recycler_solicitudes);
@@ -85,12 +77,13 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
         tvEmpty = view.findViewById(R.id.tv_empty_requests);
         tvAnimalIdHint = view.findViewById(R.id.tv_animal_id_hint);
 
-        if (animalId != null) {
-            tvAnimalIdHint.setText("Gestionando Solicitudes");
+        if (animalId != null && tvAnimalIdHint != null) {
+            tvAnimalIdHint.setText("Solicitudes para ID: " + animalId);
         }
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new SolicitudAdopcionAdapter(getContext(), this);
+        // Inicializamos el adaptador pasando 'this' como listener
+        adapter = new SolicitudAdopcionAdapter(getContext(), new ArrayList<>(), this);
         recyclerView.setAdapter(adapter);
 
         cargarSolicitudes();
@@ -98,119 +91,155 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
         return view;
     }
 
-    /**
-     * Carga las solicitudes de adopción para este animal en tiempo real (RF-14).
-     */
     private void cargarSolicitudes() {
         if (animalId == null) {
-            tvEmpty.setVisibility(View.VISIBLE);
-            tvEmpty.setText("Error: ID de animal no disponible.");
+            if(tvEmpty != null) {
+                tvEmpty.setText("Error: No se recibió ID del animal.");
+                tvEmpty.setVisibility(View.VISIBLE);
+            }
             return;
         }
 
         progressBar.setVisibility(View.VISIBLE);
-        tvEmpty.setVisibility(View.GONE);
+        if(tvEmpty != null) tvEmpty.setVisibility(View.GONE);
 
-        // Consulta filtrada por el idAnimal actual
+        // Consulta a la colección correcta "solicitudes_adopcion"
         Query query = db.collection("solicitudes_adopcion")
-                .whereEqualTo("idAnimal", animalId)
+                .whereEqualTo("animalId", animalId)
                 .orderBy("fechaSolicitud", Query.Direction.DESCENDING);
 
         listenerRegistration = query.addSnapshotListener((snapshots, e) -> {
-            progressBar.setVisibility(View.GONE);
+            if (progressBar != null) progressBar.setVisibility(View.GONE);
+
             if (e != null) {
-                Log.w(TAG, "Error al escuchar solicitudes:", e);
-                tvEmpty.setVisibility(View.VISIBLE);
-                tvEmpty.setText("Error al cargar solicitudes: " + e.getMessage());
+                Log.e(TAG, "Error cargando solicitudes", e);
+                if(tvEmpty != null) {
+                    tvEmpty.setText("Error de carga: " + e.getMessage());
+                    tvEmpty.setVisibility(View.VISIBLE);
+                }
                 return;
             }
 
             if (snapshots != null) {
-                List<SolicitudAdopcion> solicitudes = new ArrayList<>();
-                for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots.getDocuments()) {
-                    SolicitudAdopcion solicitud = doc.toObject(SolicitudAdopcion.class);
-                    if (solicitud != null) {
-                        solicitud.setIdSolicitud(doc.getId());
-                        solicitudes.add(solicitud);
+                List<SolicitudAdopcion> lista = new ArrayList<>();
+                for (DocumentSnapshot doc : snapshots.getDocuments()) {
+                    try {
+                        SolicitudAdopcion sol = doc.toObject(SolicitudAdopcion.class);
+                        if (sol != null) {
+                            sol.setIdSolicitud(doc.getId());
+
+                            // --- PARCHE DE COMPATIBILIDAD (Lectura segura) ---
+                            // Si falta el nombre, lo buscamos manualmente
+                            if ((sol.getNombreAdoptante() == null || sol.getNombreAdoptante().equals("Usuario Desconocido")) && doc.contains("nombreCompleto")) {
+                                sol.setNombreCompleto(doc.getString("nombreCompleto"));
+                            }
+                            // Si falta el teléfono
+                            if ((sol.getTelefonoAdoptante() == null || sol.getTelefonoAdoptante().equals("Sin teléfono")) && doc.contains("telefono")) {
+                                sol.setTelefono(doc.getString("telefono"));
+                            }
+                            // Si falta el estado
+                            if (sol.getEstado() == null && doc.contains("estado")) {
+                                sol.setEstado(doc.getString("estado"));
+                            }
+
+                            lista.add(sol);
+                        }
+                    } catch (Exception ex) {
+                        Log.e(TAG, "Error parseando doc: " + doc.getId(), ex);
                     }
                 }
 
-                adapter.setSolicitudList(solicitudes);
-                tvEmpty.setVisibility(solicitudes.isEmpty() ? View.VISIBLE : View.GONE);
-                recyclerView.setVisibility(solicitudes.isEmpty() ? View.GONE : View.VISIBLE);
+                adapter.setListaSolicitudes(lista);
+
+                if(tvEmpty != null) {
+                    if (lista.isEmpty()) {
+                        tvEmpty.setText("No hay solicitudes para este animal.");
+                        tvEmpty.setVisibility(View.VISIBLE);
+                    } else {
+                        tvEmpty.setVisibility(View.GONE);
+                    }
+                }
             }
         });
     }
 
-    // --- Implementación de RF-15: Agendar Cita ---
+    // --- INTERFAZ: Cuando tocas una tarjeta ---
     @Override
-    public void onAgendarCitaClick(SolicitudAdopcion solicitud) {
-        if (getContext() == null) return;
+    public void onSolicitudClick(SolicitudAdopcion solicitud) {
+        // Menú simple
+        String[] opciones = {"📅 Agendar Cita", "✅ Aprobar / ❌ Rechazar"};
 
+        new AlertDialog.Builder(getContext())
+                .setTitle("Gestionar Solicitud")
+                .setItems(opciones, (dialog, which) -> {
+                    if (which == 0) {
+                        mostrarDialogoCita(solicitud);
+                    } else {
+                        mostrarDialogoResultadoSinXML(solicitud);
+                    }
+                })
+                .show();
+    }
+
+    // --- Lógica de Cita (DatePicker simple) ---
+    private void mostrarDialogoCita(SolicitudAdopcion solicitud) {
         final Calendar c = Calendar.getInstance();
-        int year = c.get(Calendar.YEAR);
-        int month = c.get(Calendar.MONTH);
-        int day = c.get(Calendar.DAY_OF_MONTH);
+        DatePickerDialog datePicker = new DatePickerDialog(getContext(),
+                (view, year, month, dayOfMonth) -> {
+                    c.set(year, month, dayOfMonth);
+                    // Actualizamos estado a "cita_agendada"
+                    actualizarEstadoSolicitud(solicitud, "cita_agendada", new Timestamp(c.getTime()));
+                },
+                c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
 
-        // Mostrar selector de fecha
-        DatePickerDialog datePickerDialog = new DatePickerDialog(getContext(),
-                (view, selectedYear, selectedMonth, selectedDay) -> {
-                    // Cita agendada, ahora actualizar el estado de la solicitud
-                    Calendar selectedDate = Calendar.getInstance();
-                    selectedDate.set(selectedYear, selectedMonth, selectedDay, 0, 0, 0);
-                    selectedDate.set(Calendar.MILLISECOND, 0);
-
-                    // Aquí solo guardamos la fecha por simplicidad de UI, en real se usaría un TimePicker también.
-                    actualizarEstadoSolicitud(solicitud, "Cita Agendada", new Timestamp(selectedDate.getTime()));
-                }, year, month, day);
-
-        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000); // Evitar fechas pasadas
-        datePickerDialog.setTitle("Seleccione Fecha de Cita (RF-15)");
-        datePickerDialog.show();
+        datePicker.setTitle("Fecha de la Cita");
+        datePicker.show();
     }
 
-
-    // --- Implementación de RF-16: Registrar Resultado ---
-    @Override
-    public void onRegistrarResultadoClick(SolicitudAdopcion solicitud) {
-        if (getContext() == null) return;
-
+    // --- Lógica de Resultado (SIN XML EXTRA) ---
+    private void mostrarDialogoResultadoSinXML(SolicitudAdopcion solicitud) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setTitle("Registrar Resultado de Adopción (RF-16)");
+        builder.setTitle("Dictamen Final");
+        builder.setMessage("¿Deseas aprobar o rechazar esta solicitud?");
 
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_adoption_result, null);
-        builder.setView(dialogView);
+        // Creamos un campo de texto programáticamente
+        final EditText input = new EditText(getContext());
+        input.setHint("Comentarios opcionales...");
 
-        Spinner spinnerResultado = dialogView.findViewById(R.id.spinner_resultado);
-        EditText etComentarios = dialogView.findViewById(R.id.et_comentarios_resultado);
+        // Le damos un poco de margen al EditText
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        input.setLayoutParams(lp);
 
-        // Configurar el Spinner de Resultados
-        ArrayAdapter<CharSequence> adapterSpinner = ArrayAdapter.createFromResource(
-                getContext(), R.array.adoption_results, android.R.layout.simple_spinner_dropdown_item);
-        spinnerResultado.setAdapter(adapterSpinner);
+        // Contenedor para margenes
+        LinearLayout container = new LinearLayout(getContext());
+        container.setPadding(50, 20, 50, 20);
+        container.addView(input);
 
-        builder.setPositiveButton("Confirmar", (dialog, which) -> {
-            String resultado = spinnerResultado.getSelectedItem().toString();
-            String comentarios = etComentarios.getText().toString().trim();
+        builder.setView(container);
 
-            if ("Seleccionar".equals(resultado)) {
-                Toast.makeText(getContext(), "Debe seleccionar un resultado válido.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            actualizarResultadoAdopcion(solicitud, resultado, comentarios);
+        // Botón APROBAR (Positivo)
+        builder.setPositiveButton("APROBAR", (dialog, which) -> {
+            actualizarEstadoSolicitud(solicitud, "aprobada", null);
+            marcarAnimalAdoptado(); // Cambia el estado del animal
         });
 
-        builder.setNegativeButton("Cancelar", (dialog, which) -> dialog.cancel());
+        // Botón RECHAZAR (Negativo)
+        builder.setNegativeButton("RECHAZAR", (dialog, which) -> {
+            actualizarEstadoSolicitud(solicitud, "rechazada", null);
+        });
+
+        // Botón CANCELAR (Neutral)
+        builder.setNeutralButton("Cancelar", null);
+
         builder.show();
     }
 
-    /**
-     * Actualiza el estado de la solicitud en Firestore (RF-15, RF-16).
-     */
     private void actualizarEstadoSolicitud(SolicitudAdopcion solicitud, String nuevoEstado, @Nullable Timestamp fechaCita) {
         Map<String, Object> updates = new HashMap<>();
-        updates.put("estadoSolicitud", nuevoEstado);
+        updates.put("estado", nuevoEstado); // Para la app pública
+        updates.put("estadoSolicitud", nuevoEstado); // Para compatibilidad admin
 
         if (fechaCita != null) {
             updates.put("fechaCita", fechaCita);
@@ -218,70 +247,15 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
 
         db.collection("solicitudes_adopcion").document(solicitud.getIdSolicitud())
                 .update(updates)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(getContext(), "✅ Solicitud actualizada a: " + nuevoEstado, Toast.LENGTH_SHORT).show();
-                    // Si se agendó, no hay más acción inmediata, el coordinador debe monitorear la cita.
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "❌ Error al actualizar estado: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    Log.e(TAG, "Error actualizando estado de solicitud: ", e);
-                });
+                .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Estado actualizado a: " + nuevoEstado, Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e -> Toast.makeText(getContext(), "Error al actualizar", Toast.LENGTH_SHORT).show());
     }
 
-    /**
-     * Procesa el resultado de la adopción y realiza el cambio de estado en el animal si es aprobado (RF-16).
-     */
-    private void actualizarResultadoAdopcion(SolicitudAdopcion solicitud, String resultado, String comentarios) {
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("estadoSolicitud", resultado);
-        updates.put("comentariosResultado", comentarios);
-        updates.put("fechaResultado", new Timestamp(new Date()));
-
-        // 1. Actualizar la solicitud
-        db.collection("solicitudes_adopcion").document(solicitud.getIdSolicitud())
-                .update(updates)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(getContext(), "✅ Resultado registrado: " + resultado, Toast.LENGTH_SHORT).show();
-
-                    // 2. Si se APROBÓ, cambiar el estado del ANIMAL a "Adoptado" (RF-16)
-                    if ("Aprobada".equals(resultado)) {
-                        cambiarEstadoAnimalAAdoptado(solicitud.getIdAnimal());
-                    }
-                    // Si fue Rechazada, el animal sigue disponible para otras solicitudes
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "❌ Error al registrar resultado: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    Log.e(TAG, "Error registrando resultado de adopción: ", e);
-                });
-    }
-
-    /**
-     * Cambia el estado del animal en la colección principal (RF-16).
-     */
-    private void cambiarEstadoAnimalAAdoptado(String animalId) {
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("estadoRefugio", "Adoptado");
-        updates.put("fechaAdopcion", new Timestamp(new Date()));
-
+    private void marcarAnimalAdoptado() {
         db.collection("animales").document(animalId)
-                .update(updates)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(getContext(), "Animal actualizado a estado: Adoptado.", Toast.LENGTH_LONG).show();
-                    // Opcional: Iniciar el flujo de Seguimiento Post-Adopción (RF-17)
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Error crítico al actualizar estado del animal a Adoptado.", Toast.LENGTH_LONG).show();
-                    Log.e(TAG, "Error cambiando estado animal: ", e);
-                });
+                .update("estadoRefugio", "Adoptado")
+                .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "¡El animal ha sido marcado como ADOPTADO!", Toast.LENGTH_LONG).show());
     }
-
-
-    // --- RF-17: Placeholder para Seguimiento Post-Adopción (Se desarrollaría en una Activity separada) ---
-    private void iniciarSeguimientoPostAdopcion(SolicitudAdopcion solicitud) {
-        Toast.makeText(getContext(), "Iniciando Seguimiento Post-Adopción (RF-17) para el adoptante: " + solicitud.getNombreAdoptante(), Toast.LENGTH_LONG).show();
-        // Implementación futura: Navegar a una nueva Activity para registrar comentarios y fotos.
-    }
-
 
     @Override
     public void onDestroyView() {

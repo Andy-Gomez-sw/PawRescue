@@ -81,7 +81,7 @@
             android:name=".ui.publico.AnimalDetailsPublicActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.publico.MyAdoptionRequestsActivity"
+            android:name=".ui.publico.MyRequestsActivity"
             android:exported="false" />
         <activity
             android:name=".ui.publico.PublicRegisterActivity"

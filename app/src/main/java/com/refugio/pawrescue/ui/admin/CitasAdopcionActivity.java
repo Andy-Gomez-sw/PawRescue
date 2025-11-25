@@ -1,5 +1,6 @@
 package com.refugio.pawrescue.ui.admin;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -7,12 +8,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
@@ -21,13 +22,8 @@ import com.refugio.pawrescue.model.SolicitudAdopcion;
 import com.refugio.pawrescue.ui.adapter.CitasAdapter;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-/**
- * Activity para visualizar todas las citas de adopción programadas (RF-15).
- * Muestra citas pendientes y permite navegar al detalle del animal.
- */
 public class CitasAdopcionActivity extends AppCompatActivity implements CitasAdapter.OnCitaClickListener {
 
     private static final String TAG = "CitasAdopcionActivity";
@@ -44,29 +40,24 @@ public class CitasAdopcionActivity extends AppCompatActivity implements CitasAda
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_citas_adopcion);
 
-        // Configurar Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Citas de Adopción Programadas");
+            getSupportActionBar().setTitle("Gestión de Solicitudes");
         }
 
-        // Inicializar Firebase
         db = FirebaseFirestore.getInstance();
 
-        // Enlazar vistas
         recyclerView = findViewById(R.id.recycler_citas);
         progressBar = findViewById(R.id.progress_bar_citas);
         tvEmpty = findViewById(R.id.tv_empty_citas);
 
-        // Configurar RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new CitasAdapter(this, this);
         recyclerView.setAdapter(adapter);
 
-        // Cargar citas
-        cargarCitasProgramadas();
+        cargarTodasLasSolicitudes();
     }
 
     @Override
@@ -75,50 +66,62 @@ public class CitasAdopcionActivity extends AppCompatActivity implements CitasAda
         return true;
     }
 
-    /**
-     * Carga todas las solicitudes con citas agendadas, ordenadas por fecha.
-     */
-    private void cargarCitasProgramadas() {
+    private void cargarTodasLasSolicitudes() {
         progressBar.setVisibility(View.VISIBLE);
         tvEmpty.setVisibility(View.GONE);
 
-        // Consulta: Solicitudes con estado "Cita Agendada" y fecha de cita no nula
         Query query = db.collection("solicitudes_adopcion")
-                .whereEqualTo("estadoSolicitud", "Cita Agendada")
-                .orderBy("fechaCita", Query.Direction.ASCENDING);
+                .orderBy("fechaSolicitud", Query.Direction.DESCENDING);
 
         listenerRegistration = query.addSnapshotListener((snapshots, e) -> {
             progressBar.setVisibility(View.GONE);
 
             if (e != null) {
-                Log.w(TAG, "Error al escuchar citas:", e);
+                Log.e(TAG, "Error al cargar:", e);
                 tvEmpty.setVisibility(View.VISIBLE);
-                tvEmpty.setText("Error al cargar citas: " + e.getMessage());
+                tvEmpty.setText("Error: " + e.getMessage());
                 return;
             }
 
             if (snapshots != null) {
-                List<SolicitudAdopcion> citas = new ArrayList<>();
-                Date ahora = new Date();
+                List<SolicitudAdopcion> listaMix = new ArrayList<>();
 
-                for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots.getDocuments()) {
-                    SolicitudAdopcion solicitud = doc.toObject(SolicitudAdopcion.class);
-                    if (solicitud != null && solicitud.getFechaCita() != null) {
-                        solicitud.setIdSolicitud(doc.getId());
+                for (DocumentSnapshot doc : snapshots.getDocuments()) {
+                    try {
+                        SolicitudAdopcion solicitud = doc.toObject(SolicitudAdopcion.class);
 
-                        // Solo mostrar citas futuras o del día actual
-                        Date fechaCita = solicitud.getFechaCita().toDate();
-                        if (!fechaCita.before(ahora)) {
-                            citas.add(solicitud);
+                        if (solicitud != null) {
+                            solicitud.setIdSolicitud(doc.getId());
+
+                            // --- PARCHE CORREGIDO (Usando tus nombres originales) ---
+
+                            // 1. Nombre del Animal (getNombreAnimal)
+                            if (solicitud.getNombreAnimal() == null && doc.contains("animalNombre")) {
+                                solicitud.setNombreAnimal(doc.getString("animalNombre"));
+                            }
+
+                            // 2. Estado (getEstadoSolicitud)
+                            if (solicitud.getEstadoSolicitud() == null && doc.contains("estado")) {
+                                solicitud.setEstadoSolicitud(doc.getString("estado"));
+                            }
+
+                            // 3. ID del Animal (getIdAnimal)
+                            if (solicitud.getIdAnimal() == null && doc.contains("animalId")) {
+                                solicitud.setIdAnimal(doc.getString("animalId"));
+                            }
+
+                            listaMix.add(solicitud);
                         }
+                    } catch (Exception ex) {
+                        Log.w(TAG, "Error leyendo solicitud: " + doc.getId());
                     }
                 }
 
-                adapter.setCitasList(citas);
+                adapter.setCitasList(listaMix);
 
-                if (citas.isEmpty()) {
+                if (listaMix.isEmpty()) {
                     tvEmpty.setVisibility(View.VISIBLE);
-                    tvEmpty.setText("No hay citas programadas próximamente");
+                    tvEmpty.setText("No hay solicitudes registradas");
                     recyclerView.setVisibility(View.GONE);
                 } else {
                     tvEmpty.setVisibility(View.GONE);
@@ -130,13 +133,12 @@ public class CitasAdopcionActivity extends AppCompatActivity implements CitasAda
 
     @Override
     public void onCitaClick(SolicitudAdopcion solicitud) {
-        // Navegar al detalle del animal
         if (solicitud.getIdAnimal() != null) {
-            android.content.Intent intent = new android.content.Intent(this, DetalleAnimalActivity.class);
+            Intent intent = new Intent(this, DetalleAnimalActivity.class);
             intent.putExtra("animalId", solicitud.getIdAnimal());
             startActivity(intent);
         } else {
-            Toast.makeText(this, "Error: ID de animal no disponible", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "ID de animal no encontrado", Toast.LENGTH_SHORT).show();
         }
     }
 

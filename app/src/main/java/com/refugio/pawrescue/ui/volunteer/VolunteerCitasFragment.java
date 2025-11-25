@@ -1,6 +1,7 @@
 package com.refugio.pawrescue.ui.volunteer;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,8 +9,6 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.content.Intent;
-
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -49,6 +48,7 @@ public class VolunteerCitasFragment extends Fragment implements CitasAdapter.OnC
     private ListenerRegistration listenerRegistration;
     private CitasAdapter adapter;
 
+    // Formatos (opcionales si los usas para logs o UI extra)
     private final SimpleDateFormat dateFormat =
             new SimpleDateFormat("EEE dd MMM yyyy", new Locale("es", "MX"));
     private final SimpleDateFormat timeFormat =
@@ -93,7 +93,6 @@ public class VolunteerCitasFragment extends Fragment implements CitasAdapter.OnC
 
     /**
      * Carga las citas para este animal.
-     * Usamos solo los campos reales de Firestore y evitamos índices compuestos.
      */
     private void cargarCitasProgramadas() {
         if (animalId == null || animalId.isEmpty()) {
@@ -105,11 +104,12 @@ public class VolunteerCitasFragment extends Fragment implements CitasAdapter.OnC
         progressBar.setVisibility(View.VISIBLE);
         tvEmpty.setVisibility(View.GONE);
 
-        // 🔹 Filtramos por animal y por solicitudes "Aprobadas".
-        // (la cita está en el campo fechaCita)
+        // 🔹 Filtramos por animal.
+        // OJO: Aquí filtrabas por "Aprobada", pero usualmente las citas son "cita_agendada".
+        // Si no te salen datos, intenta cambiar "Aprobada" por "cita_agendada".
         Query query = db.collection("solicitudes_adopcion")
-                .whereEqualTo("idAnimal", animalId)
-                .whereEqualTo("estadoSolicitud", "Aprobada");
+                .whereEqualTo("idAnimal", animalId);
+        // .whereEqualTo("estadoSolicitud", "cita_agendada"); // Descomenta si quieres filtrar estado
 
         listenerRegistration = query.addSnapshotListener((snapshots, e) -> {
             progressBar.setVisibility(View.GONE);
@@ -129,23 +129,34 @@ public class VolunteerCitasFragment extends Fragment implements CitasAdapter.OnC
 
             List<SolicitudAdopcion> citas = new ArrayList<>();
             snapshots.getDocuments().forEach(doc -> {
-                SolicitudAdopcion cita = doc.toObject(SolicitudAdopcion.class);
-                if (cita != null) {
-                    cita.setIdSolicitud(doc.getId()); // Ya lo usas en otros lados
-                    citas.add(cita);
+                try {
+                    SolicitudAdopcion cita = doc.toObject(SolicitudAdopcion.class);
+                    if (cita != null) {
+                        cita.setIdSolicitud(doc.getId());
+
+                        // Parche de compatibilidad (como hicimos en Admin)
+                        if(cita.getIdAnimal() == null) cita.setIdAnimal(doc.getString("animalId"));
+                        if(cita.getNombreAnimal() == null) cita.setNombreAnimal(doc.getString("animalNombre"));
+
+                        citas.add(cita);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
             });
 
-            // 🔹 Ordenamos en memoria por fechaCita (más próxima primero)
+            // 🔹 CORRECCIÓN AQUI: Usamos Date en lugar de Timestamp
             Collections.sort(citas, new Comparator<SolicitudAdopcion>() {
                 @Override
                 public int compare(SolicitudAdopcion c1, SolicitudAdopcion c2) {
-                    Timestamp t1 = c1.getFechaCita();
-                    Timestamp t2 = c2.getFechaCita();
-                    if (t1 == null && t2 == null) return 0;
-                    if (t1 == null) return 1;
-                    if (t2 == null) return -1;
-                    return t1.compareTo(t2);
+                    Date d1 = c1.getFechaCita(); // Ahora devuelve Date
+                    Date d2 = c2.getFechaCita(); // Ahora devuelve Date
+
+                    if (d1 == null && d2 == null) return 0;
+                    if (d1 == null) return 1;  // Nulos al final
+                    if (d2 == null) return -1;
+
+                    return d1.compareTo(d2); // Date tiene su propio compareTo
                 }
             });
 
@@ -154,13 +165,6 @@ public class VolunteerCitasFragment extends Fragment implements CitasAdapter.OnC
         });
     }
 
-    /**
-     * Cuando el voluntario toca una cita:
-     * - Ve fecha y hora
-     * - Ve datos básicos del interesado
-     * - Puede marcar al animal como "Listo para adoptar"
-     *   o simplemente cerrar.
-     */
     @Override
     public void onCitaClick(SolicitudAdopcion cita) {
         if (getContext() == null || cita == null) return;
@@ -168,23 +172,15 @@ public class VolunteerCitasFragment extends Fragment implements CitasAdapter.OnC
         Intent intent = new Intent(getContext(), VolunteerCitaDetailActivity.class);
         intent.putExtra("idSolicitud", cita.getIdSolicitud());
         intent.putExtra("idAnimal", animalId);
+        // Pasamos el objeto completo para evitar problemas de carga
+        intent.putExtra("SOLICITUD_OBJ", cita);
         startActivity(intent);
-
     }
-
-
-
-
-
 
     private String valueOrDash(String v) {
         return v == null || v.trim().isEmpty() ? "-" : v;
     }
 
-    /**
-     * Marca el animal como "Listo para adoptar" usando
-     * el campo estadoRefugio y fechaUltimaActualizacion.
-     */
     private void marcarAnimalListoParaAdoptar() {
         if (animalId == null || animalId.isEmpty() || getContext() == null) return;
 

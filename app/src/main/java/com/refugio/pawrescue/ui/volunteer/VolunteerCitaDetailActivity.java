@@ -113,11 +113,15 @@ public class VolunteerCitaDetailActivity extends AppCompatActivity {
         tvAdoptante.setText(noVacio(cita.getNombreAdoptante()));
         tvCorreo.setText(noVacio(cita.getCorreoAdoptante()));
 
-        Timestamp ts = cita.getFechaCita();
-        if (ts != null) {
-            tvFecha.setText(dateTimeFormat.format(ts.toDate()));
+// 🟢 CORRECCIÓN: Usamos Date directamente porque el modelo ya lo devuelve así
+        Date fecha = cita.getFechaCita();
+
+        if (fecha != null) {
+            // Formateamos la fecha directamente
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault());
+            tvFecha.setText(sdf.format(fecha)); // Asegúrate que tvFecha sea tu TextView de la fecha
         } else {
-            tvFecha.setText("-");
+            tvFecha.setText("Sin fecha asignada");
         }
     }
 

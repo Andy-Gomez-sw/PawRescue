@@ -7,6 +7,13 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 public class AdoptionFormPagerAdapter extends FragmentStateAdapter {
 
+    // Guardamos las instancias para poder pedirles los datos luego
+    private Step1PersonalDataFragment step1 = new Step1PersonalDataFragment();
+    private Step2FamilyFragment step2 = new Step2FamilyFragment();
+    private Step3ExperienceFragment step3 = new Step3ExperienceFragment();
+    private Step4CommitmentFragment step4 = new Step4CommitmentFragment();
+    private Step5ReviewFragment step5 = new Step5ReviewFragment();
+
     public AdoptionFormPagerAdapter(@NonNull FragmentActivity fragmentActivity) {
         super(fragmentActivity);
     }
@@ -14,25 +21,25 @@ public class AdoptionFormPagerAdapter extends FragmentStateAdapter {
     @NonNull
     @Override
     public Fragment createFragment(int position) {
-        // Aquí definimos qué fragmento (pantalla) va en cada paso
         switch (position) {
-            case 0:
-                return new Step1PersonalDataFragment();
-            case 1:
-                return new Step2FamilyFragment();
-            case 2:
-                return new Step3ExperienceFragment();
-            case 3:
-                return new Step4CommitmentFragment();
-            case 4:
-                return new Step5ReviewFragment();
-            default:
-                return new Step1PersonalDataFragment();
+            case 0: return step1;
+            case 1: return step2;
+            case 2: return step3;
+            case 3: return step4;
+            case 4: return step5;
+            default: return step1;
         }
     }
 
     @Override
     public int getItemCount() {
-        return 5; // Tenemos 5 pasos en total
+        return 5;
     }
+
+    // Métodos públicos para obtener los fragments desde la Actividad
+    public Step1PersonalDataFragment getStep1() { return step1; }
+    public Step2FamilyFragment getStep2() { return step2; }
+    public Step3ExperienceFragment getStep3() { return step3; }
+    public Step4CommitmentFragment getStep4() { return step4; }
+    public Step5ReviewFragment getStep5() { return step5; }
 }

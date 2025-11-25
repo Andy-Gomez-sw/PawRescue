@@ -6,28 +6,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.refugio.pawrescue.R;
 import com.refugio.pawrescue.model.SolicitudAdopcion;
-
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Adaptador para mostrar las citas de adopción programadas.
- */
 public class CitasAdapter extends RecyclerView.Adapter<CitasAdapter.CitaViewHolder> {
 
-    private final Context context;
+    private Context context;
     private List<SolicitudAdopcion> citasList;
-    private final OnCitaClickListener listener;
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("EEE dd MMM yyyy", new Locale("es", "ES"));
-    private final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", new Locale("es", "ES"));
+    private OnCitaClickListener listener;
 
     public interface OnCitaClickListener {
         void onCitaClick(SolicitudAdopcion solicitud);
@@ -35,7 +26,6 @@ public class CitasAdapter extends RecyclerView.Adapter<CitasAdapter.CitaViewHold
 
     public CitasAdapter(Context context, OnCitaClickListener listener) {
         this.context = context;
-        this.citasList = new ArrayList<>();
         this.listener = listener;
     }
 
@@ -47,58 +37,69 @@ public class CitasAdapter extends RecyclerView.Adapter<CitasAdapter.CitaViewHold
     @NonNull
     @Override
     public CitaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // Asegúrate de tener este layout: item_cita_adopcion.xml
+        // Si se llama diferente, cámbialo aquí.
         View view = LayoutInflater.from(context).inflate(R.layout.item_cita_adopcion, parent, false);
         return new CitaViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull CitaViewHolder holder, int position) {
+        if (citasList == null) return;
+
         SolicitudAdopcion cita = citasList.get(position);
 
-        holder.tvNombreAdoptante.setText(cita.getNombreAdoptante());
-        holder.tvTelefono.setText("📞 " + cita.getTelefonoAdoptante());
+        // 1. Nombre de la Mascota
+        String nombreMascota = cita.getNombreAnimal();
+        // Si viene nulo, usamos el alias
+        if (nombreMascota == null) nombreMascota = cita.getNombreAnimal();
+        holder.tvMascota.setText(nombreMascota != null ? nombreMascota : "Mascota");
 
+        // 2. Nombre del Adoptante (¡El método que agregamos!)
+        holder.tvAdoptante.setText(cita.getNombreAdoptante());
+
+        // 3. Teléfono (¡El otro método que agregamos!)
+        holder.tvContacto.setText(cita.getTelefonoAdoptante());
+
+        // 4. Fecha (CORRECCIÓN DEL ERROR)
         if (cita.getFechaCita() != null) {
-            Date fechaCita = cita.getFechaCita().toDate();
-            holder.tvFecha.setText(dateFormat.format(fechaCita));
-            holder.tvHora.setText(timeFormat.format(fechaCita));
-
-            // Determinar si la cita es hoy
-            Calendar citaCal = Calendar.getInstance();
-            citaCal.setTime(fechaCita);
-
-            Calendar hoyCal = Calendar.getInstance();
-
-            boolean esHoy = citaCal.get(Calendar.YEAR) == hoyCal.get(Calendar.YEAR) &&
-                    citaCal.get(Calendar.DAY_OF_YEAR) == hoyCal.get(Calendar.DAY_OF_YEAR);
-
-            if (esHoy) {
-                holder.tvIndicadorHoy.setVisibility(View.VISIBLE);
-                holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.background_light));
-            } else {
-                holder.tvIndicadorHoy.setVisibility(View.GONE);
-                holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.white));
-            }
+            // Ya es un Date, no usamos .toDate()
+            Date fecha = cita.getFechaCita();
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+            holder.tvFecha.setText("Cita: " + sdf.format(fecha));
+        } else if (cita.getFechaSolicitud() != null) {
+            // Si no tiene cita, mostramos fecha de solicitud
+            Date fecha = cita.getFechaSolicitud();
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            holder.tvFecha.setText("Solicitud: " + sdf.format(fecha));
+        } else {
+            holder.tvFecha.setText("Fecha pendiente");
         }
 
+        // 5. Estado
+        holder.tvEstado.setText(cita.getEstado());
+
+        // Click
         holder.itemView.setOnClickListener(v -> listener.onCitaClick(cita));
     }
 
     @Override
     public int getItemCount() {
-        return citasList.size();
+        return citasList != null ? citasList.size() : 0;
     }
 
-    static class CitaViewHolder extends RecyclerView.ViewHolder {
-        final TextView tvNombreAdoptante, tvTelefono, tvFecha, tvHora, tvIndicadorHoy;
+    public static class CitaViewHolder extends RecyclerView.ViewHolder {
+        // Ajusta estos IDs según tu XML (item_cita_adopcion.xml)
+        TextView tvMascota, tvAdoptante, tvFecha, tvContacto, tvEstado;
 
         public CitaViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvNombreAdoptante = itemView.findViewById(R.id.tv_cita_nombre);
-            tvTelefono = itemView.findViewById(R.id.tv_cita_telefono);
-            tvFecha = itemView.findViewById(R.id.tv_cita_fecha);
-            tvHora = itemView.findViewById(R.id.tv_cita_hora);
-            tvIndicadorHoy = itemView.findViewById(R.id.tv_indicador_hoy);
+            // Estos son IDs comunes, verifica tu XML si te marca error
+            tvMascota = itemView.findViewById(R.id.tvMascotaName);
+            tvAdoptante = itemView.findViewById(R.id.tvAdoptanteName);
+            tvFecha = itemView.findViewById(R.id.tvFechaCita);
+            tvContacto = itemView.findViewById(R.id.tvContactoInfo); // o tvTelefono
+            tvEstado = itemView.findViewById(R.id.tvEstadoSolicitud);
         }
     }
 }

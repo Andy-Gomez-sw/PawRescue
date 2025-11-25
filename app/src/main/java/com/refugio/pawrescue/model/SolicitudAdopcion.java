@@ -1,116 +1,96 @@
 package com.refugio.pawrescue.model;
 
-import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentId;
+import com.google.firebase.firestore.PropertyName;
 import java.io.Serializable;
 import java.util.Date;
 
-/**
- * Modelo de datos para gestionar las Solicitudes de Adopción (RF-14).
- * Esta entidad representa el interés de un adoptante por un animal.
- */
 public class SolicitudAdopcion implements Serializable {
+
+    @DocumentId
     private String idSolicitud;
-    private String idAnimal; // ID del animal solicitado
-    private String idUsuarioAdoptante; // UID del usuario que crea la solicitud (si es público)
-    private String nombreAdoptante;
-    private String telefonoAdoptante;
-    private String correoAdoptante;
-    private String domicilio;
-    private String motivacion; // Ej: "Motivo por el que desea adoptar"
-    private Timestamp fechaSolicitud;
-    private String estadoSolicitud; // Ej: "Pendiente", "Rechazada", "Aprobada", "Cita Agendada"
-    private Timestamp fechaCita; // Usado para agendar la cita (RF-15)
 
-    // Constructor vacío requerido por Firebase Firestore
-    public SolicitudAdopcion() {
+    // --- CAMPOS DEL FORMULARIO PÚBLICO (Firebase) ---
+    @PropertyName("animalNombre")
+    private String nombreAnimal;
+
+    @PropertyName("animalId")
+    private String idAnimal;
+
+    @PropertyName("estado")
+    private String estadoSolicitud;
+
+    @PropertyName("nombreCompleto")
+    private String nombreCompleto;
+
+    @PropertyName("telefono")
+    private String telefono;
+
+    @PropertyName("email")
+    private String email;
+
+    private String usuarioId;
+    private Date fechaSolicitud;
+
+    // --- CAMPOS DEL ADMIN (Citas) ---
+    private Date fechaCita;
+
+    public SolicitudAdopcion() {}
+
+    // =========================================================
+    // MÉTODOS DE COMPATIBILIDAD (Alias para evitar errores)
+    // =========================================================
+
+    // 1. Para arreglar el error de VolunteerCitaDetailActivity
+    public String getCorreoAdoptante() {
+        return email != null ? email : "Sin correo";
     }
 
-    // Getters y Setters
-    public String getIdSolicitud() {
-        return idSolicitud;
-    }
-
-    public void setIdSolicitud(String idSolicitud) {
-        this.idSolicitud = idSolicitud;
-    }
-
-    public String getIdAnimal() {
-        return idAnimal;
-    }
-
-    public void setIdAnimal(String idAnimal) {
-        this.idAnimal = idAnimal;
-    }
-
-    public String getIdUsuarioAdoptante() {
-        return idUsuarioAdoptante;
-    }
-
-    public void setIdUsuarioAdoptante(String idUsuarioAdoptante) {
-        this.idUsuarioAdoptante = idUsuarioAdoptante;
+    // 2. El método estándar
+    public String getEmailAdoptante() {
+        return email != null ? email : "Sin email";
     }
 
     public String getNombreAdoptante() {
-        return nombreAdoptante;
-    }
-
-    public void setNombreAdoptante(String nombreAdoptante) {
-        this.nombreAdoptante = nombreAdoptante;
+        return nombreCompleto != null ? nombreCompleto : "Usuario Desconocido";
     }
 
     public String getTelefonoAdoptante() {
-        return telefonoAdoptante;
+        return telefono != null ? telefono : "Sin teléfono";
     }
 
-    public void setTelefonoAdoptante(String telefonoAdoptante) {
-        this.telefonoAdoptante = telefonoAdoptante;
-    }
+    // =========================================================
+    // SETTERS
+    // =========================================================
+    public void setNombreCompleto(String nombreCompleto) { this.nombreCompleto = nombreCompleto; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
+    public void setEmail(String email) { this.email = email; }
 
-    public String getCorreoAdoptante() {
-        return correoAdoptante;
-    }
+    // =========================================================
+    // GETTERS Y SETTERS ESTÁNDAR
+    // =========================================================
+    public String getIdSolicitud() { return idSolicitud; }
+    public void setIdSolicitud(String idSolicitud) { this.idSolicitud = idSolicitud; }
 
-    public void setCorreoAdoptante(String correoAdoptante) {
-        this.correoAdoptante = correoAdoptante;
-    }
+    public String getNombreAnimal() { return nombreAnimal; }
+    public void setNombreAnimal(String nombreAnimal) { this.nombreAnimal = nombreAnimal; }
 
-    public String getDomicilio() {
-        return domicilio;
-    }
+    public String getIdAnimal() { return idAnimal; }
+    public void setIdAnimal(String idAnimal) { this.idAnimal = idAnimal; }
 
-    public void setDomicilio(String domicilio) {
-        this.domicilio = domicilio;
-    }
+    public String getEstadoSolicitud() { return estadoSolicitud; }
+    public void setEstadoSolicitud(String estadoSolicitud) { this.estadoSolicitud = estadoSolicitud; }
 
-    public String getMotivacion() {
-        return motivacion;
-    }
+    public Date getFechaSolicitud() { return fechaSolicitud; }
+    public void setFechaSolicitud(Date fechaSolicitud) { this.fechaSolicitud = fechaSolicitud; }
 
-    public void setMotivacion(String motivacion) {
-        this.motivacion = motivacion;
-    }
+    public Date getFechaCita() { return fechaCita; }
+    public void setFechaCita(Date fechaCita) { this.fechaCita = fechaCita; }
 
-    public Timestamp getFechaSolicitud() {
-        return fechaSolicitud;
-    }
+    public String getUsuarioId() { return usuarioId; }
+    public void setUsuarioId(String usuarioId) { this.usuarioId = usuarioId; }
 
-    public void setFechaSolicitud(Timestamp fechaSolicitud) {
-        this.fechaSolicitud = fechaSolicitud;
-    }
-
-    public String getEstadoSolicitud() {
-        return estadoSolicitud;
-    }
-
-    public void setEstadoSolicitud(String estadoSolicitud) {
-        this.estadoSolicitud = estadoSolicitud;
-    }
-
-    public Timestamp getFechaCita() {
-        return fechaCita;
-    }
-
-    public void setFechaCita(Timestamp fechaCita) {
-        this.fechaCita = fechaCita;
-    }
+    // Alias extra
+    public String getEstado() { return estadoSolicitud; }
+    public void setEstado(String estado) { this.estadoSolicitud = estado; }
 }
