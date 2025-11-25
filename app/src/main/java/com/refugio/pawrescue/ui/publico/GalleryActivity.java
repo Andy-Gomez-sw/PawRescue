@@ -24,12 +24,13 @@ import java.util.List;
 
 public class GalleryActivity extends AppCompatActivity {
 
+    private static final String TAG = "GalleryActivity";
+
     private RecyclerView recyclerViewAnimals;
     private AnimalAdapter animalAdapter;
     private List<Animal> animalList;
     private List<Animal> filteredList;
     private EditText etSearch;
-    private ImageButton btnFilter;
     private ImageButton btnProfile;
     private ChipGroup chipGroup;
     private BottomNavigationView bottomNavigation;
@@ -52,7 +53,6 @@ public class GalleryActivity extends AppCompatActivity {
     private void initViews() {
         recyclerViewAnimals = findViewById(R.id.recyclerViewAnimals);
         etSearch = findViewById(R.id.etSearch);
-        btnFilter = findViewById(R.id.btnFilter);
         btnProfile = findViewById(R.id.btnProfile);
         chipGroup = findViewById(R.id.chipGroup);
         bottomNavigation = findViewById(R.id.bottomNavigation);
@@ -68,15 +68,17 @@ public class GalleryActivity extends AppCompatActivity {
         animalAdapter = new AnimalAdapter(this, filteredList, new AnimalAdapter.OnAnimalClickListener() {
             @Override
             public void onAnimalClick(Animal animal) {
-                // --- MÉTODO SEGURO: SOLO ENVIAMOS EL ID ---
-                if (animal.getId() != null && !animal.getId().isEmpty()) {
-                    // Toast.makeText(GalleryActivity.this, "Abriendo: " + animal.getNombre(), Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(GalleryActivity.this, AnimalDetailsPublicActivity.class);
-                    intent.putExtra("ANIMAL_ID", animal.getId()); // Solo enviamos texto
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(GalleryActivity.this, "Error: Animal sin ID", Toast.LENGTH_SHORT).show();
+                if (animal == null || animal.getId() == null || animal.getId().trim().isEmpty()) {
+                    Toast.makeText(GalleryActivity.this, "Error: Animal sin ID válido", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "❌ Animal sin ID. Nombre: " + (animal != null ? animal.getNombre() : "null"));
+                    return;
                 }
+
+                Log.d(TAG, "✅ Abriendo detalle. ID: " + animal.getId() + ", Nombre: " + animal.getNombre());
+
+                Intent intent = new Intent(GalleryActivity.this, AnimalDetailsPublicActivity.class);
+                intent.putExtra("ANIMAL_ID", animal.getId());
+                startActivity(intent);
             }
 
             @Override
@@ -91,26 +93,53 @@ public class GalleryActivity extends AppCompatActivity {
     }
 
     private void loadAnimals() {
-        db.collection("animales").get().addOnSuccessListener(queryDocumentSnapshots -> {
-            animalList.clear();
-            for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                try {
-                    Animal animal = document.toObject(Animal.class);
-                    // Forzamos guardar el ID del documento
-                    animal.setId(document.getId());
-                    animal.setIdAnimal(document.getId());
-                    animalList.add(animal);
-                } catch (Exception e) {
-                    Log.e("Gallery", "Error parsing animal", e);
-                }
-            }
-            filterAnimals(etSearch.getText().toString(), currentFilter);
-        });
+        Log.d(TAG, "🔍 Iniciando carga de animales desde Firestore...");
+
+        db.collection("animales")
+                .whereEqualTo("estadoRefugio", "Disponible Adopcion")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    animalList.clear();
+                    int count = 0;
+
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        try {
+                            Animal animal = document.toObject(Animal.class);
+
+                            // ASIGNACIÓN CRÍTICA DEL ID
+                            String docId = document.getId();
+                            animal.setIdAnimal(docId);
+                            animal.setId(docId);
+
+                            animalList.add(animal);
+                            count++;
+
+                            Log.d(TAG, String.format("✅ Animal #%d: ID=%s, Nombre=%s",
+                                    count, docId, animal.getNombre()));
+
+                        } catch (Exception e) {
+                            Log.e(TAG, "❌ Error parseando animal: " + document.getId(), e);
+                        }
+                    }
+
+                    Log.d(TAG, "📊 Total de animales cargados: " + count);
+
+                    if (count == 0) {
+                        Toast.makeText(this, "No hay animales disponibles para adopción", Toast.LENGTH_SHORT).show();
+                    }
+
+                    filterAnimals(etSearch.getText().toString(), currentFilter);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error cargando animales de Firestore", e);
+                    Toast.makeText(this, "Error al cargar animales: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 
     private void filterAnimals(String searchText, String filterCategory) {
         filteredList.clear();
         String searchLower = searchText.toLowerCase();
+
         for (Animal animal : animalList) {
             boolean matchesSearch = searchText.isEmpty() ||
                     (animal.getNombre() != null && animal.getNombre().toLowerCase().contains(searchLower));
@@ -125,15 +154,21 @@ public class GalleryActivity extends AppCompatActivity {
                 }
             }
 
-            if (matchesSearch && matchesFilter) filteredList.add(animal);
+            if (matchesSearch && matchesFilter) {
+                filteredList.add(animal);
+            }
         }
+
+        Log.d(TAG, "🔎 Filtrados: " + filteredList.size() + " de " + animalList.size());
         animalAdapter.notifyDataSetChanged();
     }
 
     private void setupSearch() {
         etSearch.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            public void onTextChanged(CharSequence s, int start, int before, int count) { filterAnimals(s.toString(), currentFilter); }
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterAnimals(s.toString(), currentFilter);
+            }
             public void afterTextChanged(Editable s) {}
         });
         btnProfile.setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));

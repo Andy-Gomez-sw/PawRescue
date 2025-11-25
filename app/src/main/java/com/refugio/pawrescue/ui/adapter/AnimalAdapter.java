@@ -4,7 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton; // Agregado para el botón de fav
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -17,43 +17,37 @@ import com.bumptech.glide.Glide;
 import com.refugio.pawrescue.R;
 import com.refugio.pawrescue.model.Animal;
 
-import java.util.ArrayList; // Agregado para inicializar lista vacía
+import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Adaptador para el RecyclerView que muestra los animales en formato de tarjeta.
- * Se adhiere al diseño del mockup "Mis Animales" y soporta la Galería Pública.
- */
 public class AnimalAdapter extends RecyclerView.Adapter<AnimalAdapter.AnimalViewHolder> {
 
     private final Context context;
     private List<Animal> animalesList;
     private final OnAnimalClickListener listener;
 
-    // --- CONSTRUCTOR 1: El que ya tenías (Para Admin / Mis Animales) ---
+    // Constructor 1: Para Admin / Voluntario (sin lista inicial)
     public AnimalAdapter(Context context, OnAnimalClickListener listener) {
         this.context = context;
         this.listener = listener;
-        this.animalesList = new ArrayList<>(); // Inicializar para evitar crash
+        this.animalesList = new ArrayList<>();
     }
 
-    // --- CONSTRUCTOR 2: NUEVO (Para GalleryActivity) ---
-    // Este es el que arregla el error en GalleryActivity porque recibe la lista
+    // Constructor 2: Para GalleryActivity (con lista inicial)
     public AnimalAdapter(Context context, List<Animal> animalesList, OnAnimalClickListener listener) {
         this.context = context;
-        this.animalesList = animalesList;
+        this.animalesList = animalesList != null ? animalesList : new ArrayList<>();
         this.listener = listener;
     }
 
     public void setAnimalesList(List<Animal> animalesList) {
-        this.animalesList = animalesList;
+        this.animalesList = animalesList != null ? animalesList : new ArrayList<>();
         notifyDataSetChanged();
     }
 
     @NonNull
     @Override
     public AnimalViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Asegúrate de usar el layout correcto. Si es galería pública, quizás quieras ocultar los puntos de estado en el XML.
         View view = LayoutInflater.from(context).inflate(R.layout.item_animal_card, parent, false);
         return new AnimalViewHolder(view);
     }
@@ -62,31 +56,30 @@ public class AnimalAdapter extends RecyclerView.Adapter<AnimalAdapter.AnimalView
     public void onBindViewHolder(@NonNull AnimalViewHolder holder, int position) {
         Animal animal = animalesList.get(position);
 
-        // --- LÓGICA ORIGINAL (SIN CAMBIOS) ---
-
         // Cargar imagen
-        if (animal.getFotoUrl() != null) {
+        if (animal.getFotoUrl() != null && !animal.getFotoUrl().isEmpty()) {
             Glide.with(context)
                     .load(animal.getFotoUrl())
                     .placeholder(R.drawable.ic_pet_placeholder)
                     .error(R.drawable.ic_pet_error)
                     .into(holder.ivAnimalPhoto);
         } else if (animal.getFotosUrls() != null && !animal.getFotosUrls().isEmpty()) {
-            // Soporte extra por si usas la lista de URLs
             Glide.with(context)
                     .load(animal.getFotosUrls().get(0))
                     .placeholder(R.drawable.ic_pet_placeholder)
+                    .error(R.drawable.ic_pet_error)
                     .into(holder.ivAnimalPhoto);
+        } else {
+            holder.ivAnimalPhoto.setImageResource(R.drawable.ic_pet_placeholder);
         }
 
-        // Mostrar ID Numérico como #0001
+        // Mostrar ID Numérico
         String animalIdDisplay = String.format("#%04d", animal.getIdNumerico());
         holder.tvAnimalName.setText(String.format("%s %s", animal.getNombre(), animalIdDisplay));
-
         holder.tvAnimalDetails.setText(String.format("%s • %s", animal.getEspecie(), animal.getRaza()));
         holder.tvAnimalStatus.setText(animal.getEstadoRefugio());
 
-        // Lógica de puntos de estado (Admin)
+        // Puntos de estado
         String estado = animal.getEstadoRefugio() != null ? animal.getEstadoRefugio() : "";
 
         if (holder.dotStatusMain != null) {
@@ -107,35 +100,40 @@ public class AnimalAdapter extends RecyclerView.Adapter<AnimalAdapter.AnimalView
             }
         }
 
-        // Colores de la Etiqueta de Estado
-        int colorRes = R.color.status_rescued; // Default
+        // Colores de estado
+        int colorRes = R.color.status_rescued;
         if (estado.equals("Adoptado")) {
             colorRes = R.color.status_adopted;
         } else if (estado.equals("Disponible Adopcion") || estado.equals("En Proceso Adopción")) {
             colorRes = R.color.status_available;
         }
 
-        // Usamos try-catch o verificación simple por si el color no existe aún
         try {
             holder.tvAnimalStatus.setBackgroundColor(ContextCompat.getColor(context, colorRes));
         } catch (Exception e) {
-            // Color no encontrado, ignorar
+            // Ignorar si el color no existe
         }
 
         // Click en la tarjeta
-        holder.cardView.setOnClickListener(v -> listener.onAnimalClick(animal));
+        holder.cardView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onAnimalClick(animal);
+            }
+        });
 
-        // --- NUEVA LÓGICA (Para soportar Favoritos en Galería) ---
-        // Si el botón de favorito existe en el XML, le damos funcionalidad
+        // Botón de favorito
         if (holder.btnFavorite != null) {
-            // Cambiar icono según estado (requiere que agregues isFavorited() a tu modelo Animal)
             if (animal.isFavorited()) {
                 holder.btnFavorite.setImageResource(R.drawable.ic_favorite_filled);
             } else {
                 holder.btnFavorite.setImageResource(R.drawable.ic_favorite_border);
             }
 
-            holder.btnFavorite.setOnClickListener(v -> listener.onFavoriteClick(animal));
+            holder.btnFavorite.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onFavoriteClick(animal);
+                }
+            });
         }
     }
 
@@ -152,7 +150,7 @@ public class AnimalAdapter extends RecyclerView.Adapter<AnimalAdapter.AnimalView
         final TextView tvAnimalStatus;
         final View dotStatusMain;
         final View dotStatusMedication;
-        final ImageButton btnFavorite; // Nuevo campo opcional
+        final ImageButton btnFavorite;
 
         public AnimalViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -163,21 +161,16 @@ public class AnimalAdapter extends RecyclerView.Adapter<AnimalAdapter.AnimalView
             tvAnimalStatus = itemView.findViewById(R.id.tv_animal_status);
             dotStatusMain = itemView.findViewById(R.id.dot_status_main);
             dotStatusMedication = itemView.findViewById(R.id.dot_status_medication);
-
-            // Intentamos buscar el botón de favorito. Si no existe en el XML (modo Admin), será null y no pasará nada.
-            // Asegúrate de que en tu XML tengas un ImageButton con id btnFavorite si quieres que funcione.
             btnFavorite = itemView.findViewById(R.id.btnFavorite);
         }
     }
 
-    // Interfaz actualizada para soportar ambos casos
     public interface OnAnimalClickListener {
         void onAnimalClick(Animal animal);
 
-        // Método nuevo necesario para GalleryActivity
-        // (En tu Activity de Admin puedes dejar este método vacío al implementarlo)
+        // Método con implementación por defecto (opcional)
         default void onFavoriteClick(Animal animal) {
-            // Default vacío para no obligar a implementarlo si no se usa
+            // Vacío por defecto - solo lo usa la vista pública
         }
     }
 }

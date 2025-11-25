@@ -64,4 +64,91 @@
         <item>Coordinador</item>
         <item>Administrador</item>
     </string-array>
+
+    <string name="previous">Anterior</string>
+    <string name="next">Siguiente</string>
+    <string name="location">Ubicación</string>
+    <string name="date">Fecha</string>
+    <string name="about_animal">Sobre el animal</string>
+    <string name="expand">Expandir</string>
+    <string name="add_favorite">Agregar a favoritos</string>
+    <string name="request_adoption">Solicitar Adopción</string>
+    <string name="profile">Perfil</string>
+    <string name="search">Buscar</string>
+    <string name="search_placeholder">Buscar mascota...</string>
+    <string name="filter_all">Todos</string>
+    <string name="filter_dogs">Perros</string>
+    <string name="filter_cats">Gatos</string>
+    <string name="filter_puppies">Cachorros</string>
+    <string name="filter_urgent">Urgente</string>
+    <string name="back">Atrás</string>
+    <string name="animal_photo">Foto del animal</string>
+
+    <!-- ========================================== -->
+    <!-- STRINGS FALTANTES - AGREGAR DESDE AQUÍ -->
+    <!-- ========================================== -->
+
+    <!-- Request Detail Activity -->
+    <string name="copy_folio">Copiar folio</string>
+    <string name="status">Estado</string>
+    <string name="attach">Adjuntar</string>
+    <string name="send">Enviar</string>
+
+    <!-- Request Card Item -->
+    <string name="folio">Folio</string>
+    <string name="appointment">Cita</string>
+
+    <!-- Solicitudes de adopción -->
+    <string name="request_date">Fecha de solicitud</string>
+    <string name="request_status">Estado de la solicitud</string>
+    <string name="view_details">Ver detalles</string>
+    <string name="adoption_request">Solicitud de Adopción</string>
+    <string name="my_requests">Mis Solicitudes</string>
+    <string name="no_requests">No tienes solicitudes de adopción</string>
+    <string name="loading_requests">Cargando solicitudes…</string>
+
+    <!-- Estados de solicitud -->
+    <string name="status_pending">Pendiente</string>
+    <string name="status_in_review">En Revisión</string>
+    <string name="status_appointment_scheduled">Cita Agendada</string>
+    <string name="status_approved">Aprobada</string>
+    <string name="status_rejected">Rechazada</string>
+
+    <!-- Timeline -->
+    <string name="timeline_title">Seguimiento</string>
+    <string name="timeline_received">Solicitud Recibida</string>
+    <string name="timeline_review">En Revisión</string>
+    <string name="timeline_appointment">Cita Agendada</string>
+    <string name="timeline_home_visit">Visita Domiciliaria</string>
+    <string name="timeline_decision">Decisión Final</string>
+
+    <!-- Documentos -->
+    <string name="documents_title">Documentos Requeridos</string>
+    <string name="document_pending">Pendiente</string>
+    <string name="document_uploaded">Subido</string>
+    <string name="document_approved">Aprobado</string>
+
+    <!-- Chat/Mensajes -->
+    <string name="messages_title">Mensajes</string>
+    <string name="message_placeholder">Escribe un mensaje…</string>
+    <string name="no_messages">No hay mensajes aún</string>
+
+    <!-- Botones generales -->
+    <string name="continue_btn">Continuar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="accept">Aceptar</string>
+    <string name="save">Guardar</string>
+    <string name="edit">Editar</string>
+    <string name="delete">Eliminar</string>
+    <string name="confirm">Confirmar</string>
+
+    <!-- Mensajes de error -->
+    <string name="error_loading">Error al cargar</string>
+    <string name="error_network">Error de conexión</string>
+    <string name="error_generic">Ocurrió un error</string>
+
+    <!-- Mensajes de éxito -->
+    <string name="success_sent">Enviado correctamente</string>
+    <string name="success_saved">Guardado correctamente</string>
+
 </resources>

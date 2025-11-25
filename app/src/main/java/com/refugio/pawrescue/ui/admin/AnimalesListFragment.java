@@ -78,6 +78,7 @@ public class AnimalesListFragment extends Fragment implements AnimalAdapter.OnAn
         repository = new AnimalRepository();
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        // Usar el constructor que solo requiere Context y Listener (sin lista inicial)
         adapter = new AnimalAdapter(getContext(), this);
         recyclerView.setAdapter(adapter);
 
@@ -158,6 +159,17 @@ public class AnimalesListFragment extends Fragment implements AnimalAdapter.OnAn
         Intent intent = new Intent(getActivity(), DetalleAnimalActivity.class);
         intent.putExtra("animalId", animal.getIdAnimal());
         startActivity(intent);
+    }
+
+    /**
+     * MÉTODO AGREGADO: Implementación del método onFavoriteClick requerido por la interfaz.
+     * En la vista de administrador NO usamos favoritos, así que este método está vacío.
+     */
+    @Override
+    public void onFavoriteClick(Animal animal) {
+        // En la vista de administrador no se usan favoritos
+        // Este método existe solo para cumplir con la interfaz
+        // No hacemos nada aquí
     }
 
     @Override
