@@ -221,9 +221,6 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
 
     @Override
     public void onSolicitudClick(SolicitudAdopcion solicitud) {
-        // Al hacer clic en cualquier botón de acción (Detalles, Asignar, Decisión Final)
-        // se abre el diálogo de gestión completa. La lógica de los botones se maneja
-        // en el adaptador.
         mostrarDialogoGestionCompleta(solicitud);
     }
 
@@ -243,49 +240,44 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
 
         // CONDICIONAL PRINCIPAL: EL USUARIO YA AGENDÓ LA CITA (fechaCita != null)
         if (solicitud.getFechaCita() != null && solicitud.getVoluntarioId() == null) {
-            // FASE 1: ASIGNACIÓN DE VOLUNTARIO (Se usa la cita YA CREADA por el usuario)
+            // FASE 1: ASIGNACIÓN DE VOLUNTARIO (Activamos la lógica asíncrona de disponibilidad)
 
-            final Spinner spVoluntario = layout.findViewWithTag("spVoluntario");
+            // 1. Cargamos la Cita para obtener fecha y hora exacta (string)
+            db.collection("citas").document(solicitud.getCitaId()).get()
+                    .addOnSuccessListener(citaSnapshot -> {
+                        if (citaSnapshot.exists()) {
+                            String fechaAgendada = citaSnapshot.getString("fecha");
+                            String horaAgendada = citaSnapshot.getString("hora");
 
-            // Validar que la lista de voluntarios no esté vacía
-            if (voluntariosDisponibles.isEmpty()) {
-                Toast.makeText(getContext(), "Error: No hay voluntarios disponibles cargados.", Toast.LENGTH_LONG).show();
-                builder.setNeutralButton("Cerrar", null);
-                builder.show();
-                return;
-            }
+                            if (fechaAgendada != null && horaAgendada != null) {
+                                // 2. Filtramos la lista global de voluntarios disponibles
+                                filtrarYMostrarDialogo(solicitud, builder, layout, fechaAgendada, horaAgendada);
+                            } else {
+                                // Cita incompleta (debería ser raro si el usuario validó)
+                                Toast.makeText(getContext(), "Error: Cita agendada incompleta.", Toast.LENGTH_LONG).show();
+                                builder.setNeutralButton("Cerrar", null).show();
+                            }
+                        } else {
+                            Toast.makeText(getContext(), "Error: No se encontró el documento de Cita asociado.", Toast.LENGTH_LONG).show();
+                            builder.setNeutralButton("Cerrar", null).show();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(getContext(), "Error al cargar la Cita: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        builder.setNeutralButton("Cerrar", null).show();
+                    });
 
-            // El botón ahora sirve para confirmar la asignación
-            builder.setPositiveButton("ASIGNAR VOLUNTARIO", (dialog, which) -> {
-                String selectedName = (String) spVoluntario.getSelectedItem();
-                String selectedVolunteerId = null;
+            return; // Salimos del flujo principal, el diálogo se mostrará en el callback
+        }
 
-                // Búsqueda del ID real usando el mapa (eficiente)
-                for (Map.Entry<String, String> entry : voluntariosMap.entrySet()) {
-                    if (entry.getValue().equals(selectedName)) {
-                        selectedVolunteerId = entry.getKey();
-                        break;
-                    }
-                }
-
-                if (selectedVolunteerId != null) {
-                    String voluntarioNombre = voluntariosMap.get(selectedVolunteerId);
-                    // LLAMADA A LA FUNCIÓN CORREGIDA
-                    asignarVoluntarioACitaAgendada(solicitud, selectedVolunteerId, voluntarioNombre);
-                } else {
-                    Toast.makeText(getContext(), "Error al obtener ID del voluntario seleccionado.", Toast.LENGTH_SHORT).show();
-                }
-            });
-            builder.setNegativeButton("Cancelar", null);
-
-        } else if (solicitud.getVoluntarioId() != null && solicitud.getReporteId() == null) {
-            // FASE 2: EN ESPERA DE REPORTE (Voluntario asignado, pero sin reporte final)
+        // --- FASES 2, 3, y Default (Síncrono) ---
+        if (solicitud.getVoluntarioId() != null && solicitud.getReporteId() == null) {
+            // FASE 2: EN ESPERA DE REPORTE
             builder.setNeutralButton("Cerrar", null);
 
         } else if (solicitud.getReporteId() != null) {
             // FASE 3: DECISIÓN FINAL DEL ADMIN (Existe Reporte)
 
-            // Simulación de carga de reporte
             TextView tvReporte = new TextView(getContext());
             tvReporte.setText("\n--- REPORTE DEL VOLUNTARIO (" + solicitud.getReporteId() + ") ---");
             tvReporte.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -306,8 +298,93 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
             builder.setNeutralButton("Cerrar", null);
         }
 
-        builder.show();
+        // Solo se muestra el diálogo aquí si no se entró en el flujo asíncrono
+        if (solicitud.getFechaCita() == null || solicitud.getVoluntarioId() != null) {
+            builder.show();
+        }
     }
+
+
+    /**
+     * 🟢 NUEVO MÉTODO: Filtra voluntarios ocupados en esa cita, actualiza el Spinner y muestra el diálogo final.
+     */
+    private void filtrarYMostrarDialogo(SolicitudAdopcion solicitud, AlertDialog.Builder builder, LinearLayout layout, String fecha, String hora) {
+
+        // Consultamos citas que coincidan con la fecha Y hora y ya estén asignadas
+        db.collection("citas")
+                .whereEqualTo("fecha", fecha)
+                .whereEqualTo("hora", hora)
+                .whereEqualTo("estado", "asignada") // Citas que ya tienen voluntario asignado
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    // 1. IDs de voluntarios ocupados
+                    List<String> occupiedVolunteerIds = new ArrayList<>();
+                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        String occupiedId = doc.getString("voluntarioAsignado");
+                        if (occupiedId != null) {
+                            occupiedVolunteerIds.add(occupiedId);
+                        }
+                    }
+
+                    // 2. Lista de nombres de voluntarios DISPONIBLES para el Spinner
+                    List<String> availableVolunteerNames = new ArrayList<>();
+
+                    for (Usuario vol : voluntariosDisponibles) {
+                        // Si el voluntario NO está en la lista de ocupados, está disponible.
+                        if (!occupiedVolunteerIds.contains(vol.getUid())) {
+                            availableVolunteerNames.add(vol.getNombre());
+                        }
+                    }
+
+                    final Spinner spVoluntario = layout.findViewWithTag("spVoluntario");
+
+                    // Actualizar Spinner con la lista filtrada
+                    ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
+                            getContext(),
+                            android.R.layout.simple_spinner_item,
+                            availableVolunteerNames
+                    );
+                    spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    spVoluntario.setAdapter(spinnerAdapter);
+
+                    if (availableVolunteerNames.isEmpty()) {
+                        builder.setTitle("Solicitud: SIN VOLUNTARIOS DISPONIBLES");
+                        Toast.makeText(getContext(), "No hay voluntarios libres para el " + fecha + " a las " + hora + ". Se recomienda contactar al adoptante para re-agendar.", Toast.LENGTH_LONG).show();
+                        // Deshabilitar botón de asignación
+                        builder.setNeutralButton("Cerrar", null);
+
+                    } else {
+                        // Habilitar botón de asignación con la lógica original
+                        builder.setPositiveButton("ASIGNAR VOLUNTARIO", (dialog, which) -> {
+                            String selectedName = (String) spVoluntario.getSelectedItem();
+                            String selectedVolunteerId = null;
+
+                            // Se busca el ID del voluntario seleccionado en la lista original (donde tenemos el UID)
+                            for (Usuario vol : voluntariosDisponibles) {
+                                if (vol.getNombre().equals(selectedName)) {
+                                    selectedVolunteerId = vol.getUid();
+                                    break;
+                                }
+                            }
+
+                            if (selectedVolunteerId != null) {
+                                String voluntarioNombre = voluntariosMap.get(selectedVolunteerId);
+                                asignarVoluntarioACitaAgendada(solicitud, selectedVolunteerId, voluntarioNombre);
+                            } else {
+                                Toast.makeText(getContext(), "Error al obtener ID del voluntario seleccionado.", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                        builder.setNegativeButton("Cancelar", null);
+                    }
+
+                    builder.show(); // Mostramos el diálogo final
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Error al verificar disponibilidad: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    builder.setNeutralButton("Cerrar", null).show();
+                });
+    }
+
 
     /**
      * Lógica (Paso 2 del flujo): Asigna el voluntario a una cita YA agendada.
@@ -339,6 +416,8 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
                 db.collection("solicitudes_adopcion").document(solicitud.getIdSolicitud())
                         .update(solicitudUpdates)
                         .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Voluntario asignado: " + voluntarioNombre, Toast.LENGTH_LONG).show())
+                        // Aseguramos que la lista se refresque para ver el cambio de estado
+                        .addOnSuccessListener(aVoid -> cargarSolicitudes())
                         .addOnFailureListener(e -> Toast.makeText(getContext(), "Error al actualizar solicitud: " + e.getMessage(), Toast.LENGTH_SHORT).show());
             }
 
@@ -420,22 +499,12 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
             Spinner spVoluntario = new Spinner(context);
             spVoluntario.setTag("spVoluntario");
 
-            // Llenar el Spinner con NOMBRES REALES
-            List<String> volunteerNames = new ArrayList<>();
-            for (Usuario vol : voluntariosDisponibles) {
-                volunteerNames.add(vol.getNombre());
-            }
-
-            // Añadir un item por defecto si la lista está vacía
-            if (volunteerNames.isEmpty()) {
-                volunteerNames.add("No hay voluntarios cargados");
-                spVoluntario.setEnabled(false);
-            }
+            // La lista de voluntarios se llenará en el callback asíncrono filtrarYMostrarDialogo
 
             ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
                     context,
                     android.R.layout.simple_spinner_item,
-                    volunteerNames
+                    new ArrayList<>() // Inicialmente vacío o con "Cargando..."
             );
             spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spVoluntario.setAdapter(spinnerAdapter);
