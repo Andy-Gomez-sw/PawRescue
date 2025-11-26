@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_light">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Header -->
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/primary_orange"
+            android:elevation="4dp">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_arrow_back"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Volver" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reporte de Cita"
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginStart="16dp" />
+        </com.google.android.material.appbar.MaterialToolbar>
+
+        <!-- Contenido -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Info de la cita -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/tvAnimalName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Cita para adoptar a Max"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:id="@+id/tvUsuarioEmail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Usuario: juan@example.com"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginTop="4dp" />
+
+                    <TextView
+                        android:id="@+id/tvFechaHora"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Fecha: 2025-01-30 a las 10:00"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Sección: Documentos Recibidos -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📄 Documentos Recibidos"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="12dp" />
+
+            <CheckBox
+                android:id="@+id/cbIneRecibida"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="INE / Identificación oficial"
+                android:textSize="16sp" />
+
+            <CheckBox
+                android:id="@+id/cbComprobanteRecibido"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Comprobante de domicilio"
+                android:textSize="16sp" />
+
+            <!-- Sección: Evaluación -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✅ Evaluación del Usuario"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="12dp" />
+
+            <CheckBox
+                android:id="@+id/cbDomicilioAdecuado"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="El domicilio es adecuado para la mascota"
+                android:textSize="16sp" />
+
+            <CheckBox
+                android:id="@+id/cbActitudPositiva"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Actitud positiva y responsable"
+                android:textSize="16sp" />
+
+            <CheckBox
+                android:id="@+id/cbExperienciaPrevia"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tiene experiencia previa con mascotas"
+                android:textSize="16sp" />
+
+            <CheckBox
+                android:id="@+id/cbRecomiendaAprobacion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✅ RECOMIENDO APROBAR esta adopción"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary_orange"
+                android:layout_marginTop="8dp" />
+
+            <!-- Sección: Observaciones -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📝 Observaciones"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="12dp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:hint="Observaciones generales">
+
+                <EditText
+                    android:id="@+id/etObservaciones"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="100dp"
+                    android:gravity="top|start"
+                    android:inputType="textMultiLine"
+                    android:lines="4" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:hint="Recomendaciones para el Admin"
+                android:layout_marginTop="12dp">
+
+                <EditText
+                    android:id="@+id/etRecomendaciones"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="100dp"
+                    android:gravity="top|start"
+                    android:inputType="textMultiLine"
+                    android:lines="4" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Sección: Fotos de documentos -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📷 Fotos de Documentos"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="12dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSubirDocumento"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Subir Foto"
+                app:icon="@drawable/ic_camera"
+                style="@style/Widget.Material3.Button.OutlinedButton" />
+
+            <LinearLayout
+                android:id="@+id/llDocumentosContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp" />
+
+            <!-- Botón enviar -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEnviarReporte"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Enviar Reporte al Admin"
+                android:textSize="16sp"
+                android:padding="16dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="16dp"
+                app:cornerRadius="8dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>
