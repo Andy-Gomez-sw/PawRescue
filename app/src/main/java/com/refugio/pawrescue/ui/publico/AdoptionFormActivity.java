@@ -12,6 +12,8 @@ import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.refugio.pawrescue.R;
+import com.refugio.pawrescue.data.helper.FirebaseHelper; // Necesario para guardar Cita
+import com.refugio.pawrescue.model.Cita; // Necesario para el modelo Cita
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -114,6 +116,7 @@ public class AdoptionFormActivity extends AppCompatActivity {
         }
     }
 
+
     /**
      * Método principal que inicia el proceso de validación y envío
      */
@@ -123,29 +126,32 @@ public class AdoptionFormActivity extends AppCompatActivity {
             return;
         }
 
+        // 1. Validar campos del último paso (incluyendo la cita)
+        Step5ReviewFragment step5 = adapter.getStep5();
+        if (step5 != null && !step5.validateFields()) {
+            return; // La validación ya mostró el Toast
+        }
+
         String userId = auth.getCurrentUser().getUid();
 
         // Bloqueamos el botón para evitar doble clic
         btnNext.setEnabled(false);
         btnNext.setText("Verificando...");
 
-        // 🔴 PASO 1: VERIFICAR DUPLICADOS
-        // Buscamos si YA existe una solicitud de este usuario para este animal
+        // PASO 1: VERIFICAR DUPLICADOS
         db.collection("solicitudes_adopcion")
                 .whereEqualTo("usuarioId", userId)
                 .whereEqualTo("animalId", animalId)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     if (!querySnapshot.isEmpty()) {
-                        // ¡YA EXISTE! Mostramos error y no guardamos
+                        // YA EXISTE
                         Toast.makeText(this, "⚠️ Ya tienes una solicitud activa para " + animalName, Toast.LENGTH_LONG).show();
-
-                        // Rehabilitamos el botón por si quieren corregir algo (aunque aquí no aplicaría mucho)
                         btnNext.setEnabled(true);
                         btnNext.setText("Enviar Solicitud");
                     } else {
-                        // NO EXISTE, procedemos a guardar
-                        guardarSolicitudEnFirebase(userId);
+                        // NO EXISTE, procedemos a guardar Solicitud y Cita.
+                        guardarSolicitudYAgendarCita(userId);
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -157,46 +163,80 @@ public class AdoptionFormActivity extends AppCompatActivity {
 
     /**
      * Método privado que realmente guarda los datos (solo se llama si no hay duplicados)
+     * 🟢 NUEVO: Guarda Solicitud Y crea Cita.
      */
-    private void guardarSolicitudEnFirebase(String userId) {
-        Toast.makeText(this, "Enviando solicitud...", Toast.LENGTH_SHORT).show();
+    private void guardarSolicitudYAgendarCita(String userId) {
+        Toast.makeText(this, "Enviando solicitud y agendando cita...", Toast.LENGTH_SHORT).show();
 
         // Generar Folio único con fecha
         String timeStamp = new java.text.SimpleDateFormat("yyyyMMdd-HHmmss", java.util.Locale.getDefault()).format(new Date());
         String idPersonalizado = "FOL-" + timeStamp;
 
+        // Recolectar datos
         Map<String, Object> solicitud = new HashMap<>();
         solicitud.put("id", idPersonalizado);
         solicitud.put("folio", idPersonalizado);
-
         solicitud.put("usuarioId", userId);
         solicitud.put("usuarioEmail", auth.getCurrentUser().getEmail());
         solicitud.put("animalId", animalId != null ? animalId : "SinID");
         solicitud.put("animalNombre", animalName != null ? animalName : "Desconocido");
         solicitud.put("fechaSolicitud", new Date());
-        solicitud.put("estado", "pendiente");
+        solicitud.put("estado", "Cita Agendada"); // Estado inicial de Solicitud
 
-        // Recolectar datos de los fragments
-        // Importante: Asegúrate que tus Fragments tengan el método getData implementado
-        // Si alguno devuelve null, podríamos detenernos aquí, pero por ahora asumimos que validaste campos obligatorios
-        Map<String, Object> data1 = adapter.getStep1().getData();
+        // Recolectar datos del Step 5 (Cita y Confirmación)
+        Step5ReviewFragment step5 = adapter.getStep5();
+        Map<String, Object> data5 = (step5 != null) ? step5.getData() : new HashMap<>();
+        Date fechaCitaTimestamp = (Date) data5.get("fechaCita");
+        String fechaCitaStr = (String) data5.get("fechaCitaString");
+        String horaCitaStr = (String) data5.get("horaCitaString");
+
+        // Recolectar datos de otros Fragments (Ej. Step 1)
+        Step1PersonalDataFragment step1 = adapter.getStep1();
+        Map<String, Object> data1 = (step1 != null) ? step1.getData() : new HashMap<>();
+
+        // Unir datos del formulario a la Solicitud
         if (data1 != null) solicitud.putAll(data1);
+        solicitud.put("fechaCita", fechaCitaTimestamp); // Agrega el Timestamp de la cita a la Solicitud
 
-        // ... (Repetir para los otros pasos si tienen datos) ...
-        // Map<String, Object> data2 = adapter.getStep2().getData();
-        // if (data2 != null) solicitud.putAll(data2);
+        // 1. Crear el objeto Cita
+        Cita nuevaCita = new Cita();
+        nuevaCita.setSolicitudId(idPersonalizado);
+        nuevaCita.setAnimalId(animalId);
+        nuevaCita.setAnimalNombre(animalName);
+        nuevaCita.setUsuarioId(userId);
+        nuevaCita.setUsuarioEmail(auth.getCurrentUser().getEmail());
+        nuevaCita.setFecha(fechaCitaStr); // Componente string de fecha
+        nuevaCita.setHora(horaCitaStr); // Componente string de hora
+        nuevaCita.setEstado("agendada"); // El adoptante ya agendó
+        nuevaCita.setFechaCreacion(new Date());
 
-        db.collection("solicitudes_adopcion")
-                .document(idPersonalizado)
-                .set(solicitud)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "¡Solicitud enviada con éxito!", Toast.LENGTH_LONG).show();
-                    finish();
-                })
-                .addOnFailureListener(e -> {
-                    btnNext.setEnabled(true);
-                    btnNext.setText("Enviar Solicitud");
-                    Toast.makeText(this, "Error al guardar: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
+        // 2. Guardar Cita primero para obtener el citaId
+        FirebaseHelper.getInstance().addCita(nuevaCita, new FirebaseHelper.CitaAddListener() {
+            @Override
+            public void onCitaAdded(String citaId) {
+                // 3. Actualizar la Solicitud con el citaId
+                solicitud.put("citaId", citaId);
+
+                db.collection("solicitudes_adopcion")
+                        .document(idPersonalizado)
+                        .set(solicitud)
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(AdoptionFormActivity.this, "¡Solicitud enviada! Cita agendada para el " + fechaCitaStr + " a las " + horaCitaStr, Toast.LENGTH_LONG).show();
+                            finish();
+                        })
+                        .addOnFailureListener(e -> {
+                            btnNext.setEnabled(true);
+                            btnNext.setText("Enviar Solicitud");
+                            Toast.makeText(AdoptionFormActivity.this, "Error al guardar solicitud: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        });
+            }
+
+            @Override
+            public void onError(Exception e) {
+                btnNext.setEnabled(true);
+                btnNext.setText("Enviar Solicitud");
+                Toast.makeText(AdoptionFormActivity.this, "Error al crear la cita: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
     }
 }
