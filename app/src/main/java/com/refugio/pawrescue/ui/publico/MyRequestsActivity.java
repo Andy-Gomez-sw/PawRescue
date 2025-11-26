@@ -2,11 +2,12 @@ package com.refugio.pawrescue.ui.publico;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View; // Importante
+import android.view.View;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -18,10 +19,8 @@ import java.util.List;
 public class MyRequestsActivity extends AppCompatActivity {
 
     private RecyclerView rvRequests;
-
-    // 🔴 CORRECCIÓN: Cambiamos TextView por View (para que acepte el LinearLayout del XML)
     private View tvEmptyRequests;
-
+    private BottomNavigationView bottomNavigation;
     private RequestAdapter requestAdapter;
     private List<AdoptionRequest> requestList;
     private FirebaseFirestore db;
@@ -34,13 +33,14 @@ public class MyRequestsActivity extends AppCompatActivity {
         initViews();
         initFirebase();
         setupRecyclerView();
+        setupBottomNavigation();
         loadRequests();
     }
 
     private void initViews() {
         rvRequests = findViewById(R.id.rvRequests);
-        // Ahora esto funcionará porque View es compatible con LinearLayout
         tvEmptyRequests = findViewById(R.id.tvEmptyRequests);
+        bottomNavigation = findViewById(R.id.bottomNavigation);
     }
 
     private void initFirebase() {
@@ -57,6 +57,34 @@ public class MyRequestsActivity extends AppCompatActivity {
 
         rvRequests.setLayoutManager(new LinearLayoutManager(this));
         rvRequests.setAdapter(requestAdapter);
+    }
+
+    private void setupBottomNavigation() {
+        // Marcar como seleccionado el item de Solicitudes
+        bottomNavigation.setSelectedItemId(R.id.nav_requests);
+
+        bottomNavigation.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+
+            if (id == R.id.nav_home) {
+                startActivity(new Intent(this, GalleryActivity.class));
+                finish();
+                return true;
+            } else if (id == R.id.nav_favorites) {
+                startActivity(new Intent(this, FavoritesActivity.class));
+                finish();
+                return true;
+            } else if (id == R.id.nav_requests) {
+                // Ya estamos aquí
+                return true;
+            } else if (id == R.id.nav_profile) {
+                startActivity(new Intent(this, ProfileActivity.class));
+                finish();
+                return true;
+            }
+
+            return false;
+        });
     }
 
     private void loadRequests() {
@@ -107,5 +135,12 @@ public class MyRequestsActivity extends AppCompatActivity {
             tvEmptyRequests.setVisibility(View.GONE);
             rvRequests.setVisibility(View.VISIBLE);
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Recargar solicitudes al volver a la actividad
+        loadRequests();
     }
 }
