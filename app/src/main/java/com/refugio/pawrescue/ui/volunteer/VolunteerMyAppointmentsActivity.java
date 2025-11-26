@@ -15,6 +15,8 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.refugio.pawrescue.R;
 import com.refugio.pawrescue.model.Cita;
 import com.refugio.pawrescue.ui.adapter.VolunteerAppointmentAdapter;
+import com.refugio.pawrescue.ui.volunteer.VolunteerAppointmentActivity;
+
 import java.util.ArrayList;
 import java.util.List;
 

@@ -67,4 +67,117 @@
 
     </LinearLayout>
 
+    <!-- AGREGAR ESTA SECCIÓN EN activity_request_detail.xml -->
+    <!-- Colocar después de la sección del folio y antes del timeline -->
+
+    <!-- Botón para agendar cita (solo visible si estado = "pendiente_cita") -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAgendarCita"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="📅 Agendar Cita de Evaluación"
+        android:textSize="16sp"
+        android:padding="16dp"
+        android:layout_margin="16dp"
+        app:cornerRadius="8dp"
+        app:icon="@drawable/ic_calendar"
+        android:visibility="gone" />
+
+    <!-- Sección de información de la cita (visible cuando ya tiene cita) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/sectionCita"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="3dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Título -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📅 Información de la Cita"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Estado de la cita -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Estado: "
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/tvEstadoCita"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pendiente de Asignar"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white"
+                    android:background="@drawable/bg_badge_warning"
+                    android:padding="6dp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
+
+            <!-- Fecha y hora -->
+            <TextView
+                android:id="@+id/tvFechaCita"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📅 2025-01-30 a las 10:00"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary_orange"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Voluntario asignado -->
+            <TextView
+                android:id="@+id/tvVoluntarioAsignado"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="👤 Atendido por: María García"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:visibility="gone" />
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/gray_light"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Información adicional -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ℹ️ El voluntario evaluará tu situación y enviará un reporte al refugio para tomar la decisión final."
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary"
+                android:lineSpacingExtra="2dp" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
 </com.google.android.material.card.MaterialCardView>

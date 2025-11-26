@@ -22,6 +22,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.refugio.pawrescue.R;
+import com.refugio.pawrescue.model.Cita;
 import com.refugio.pawrescue.model.TimelineStep;
 import com.refugio.pawrescue.model.DocumentItem;
 import com.refugio.pawrescue.model.Message;
@@ -33,6 +34,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 public class RequestDetailActivity extends AppCompatActivity {
 
@@ -61,6 +63,10 @@ public class RequestDetailActivity extends AppCompatActivity {
     private List<TimelineStep> timelineSteps = new ArrayList<>();
     private List<DocumentItem> documents = new ArrayList<>();
     private List<Message> messages = new ArrayList<>();
+
+    private TextView tvEstadoCita, tvFechaCita, tvVoluntarioAsignado;
+    private MaterialButton btnAgendarCita;
+    private View sectionCita;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,6 +128,11 @@ public class RequestDetailActivity extends AppCompatActivity {
         etMessage = findViewById(R.id.etMessage);
         btnSend = findViewById(R.id.btnSend);
         btnSeguimiento = findViewById(R.id.btnSeguimiento);
+        tvEstadoCita = findViewById(R.id.tvEstadoCita);
+        tvFechaCita = findViewById(R.id.tvFechaCita);
+        tvVoluntarioAsignado = findViewById(R.id.tvVoluntarioAsignado);
+        btnAgendarCita = findViewById(R.id.btnAgendarCita);
+        sectionCita = findViewById(R.id.sectionCita);
     }
 
     private void initFirebase() {
@@ -270,4 +281,82 @@ public class RequestDetailActivity extends AppCompatActivity {
         super.onDestroy();
         if (messageListener != null) messageListener.remove();
     }
+
+    private void loadCitaInfo() {
+        if (request == null || request.getId() == null) return;
+
+        String estado = request.getEstado();
+
+        // Mostrar botón de agendar cita solo si está en estado "pendiente_cita"
+        if ("pendiente_cita".equals(estado)) {
+            btnAgendarCita.setVisibility(View.VISIBLE);
+            sectionCita.setVisibility(View.GONE);
+
+            btnAgendarCita.setOnClickListener(v -> {
+                Intent intent = new Intent(RequestDetailActivity.this, AppointmentSelectionActivity.class);
+                intent.putExtra("SOLICITUD_ID", request.getId());
+                intent.putExtra("ANIMAL_ID", request.getAnimalId());
+                intent.putExtra("ANIMAL_NAME", request.getAnimalNombre());
+                startActivity(intent);
+            });
+        }
+        // Si ya tiene cita agendada, cargar la info
+        else if ("cita_agendada".equals(estado) || "en_revision".equals(estado) ||
+                "aprobada".equals(estado) || "rechazada".equals(estado)) {
+
+            btnAgendarCita.setVisibility(View.GONE);
+            sectionCita.setVisibility(View.VISIBLE);
+
+            // Buscar la cita en Firestore
+            db.collection("citas")
+                    .whereEqualTo("solicitudId", request.getId())
+                    .limit(1)
+                    .get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            Cita cita = queryDocumentSnapshots.getDocuments().get(0).toObject(Cita.class);
+                            if (cita != null) {
+                                cita.setId(queryDocumentSnapshots.getDocuments().get(0).getId());
+                                displayCitaInfo(cita);
+                            }
+                        }
+                    });
+        } else {
+            btnAgendarCita.setVisibility(View.GONE);
+            sectionCita.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Muestra la información de la cita
+     */
+    private void displayCitaInfo(Cita cita) {
+        String estadoCita = cita.getEstadoTexto();
+        String fecha = cita.getFechaHoraCompleta();
+
+        tvEstadoCita.setText(estadoCita);
+        tvFechaCita.setText("📅 " + fecha);
+
+        // Mostrar voluntario si está asignado
+        if (cita.getVoluntarioNombre() != null && !cita.getVoluntarioNombre().isEmpty()) {
+            tvVoluntarioAsignado.setText("👤 Atendido por: " + cita.getVoluntarioNombre());
+            tvVoluntarioAsignado.setVisibility(View.VISIBLE);
+        } else {
+            tvVoluntarioAsignado.setVisibility(View.GONE);
+        }
+
+        // Configurar color del badge según estado
+        switch (cita.getEstado()) {
+            case "pendiente_asignacion":
+                tvEstadoCita.setBackgroundResource(R.drawable.bg_badge_warning);
+                break;
+            case "asignada":
+                tvEstadoCita.setBackgroundResource(R.drawable.bg_badge_info);
+                break;
+            case "completada":
+                tvEstadoCita.setBackgroundResource(R.drawable.bg_badge_success);
+                break;
+        }
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.refugio.pawrescue.ui.admin;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -181,6 +182,8 @@ public class AdminAppointmentsActivity extends AppCompatActivity {
                 .setCancelable(true)
                 .create();
 
+        MaterialButton btnCancelar = dialogView.findViewById(R.id.btnCancelar);
+
         btnAsignar.setOnClickListener(v -> {
             String voluntarioNombre = spinnerVoluntarios.getSelectedItem().toString();
             String voluntarioId = voluntariosMap.get(voluntarioNombre);
@@ -190,6 +193,8 @@ public class AdminAppointmentsActivity extends AppCompatActivity {
                 dialog.dismiss();
             }
         });
+
+        btnCancelar.setOnClickListener(v -> dialog.dismiss());
 
         dialog.show();
     }
@@ -219,7 +224,14 @@ public class AdminAppointmentsActivity extends AppCompatActivity {
      * Ver el reporte completo de una cita completada
      */
     private void verReporte(Cita cita) {
-        // TODO: Abrir actividad de detalle del reporte
-        Toast.makeText(this, "Ver reporte de " + cita.getAnimalNombre(), Toast.LENGTH_SHORT).show();
+        if (cita.getReporteId() == null || cita.getReporteId().isEmpty()) {
+            Toast.makeText(this, "Reporte no disponible", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Intent intent = new Intent(this, AdminReportDetailActivity.class);
+        intent.putExtra("CITA_ID", cita.getId());
+        intent.putExtra("REPORTE_ID", cita.getReporteId());
+        startActivity(intent);
     }
 }

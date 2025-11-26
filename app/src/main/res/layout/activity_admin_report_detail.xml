@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_light">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Header -->
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/primary_orange"
+            android:elevation="4dp">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_arrow_back"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Volver" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reporte de Evaluación"
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginStart="16dp" />
+        </com.google.android.material.appbar.MaterialToolbar>
+
+        <!-- Contenido -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Info de la adopción -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/tvAnimalName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Reporte de Adopción: Max"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:id="@+id/tvUsuarioEmail"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Usuario: juan@example.com"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginTop="4dp" />
+
+                    <TextView
+                        android:id="@+id/tvVoluntarioNombre"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Evaluado por: María García"
+                        android:textSize="14sp"
+                        android:textColor="@color/primary_orange"
+                        android:textStyle="bold"
+                        android:layout_marginTop="4dp" />
+
+                    <TextView
+                        android:id="@+id/tvFechaCita"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Fecha de cita: 2025-01-30 a las 10:00"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Sección: Documentos Recibidos -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📄 Documentos Verificados"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="12dp" />
+
+            <CheckBox
+                android:id="@+id/cbIne"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="INE / Identificación oficial"
+                android:textSize="16sp"
+                android:enabled="false" />
+
+            <CheckBox
+                android:id="@+id/cbComprobante"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Comprobante de domicilio"
+                android:textSize="16sp"
+                android:enabled="false" />
+
+            <!-- Sección: Evaluación del Voluntario -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✅ Evaluación del Usuario"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="12dp" />
+
+            <CheckBox
+                android:id="@+id/cbDomicilio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Domicilio adecuado para la mascota"
+                android:textSize="16sp"
+                android:enabled="false" />
+
+            <CheckBox
+                android:id="@+id/cbActitud"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Actitud positiva y responsable"
+                android:textSize="16sp"
+                android:enabled="false" />
+
+            <CheckBox
+                android:id="@+id/cbExperiencia"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tiene experiencia previa con mascotas"
+                android:textSize="16sp"
+                android:enabled="false" />
+
+            <CheckBox
+                android:id="@+id/cbRecomendacion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✅ El voluntario RECOMIENDA APROBAR"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary_orange"
+                android:enabled="false"
+                android:layout_marginTop="8dp" />
+
+            <!-- Sección: Observaciones -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📝 Observaciones del Voluntario"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="12dp" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:id="@+id/tvObservaciones"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Usuario muy entusiasta, domicilio amplio con jardín..."
+                    android:textSize="14sp"
+                    android:textColor="@color/text_primary"
+                    android:padding="16dp" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="💡 Recomendaciones"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:id="@+id/tvRecomendaciones"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Aprobación recomendada con seguimiento mensual"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_primary"
+                    android:padding="16dp" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Sección: Fotos de documentos -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📷 Documentos Digitalizados"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="12dp" />
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp">
+
+                <LinearLayout
+                    android:id="@+id/llFotosContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal" />
+            </HorizontalScrollView>
+
+            <!-- Botones de decisión -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="⚖️ Decisión Final"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="16dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRechazar"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Rechazar"
+                    android:textSize="16sp"
+                    android:padding="16dp"
+                    android:layout_marginEnd="8dp"
+                    app:cornerRadius="8dp"
+                    app:icon="@drawable/ic_close_circle"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    app:strokeColor="@color/status_rejected_bg"
+                    android:textColor="@color/status_rejected_text" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAprobar"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Aprobar"
+                    android:textSize="16sp"
+                    android:padding="16dp"
+                    android:layout_marginStart="8dp"
+                    app:cornerRadius="8dp"
+                    app:icon="@drawable/ic_check_circle"
+                    android:backgroundTint="@color/status_approved_bg" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>
