@@ -15,9 +15,11 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.refugio.pawrescue.model.Animal;
+import com.refugio.pawrescue.model.Cita;
 import com.refugio.pawrescue.model.Usuario;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -26,20 +28,35 @@ import androidx.annotation.NonNull;
 
 /**
  * Clase auxiliar para encapsular operaciones complejas de Firebase.
- * Maneja la subida de imágenes a Storage y el guardado de datos en Firestore.
- * Incluye lógica para registro y actualización de Animales y Usuarios.
+ * Implementa el patrón Singleton para asegurar una única instancia global.
  */
 public class FirebaseHelper {
 
     private static final String TAG = "FirebaseHelper";
+    // 1. Instancia estática de la clase
+    private static FirebaseHelper instance;
+
     private final FirebaseFirestore db;
     private final FirebaseStorage storage;
     private final FirebaseAuth mAuth;
 
-    public FirebaseHelper() {
+    /**
+     * Constructor privado. Solo se llama una vez desde getInstance().
+     */
+    public FirebaseHelper() { // 🟢 CORREGIDO: Debe ser privado
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
         mAuth = FirebaseAuth.getInstance();
+    }
+
+    /**
+     * Método estático para obtener la instancia del Singleton.
+     */
+    public static synchronized FirebaseHelper getInstance() {
+        if (instance == null) {
+            instance = new FirebaseHelper();
+        }
+        return instance;
     }
 
     /**
@@ -301,5 +318,62 @@ public class FirebaseHelper {
         void onSuccess(String message);
 
         void onFailure(String error);
+    }
+
+    // ============================================================================================
+    //                                  MÉTODOS PARA ADOPCIÓN/CITAS
+    // ============================================================================================
+
+    /**
+     * Guarda un nuevo documento de Cita en la colección "citas".
+     */
+    public void addCita(final Cita cita, final CitaAddListener listener) {
+        if (cita.getFechaCreacion() == null) {
+            cita.setFechaCreacion(new Date());
+        }
+
+        db.collection("citas")
+                .add(cita)
+                .addOnSuccessListener(documentReference -> {
+                    listener.onCitaAdded(documentReference.getId());
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al crear la cita: " + e.getMessage());
+                    listener.onError(e);
+                });
+    }
+
+    /**
+     * Interfaz de callback para manejar el resultado de la adición de CITAS.
+     */
+    public interface CitaAddListener {
+        void onCitaAdded(String citaId);
+        void onError(Exception e);
+    }
+
+    /**
+     * 🟢 NUEVO: Actualiza campos de un documento de Cita existente (usado para asignar voluntario o actualizar reporte).
+     * @param citaId ID del documento de Cita.
+     * @param updates Mapa con los campos a actualizar (voluntarioId, estado, reporteId, etc.).
+     * @param listener Interfaz para manejar el resultado.
+     */
+    public void updateCita(String citaId, Map<String, Object> updates, final CitaUpdateListener listener) {
+        db.collection("citas").document(citaId)
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    listener.onCitaUpdated();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al actualizar la cita: ", e);
+                    listener.onError(e);
+                });
+    }
+
+    /**
+     * Interfaz de callback para manejar el resultado de la actualización de CITAS.
+     */
+    public interface CitaUpdateListener {
+        void onCitaUpdated();
+        void onError(Exception e);
     }
 }

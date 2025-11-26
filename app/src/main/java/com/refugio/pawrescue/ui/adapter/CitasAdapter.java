@@ -49,38 +49,60 @@ public class CitasAdapter extends RecyclerView.Adapter<CitasAdapter.CitaViewHold
 
         SolicitudAdopcion cita = citasList.get(position);
 
-        // 1. Nombre de la Mascota
-        String nombreMascota = cita.getNombreAnimal();
-        // Si viene nulo, usamos el alias
-        if (nombreMascota == null) nombreMascota = cita.getNombreAnimal();
-        holder.tvMascota.setText(nombreMascota != null ? nombreMascota : "Mascota");
-
-        // 2. Nombre del Adoptante (¡El método que agregamos!)
-        holder.tvAdoptante.setText(cita.getNombreAdoptante());
-
-        // 3. Teléfono (¡El otro método que agregamos!)
-        holder.tvContacto.setText(cita.getTelefonoAdoptante());
-
-        // 4. Fecha (CORRECCIÓN DEL ERROR)
-        if (cita.getFechaCita() != null) {
-            // Ya es un Date, no usamos .toDate()
-            Date fecha = cita.getFechaCita();
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
-            holder.tvFecha.setText("Cita: " + sdf.format(fecha));
-        } else if (cita.getFechaSolicitud() != null) {
-            // Si no tiene cita, mostramos fecha de solicitud
-            Date fecha = cita.getFechaSolicitud();
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-            holder.tvFecha.setText("Solicitud: " + sdf.format(fecha));
+        // 🔹 1. NOMBRE DEL ANIMAL (con validación robusta)
+        String nombreAnimal = cita.getNombreAnimal();
+        if (nombreAnimal == null || nombreAnimal.isEmpty()) {
+            holder.tvMascota.setText("🐾 Animal sin nombre");
         } else {
-            holder.tvFecha.setText("Fecha pendiente");
+            holder.tvMascota.setText("🐾 " + nombreAnimal);
         }
 
-        // 5. Estado
-        holder.tvEstado.setText(cita.getEstado());
+        // 🔹 2. NOMBRE DEL ADOPTANTE
+        holder.tvAdoptante.setText("👤 " + cita.getNombreAdoptante());
+
+        // 🔹 3. TELÉFONO
+        holder.tvContacto.setText("📞 " + cita.getTelefonoAdoptante());
+
+        // 🔹 4. FECHA
+        if (cita.getFechaCita() != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+            holder.tvFecha.setText("📅 Cita: " + sdf.format(cita.getFechaCita()));
+        } else if (cita.getFechaSolicitud() != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            holder.tvFecha.setText("📋 Solicitud: " + sdf.format(cita.getFechaSolicitud()));
+        } else {
+            holder.tvFecha.setText("📋 Fecha pendiente");
+        }
+
+        // 🔹 5. ESTADO (con colores)
+        String estado = cita.getEstado();
+        if (estado != null) {
+            holder.tvEstado.setText(estado.toUpperCase());
+
+            switch (estado.toLowerCase()) {
+                case "aprobada":
+                case "adoptado":
+                    holder.tvEstado.setTextColor(context.getResources().getColor(R.color.status_success));
+                    break;
+                case "pendiente":
+                    holder.tvEstado.setTextColor(context.getResources().getColor(android.R.color.holo_orange_dark));
+                    break;
+                case "cita_agendada":
+                    holder.tvEstado.setTextColor(context.getResources().getColor(android.R.color.holo_blue_dark));
+                    break;
+                default:
+                    holder.tvEstado.setTextColor(context.getResources().getColor(android.R.color.darker_gray));
+            }
+        } else {
+            holder.tvEstado.setText("PENDIENTE");
+        }
 
         // Click
-        holder.itemView.setOnClickListener(v -> listener.onCitaClick(cita));
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onCitaClick(cita);
+            }
+        });
     }
 
     @Override
