@@ -49,11 +49,10 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
     private FirebaseFirestore db;
     private ListenerRegistration listenerRegistration;
 
-    // 🔴 REEMPLAZO DE MOCK: Listas para almacenar Voluntarios reales cargados de Firestore
+    // 🔴 REEMPLAZO DE MOCK: Listas para almacenar Voluntarios reales
     private List<Usuario> voluntariosDisponibles = new ArrayList<>();
     private Map<String, String> voluntariosMap = new HashMap<>(); // UID -> Nombre Completo
 
-    // Eliminamos VOLUNTARIOS_MOCK, ya no se usa.
 
     public static AdoptionFragment newInstance(String animalId) {
         AdoptionFragment fragment = new AdoptionFragment();
@@ -115,8 +114,9 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
                         try {
                             Usuario usuario = doc.toObject(Usuario.class);
                             if (usuario != null) {
-                                usuario.setUid(doc.getId()); // Asumiendo que el UID es el ID del documento
+                                usuario.setUid(doc.getId());
                                 voluntariosDisponibles.add(usuario);
+                                // Usamos el nombre y el ID
                                 voluntariosMap.put(usuario.getUid(), usuario.getNombre());
                             }
                         } catch (Exception e) {
@@ -125,6 +125,7 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
                     }
                     Log.d(TAG, "Voluntarios cargados: " + voluntariosDisponibles.size());
 
+                    // Opcional: Si el diálogo estuviera abierto, se podría intentar actualizarlo aquí.
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Error cargando voluntarios: ", e));
     }
@@ -166,17 +167,21 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
                         if (sol != null) {
                             sol.setIdSolicitud(doc.getId());
 
-                            // --- PARCHES DE COMPATIBILIDAD (Lectura segura de campos) ---
-                            if (sol.getCitaId() == null && doc.contains("citaId")) {
-                                sol.setCitaId(doc.getString("citaId"));
-                            }
-                            if (sol.getReporteId() == null && doc.contains("reporteId")) {
-                                sol.setReporteId(doc.getString("reporteId"));
-                            }
-                            if ((sol.getNombreAdoptante() == null || sol.getNombreAdoptante().equals("Usuario Desconocido")) && doc.contains("nombreCompleto")) {
+                            // 🔴 CORRECCIÓN CRÍTICA 1: Lectura explícita de campos Map<> y referencias
+                            if (doc.contains("citaId")) sol.setCitaId(doc.getString("citaId"));
+                            if (doc.contains("reporteId")) sol.setReporteId(doc.getString("reporteId"));
+
+                            // Lectura de los campos Map<String, Object> para evitar que salgan null en el diálogo
+                            if (doc.contains("datosPersonales")) sol.setDatosPersonales((Map<String, Object>) doc.get("datosPersonales"));
+                            if (doc.contains("datosFamilia")) sol.setDatosFamilia((Map<String, Object>) doc.get("datosFamilia"));
+                            if (doc.contains("datosExperiencia")) sol.setDatosExperiencia((Map<String, Object>) doc.get("datosExperiencia"));
+                            if (doc.contains("datosCompromiso")) sol.setDatosCompromiso((Map<String, Object>) doc.get("datosCompromiso"));
+
+                            // ... (parches existentes) ...
+                            if (sol.getNombreCompleto() == null && doc.contains("nombreCompleto")) {
                                 sol.setNombreCompleto(doc.getString("nombreCompleto"));
                             }
-                            if ((sol.getTelefonoAdoptante() == null || sol.getTelefonoAdoptante().equals("Sin teléfono")) && doc.contains("telefono")) {
+                            if (sol.getTelefono() == null && doc.contains("telefono")) {
                                 sol.setTelefono(doc.getString("telefono"));
                             }
                             if (sol.getEstado() == null && doc.contains("estado")) {
@@ -223,23 +228,28 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Gestión de Solicitud: " + solicitud.getNombreAnimal());
 
+        // Usamos un layout dinámico para mostrar todos los datos del formulario
         LinearLayout layout = buildDialogLayout(getContext(), solicitud);
         builder.setView(layout);
-
-        String estadoActual = solicitud.getEstado() != null ? solicitud.getEstado() : "pendiente";
-
-        // --- Lógica condicional para botones ---
 
         if (solicitud.getCitaId() == null) {
             // FASE 1: ASIGNACIÓN DE VOLUNTARIO (Crea la Cita)
 
             final Spinner spVoluntario = layout.findViewWithTag("spVoluntario");
 
+            // 🚨 Validar que la lista de voluntarios no esté vacía
+            if (voluntariosDisponibles.isEmpty()) {
+                Toast.makeText(getContext(), "Error: No hay voluntarios disponibles cargados.", Toast.LENGTH_LONG).show();
+                builder.setNeutralButton("Cerrar", null);
+                builder.show();
+                return;
+            }
+
             builder.setPositiveButton("ASIGNAR VOLUNTARIO", (dialog, which) -> {
                 String selectedName = (String) spVoluntario.getSelectedItem();
-
                 String selectedVolunteerId = null;
-                // 🔴 Búsqueda del ID real
+
+                // 🔴 Búsqueda del ID real usando el mapa (eficiente)
                 for (Map.Entry<String, String> entry : voluntariosMap.entrySet()) {
                     if (entry.getValue().equals(selectedName)) {
                         selectedVolunteerId = entry.getKey();
@@ -248,10 +258,9 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
                 }
 
                 if (selectedVolunteerId != null) {
-                    // Acción: Crear la cita y actualizar solicitud con citaId
                     crearCitaYAsignar(solicitud, selectedVolunteerId);
                 } else {
-                    Toast.makeText(getContext(), "Seleccione un voluntario válido.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Error al obtener ID del voluntario seleccionado.", Toast.LENGTH_SHORT).show();
                 }
             });
             builder.setNegativeButton("Cancelar", null);
@@ -263,13 +272,14 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
         } else if (solicitud.getReporteId() != null) {
             // FASE 3: DECISIÓN FINAL DEL ADMIN (Existe Reporte)
 
-            // Simulación de carga de reporte (en app real, deberías usar reporteId para cargar Seguimiento.java)
+            // Simulación de carga de reporte (en app real, usar reporteId para cargar Seguimiento.java)
             TextView tvReporte = new TextView(getContext());
             tvReporte.setText("\n--- REPORTE DEL VOLUNTARIO (" + solicitud.getReporteId() + ") ---");
             tvReporte.setTypeface(null, android.graphics.Typeface.BOLD);
             layout.addView(tvReporte);
 
-            addTextViewToLayout(layout, "Comentario:", "Reporte simulado: El adoptante parece responsable y apto. Recomiendo la adopción.");
+            // 🚨 Aquí deberías obtener y mostrar el comentario del reporte real
+            addTextViewToLayout(layout, "Comentario:", "Reporte simulado: El adoptante parece responsable y apto.");
 
             builder.setPositiveButton("APROBAR ADOPCIÓN", (dialog, which) -> {
                 actualizarEstadoFinal(solicitud, "Aprobada");
@@ -297,7 +307,7 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
             return;
         }
 
-        // 1. CREAR EL DOCUMENTO DE CITA (Simulado - Colección 'citas')
+        // 1. CREAR EL DOCUMENTO DE CITA (Colección 'citas')
         Map<String, Object> citaData = new HashMap<>();
         citaData.put("solicitudId", solicitud.getIdSolicitud());
         citaData.put("animalId", solicitud.getIdAnimal());
@@ -351,7 +361,7 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
 
         // --- 1. DETALLES ESENCIALES ---
         TextView tvTitulo = new TextView(context);
-        tvTitulo.setText("DETALLES DE LA SOLICITUD (" + solicitud.getFolio() + ")");
+        tvTitulo.setText("DETALLES DE LA SOLICITUD (" + (solicitud.getFolio() != null ? solicitud.getFolio() : "Sin Folio") + ")");
         tvTitulo.setTextSize(16);
         tvTitulo.setTypeface(null, android.graphics.Typeface.BOLD);
         layout.addView(tvTitulo);
@@ -378,8 +388,9 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
 
         // --- 2. DETALLES DE MAPS (Mapear claves/valores) ---
         addTextViewToLayout(layout, "\n--- DATOS DEL FORMULARIO DETALLADOS ---", "");
-        displayMapData(layout, "Familia:", solicitud.getDatosFamilia());
-        displayMapData(layout, "Experiencia:", solicitud.getDatosExperiencia());
+        // 🚨 Ahora estos Map<> DEBEN contener datos gracias a la corrección en cargarSolicitudes
+        displayMapData(layout, "Datos Familiares:", solicitud.getDatosFamilia());
+        displayMapData(layout, "Experiencia con Mascotas:", solicitud.getDatosExperiencia());
         displayMapData(layout, "Compromiso:", solicitud.getDatosCompromiso());
 
         // --- 3. SELECTOR DE VOLUNTARIO (Condicional si no hay cita) ---
@@ -398,6 +409,12 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
                 volunteerNames.add(vol.getNombre());
             }
 
+            // 🚨 Añadir un item por defecto si la lista está vacía
+            if (volunteerNames.isEmpty()) {
+                volunteerNames.add("No hay voluntarios cargados");
+                spVoluntario.setEnabled(false);
+            }
+
             ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
                     context,
                     android.R.layout.simple_spinner_item,
@@ -413,7 +430,7 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
     }
 
     /**
-     * Helper para mostrar los datos de los Map<String, Object>
+     * Helper para mostrar los datos de los Map<String, Object> de forma legible.
      */
     private void displayMapData(LinearLayout layout, String sectionTitle, Map<String, Object> data) {
         if (data != null && !data.isEmpty()) {
