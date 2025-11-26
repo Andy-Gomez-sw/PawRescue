@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
@@ -31,12 +32,64 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Por favor, confirma que la información proporcionada es verídica. El refugio revisará tu solicitud y te contactará pronto."
+            android:text="Por favor, confirma que la información proporcionada es verídica y agenda tu cita de visita."
             android:textSize="16sp"
             android:textColor="#555555"
             android:gravity="center"
             android:layout_marginBottom="32dp"/>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="5. Agendar Cita de Visita (Obligatorio)"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Selecciona la fecha y hora en que podrás recibir la visita de un voluntario para la inspección de la vivienda y entrevista."
+            android:textSize="14sp"
+            android:textColor="#555555"
+            android:layout_marginBottom="20dp"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:hint="Fecha de la Cita">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etFechaCita"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusable="false"
+                android:clickable="true"
+                android:drawableStart="@drawable/ic_calendar"
+                android:drawablePadding="10dp"
+                android:inputType="none" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:hint="Hora de la Cita"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etHoraCita"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusable="false"
+                android:clickable="true"
+                android:drawableStart="@drawable/ic_clock"
+                android:drawablePadding="10dp"
+                android:inputType="none" />
+        </com.google.android.material.textfield.TextInputLayout>
         <CheckBox
             android:id="@+id/cbTerminos"
             android:layout_width="wrap_content"
@@ -47,7 +100,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Nota: Al presionar 'Enviar Solicitud', tus datos serán enviados al administrador."
+            android:text="Nota: Al presionar 'Enviar Solicitud', tus datos y la cita serán enviados al administrador."
             android:textSize="12sp"
             android:textColor="#999999"
             android:gravity="center"/>

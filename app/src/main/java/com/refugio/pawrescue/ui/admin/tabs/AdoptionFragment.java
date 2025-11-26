@@ -25,8 +25,10 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.refugio.pawrescue.R;
+import com.refugio.pawrescue.data.helper.FirebaseHelper;
+import com.refugio.pawrescue.model.Cita;
 import com.refugio.pawrescue.model.SolicitudAdopcion;
-import com.refugio.pawrescue.model.Usuario; // <-- Importación necesaria del modelo Usuario
+import com.refugio.pawrescue.model.Usuario;
 import com.refugio.pawrescue.ui.adapter.SolicitudAdopcionAdapter;
 
 import java.util.ArrayList;
@@ -49,7 +51,7 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
     private FirebaseFirestore db;
     private ListenerRegistration listenerRegistration;
 
-    // 🔴 REEMPLAZO DE MOCK: Listas para almacenar Voluntarios reales
+    // Listas para almacenar Voluntarios reales
     private List<Usuario> voluntariosDisponibles = new ArrayList<>();
     private Map<String, String> voluntariosMap = new HashMap<>(); // UID -> Nombre Completo
 
@@ -70,13 +72,14 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
         }
         db = FirebaseFirestore.getInstance();
 
-        // 🚨 Llamada para cargar los voluntarios al iniciar
+        // Llamada para cargar los voluntarios al iniciar
         cargarVoluntariosDisponibles();
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // Asegúrate de usar el layout correcto que proporcionaste: fragment_adoption
         View view = inflater.inflate(R.layout.fragment_adoption, container, false);
 
         recyclerView = view.findViewById(R.id.recycler_solicitudes);
@@ -98,13 +101,14 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
     }
 
     /**
-     * 🔴 NUEVO MÉTODO: Carga los usuarios con rol "voluntario" en segundo plano.
+     * Carga los usuarios con rol "voluntario" en segundo plano.
      */
     private void cargarVoluntariosDisponibles() {
         if (db == null) return;
 
+        // Utilizamos "Voluntario" tal como lo tienes en el código, asumiendo que coincide con la BDD.
         db.collection("usuarios")
-                .whereEqualTo("rol", "voluntario")
+                .whereEqualTo("rol", "Voluntario")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     voluntariosDisponibles.clear();
@@ -124,8 +128,6 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
                         }
                     }
                     Log.d(TAG, "Voluntarios cargados: " + voluntariosDisponibles.size());
-
-                    // Opcional: Si el diálogo estuviera abierto, se podría intentar actualizarlo aquí.
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Error cargando voluntarios: ", e));
     }
@@ -167,9 +169,13 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
                         if (sol != null) {
                             sol.setIdSolicitud(doc.getId());
 
-                            // 🔴 CORRECCIÓN CRÍTICA 1: Lectura explícita de campos Map<> y referencias
+                            // Lectura de campos de referencia
                             if (doc.contains("citaId")) sol.setCitaId(doc.getString("citaId"));
                             if (doc.contains("reporteId")) sol.setReporteId(doc.getString("reporteId"));
+
+                            // Lectura de los campos de voluntario (NUEVOS CAMPOS)
+                            if (doc.contains("voluntarioId")) sol.setVoluntarioId(doc.getString("voluntarioId"));
+                            if (doc.contains("voluntarioNombre")) sol.setVoluntarioNombre(doc.getString("voluntarioNombre"));
 
                             // Lectura de los campos Map<String, Object> para evitar que salgan null en el diálogo
                             if (doc.contains("datosPersonales")) sol.setDatosPersonales((Map<String, Object>) doc.get("datosPersonales"));
@@ -177,7 +183,7 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
                             if (doc.contains("datosExperiencia")) sol.setDatosExperiencia((Map<String, Object>) doc.get("datosExperiencia"));
                             if (doc.contains("datosCompromiso")) sol.setDatosCompromiso((Map<String, Object>) doc.get("datosCompromiso"));
 
-                            // ... (parches existentes) ...
+                            // Lectura de los campos simples (parches existentes)
                             if (sol.getNombreCompleto() == null && doc.contains("nombreCompleto")) {
                                 sol.setNombreCompleto(doc.getString("nombreCompleto"));
                             }
@@ -215,6 +221,9 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
 
     @Override
     public void onSolicitudClick(SolicitudAdopcion solicitud) {
+        // Al hacer clic en cualquier botón de acción (Detalles, Asignar, Decisión Final)
+        // se abre el diálogo de gestión completa. La lógica de los botones se maneja
+        // en el adaptador.
         mostrarDialogoGestionCompleta(solicitud);
     }
 
@@ -232,12 +241,13 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
         LinearLayout layout = buildDialogLayout(getContext(), solicitud);
         builder.setView(layout);
 
-        if (solicitud.getCitaId() == null) {
-            // FASE 1: ASIGNACIÓN DE VOLUNTARIO (Crea la Cita)
+        // CONDICIONAL PRINCIPAL: EL USUARIO YA AGENDÓ LA CITA (fechaCita != null)
+        if (solicitud.getFechaCita() != null && solicitud.getVoluntarioId() == null) {
+            // FASE 1: ASIGNACIÓN DE VOLUNTARIO (Se usa la cita YA CREADA por el usuario)
 
             final Spinner spVoluntario = layout.findViewWithTag("spVoluntario");
 
-            // 🚨 Validar que la lista de voluntarios no esté vacía
+            // Validar que la lista de voluntarios no esté vacía
             if (voluntariosDisponibles.isEmpty()) {
                 Toast.makeText(getContext(), "Error: No hay voluntarios disponibles cargados.", Toast.LENGTH_LONG).show();
                 builder.setNeutralButton("Cerrar", null);
@@ -245,11 +255,12 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
                 return;
             }
 
+            // El botón ahora sirve para confirmar la asignación
             builder.setPositiveButton("ASIGNAR VOLUNTARIO", (dialog, which) -> {
                 String selectedName = (String) spVoluntario.getSelectedItem();
                 String selectedVolunteerId = null;
 
-                // 🔴 Búsqueda del ID real usando el mapa (eficiente)
+                // Búsqueda del ID real usando el mapa (eficiente)
                 for (Map.Entry<String, String> entry : voluntariosMap.entrySet()) {
                     if (entry.getValue().equals(selectedName)) {
                         selectedVolunteerId = entry.getKey();
@@ -258,27 +269,28 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
                 }
 
                 if (selectedVolunteerId != null) {
-                    crearCitaYAsignar(solicitud, selectedVolunteerId);
+                    String voluntarioNombre = voluntariosMap.get(selectedVolunteerId);
+                    // LLAMADA A LA FUNCIÓN CORREGIDA
+                    asignarVoluntarioACitaAgendada(solicitud, selectedVolunteerId, voluntarioNombre);
                 } else {
                     Toast.makeText(getContext(), "Error al obtener ID del voluntario seleccionado.", Toast.LENGTH_SHORT).show();
                 }
             });
             builder.setNegativeButton("Cancelar", null);
 
-        } else if (solicitud.getCitaId() != null && solicitud.getReporteId() == null) {
-            // FASE 2: EN ESPERA DE REPORTE
+        } else if (solicitud.getVoluntarioId() != null && solicitud.getReporteId() == null) {
+            // FASE 2: EN ESPERA DE REPORTE (Voluntario asignado, pero sin reporte final)
             builder.setNeutralButton("Cerrar", null);
 
         } else if (solicitud.getReporteId() != null) {
             // FASE 3: DECISIÓN FINAL DEL ADMIN (Existe Reporte)
 
-            // Simulación de carga de reporte (en app real, usar reporteId para cargar Seguimiento.java)
+            // Simulación de carga de reporte
             TextView tvReporte = new TextView(getContext());
             tvReporte.setText("\n--- REPORTE DEL VOLUNTARIO (" + solicitud.getReporteId() + ") ---");
             tvReporte.setTypeface(null, android.graphics.Typeface.BOLD);
             layout.addView(tvReporte);
 
-            // 🚨 Aquí deberías obtener y mostrar el comentario del reporte real
             addTextViewToLayout(layout, "Comentario:", "Reporte simulado: El adoptante parece responsable y apto.");
 
             builder.setPositiveButton("APROBAR ADOPCIÓN", (dialog, which) -> {
@@ -290,7 +302,7 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
             });
 
         } else {
-            // Estado por defecto (e.g., Voluntario asignado sin reporte aún)
+            // Caso por defecto (Ej: No hay fecha de cita agendada por el usuario aún)
             builder.setNeutralButton("Cerrar", null);
         }
 
@@ -298,43 +310,45 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
     }
 
     /**
-     * Lógica para simular la creación de la Cita en Firestore
-     * y actualizar la Solicitud con el citaId generado.
+     * Lógica (Paso 2 del flujo): Asigna el voluntario a una cita YA agendada.
+     * Actualiza el documento de Cita con el ID del voluntario y el estado.
      */
-    private void crearCitaYAsignar(SolicitudAdopcion solicitud, String voluntarioId) {
-        if (solicitud.getFechaCita() == null) {
-            Toast.makeText(getContext(), "Error: La solicitud no tiene fecha de cita agendada.", Toast.LENGTH_LONG).show();
+    private void asignarVoluntarioACitaAgendada(SolicitudAdopcion solicitud, String voluntarioId, String voluntarioNombre) {
+        String citaId = solicitud.getCitaId();
+        if (citaId == null) {
+            Toast.makeText(getContext(), "Error: La solicitud no tiene cita ID para actualizar.", Toast.LENGTH_LONG).show();
             return;
         }
 
-        // 1. CREAR EL DOCUMENTO DE CITA (Colección 'citas')
-        Map<String, Object> citaData = new HashMap<>();
-        citaData.put("solicitudId", solicitud.getIdSolicitud());
-        citaData.put("animalId", solicitud.getIdAnimal());
-        citaData.put("voluntarioId", voluntarioId); // ID del voluntario real
-        citaData.put("fechaCita", solicitud.getFechaCita());
+        // 1. ACTUALIZAR EL DOCUMENTO DE CITA (Colección 'citas')
+        Map<String, Object> citaUpdates = new HashMap<>();
+        citaUpdates.put("voluntarioAsignado", voluntarioId);
+        citaUpdates.put("voluntarioNombre", voluntarioNombre);
+        citaUpdates.put("estado", "asignada"); // Estado de la Cita: Agendada -> Asignada a Voluntario
 
-        db.collection("citas")
-                .add(citaData)
-                .addOnSuccessListener(documentReference -> {
-                    String newCitaId = documentReference.getId();
+        FirebaseHelper.getInstance().updateCita(citaId, citaUpdates, new FirebaseHelper.CitaUpdateListener() {
+            @Override
+            public void onCitaUpdated() {
+                // 2. ACTUALIZAR LA SOLICITUD con el ID de la Cita y el Voluntario
+                Map<String, Object> solicitudUpdates = new HashMap<>();
+                solicitudUpdates.put("voluntarioId", voluntarioId);
+                solicitudUpdates.put("voluntarioNombre", voluntarioNombre);
+                solicitudUpdates.put("estado", "Voluntario Asignado");
+                solicitudUpdates.put("estadoSolicitud", "Voluntario Asignado");
 
-                    // 2. ACTUALIZAR LA SOLICITUD con el ID de la Cita
-                    Map<String, Object> updates = new HashMap<>();
-                    updates.put("citaId", newCitaId);
-                    updates.put("estado", "Voluntario asignado");
-                    updates.put("estadoSolicitud", "Voluntario asignado");
+                db.collection("solicitudes_adopcion").document(solicitud.getIdSolicitud())
+                        .update(solicitudUpdates)
+                        .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Voluntario asignado: " + voluntarioNombre, Toast.LENGTH_LONG).show())
+                        .addOnFailureListener(e -> Toast.makeText(getContext(), "Error al actualizar solicitud: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            }
 
-                    // Usar el nombre del voluntario para el Toast de confirmación
-                    String nombreVoluntario = voluntariosMap.getOrDefault(voluntarioId, "Voluntario Desconocido");
-
-                    db.collection("solicitudes_adopcion").document(solicitud.getIdSolicitud())
-                            .update(updates)
-                            .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Cita asignada a: " + nombreVoluntario, Toast.LENGTH_LONG).show())
-                            .addOnFailureListener(e -> Toast.makeText(getContext(), "Error al actualizar solicitud: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-                })
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Error al crear la cita: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(getContext(), "Error al asignar voluntario a la cita: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
+
 
     /**
      * Centraliza la actualización de estado final (Aprobada/Rechazada) en la base de datos.
@@ -351,8 +365,7 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
     }
 
     /**
-     * Construye el Layout del diálogo con todos los detalles de la solicitud.
-     * 🔴 MODIFICADO para usar la lista REAL de voluntarios en el Spinner.
+     * Construye el Layout del diálogo con todos los detalles de la solicitud y el selector de voluntario (si aplica).
      */
     private LinearLayout buildDialogLayout(Context context, SolicitudAdopcion solicitud) {
         LinearLayout layout = new LinearLayout(context);
@@ -382,34 +395,38 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
         String citaInfo = solicitud.getCitaId() != null ? "ID Cita: " + solicitud.getCitaId() : "Ninguna";
         addTextViewToLayout(layout, "Cita Asignada:", citaInfo);
 
+        // Mostrar Voluntario asignado
+        String voluntarioInfo = solicitud.getVoluntarioNombre() != null ? solicitud.getVoluntarioNombre() : "Pendiente de Asignación";
+        addTextViewToLayout(layout, "Voluntario Asignado:", voluntarioInfo);
+
         String reporteInfo = solicitud.getReporteId() != null ? "ID Reporte: " + solicitud.getReporteId() : "Ninguno";
         addTextViewToLayout(layout, "Reporte Final:", reporteInfo);
 
 
         // --- 2. DETALLES DE MAPS (Mapear claves/valores) ---
         addTextViewToLayout(layout, "\n--- DATOS DEL FORMULARIO DETALLADOS ---", "");
-        // 🚨 Ahora estos Map<> DEBEN contener datos gracias a la corrección en cargarSolicitudes
         displayMapData(layout, "Datos Familiares:", solicitud.getDatosFamilia());
         displayMapData(layout, "Experiencia con Mascotas:", solicitud.getDatosExperiencia());
         displayMapData(layout, "Compromiso:", solicitud.getDatosCompromiso());
 
-        // --- 3. SELECTOR DE VOLUNTARIO (Condicional si no hay cita) ---
-        if (solicitud.getCitaId() == null) {
+        // --- 3. SELECTOR DE VOLUNTARIO Y MENSAJES DE FASE (Condicional en el nuevo flujo) ---
+        if (solicitud.getFechaCita() != null && solicitud.getVoluntarioId() == null) {
+            // FASE 1: Asignar Voluntario
             TextView tvAsignar = new TextView(context);
-            tvAsignar.setText("\nSeleccione el Voluntario para esta Cita:");
+            tvAsignar.setText("\nCita Agendada por el Adoptante. Asigne un Voluntario:");
             tvAsignar.setTypeface(null, android.graphics.Typeface.BOLD);
             layout.addView(tvAsignar);
 
             Spinner spVoluntario = new Spinner(context);
             spVoluntario.setTag("spVoluntario");
 
-            // 🔴 Llenar el Spinner con NOMBRES REALES
+            // Llenar el Spinner con NOMBRES REALES
             List<String> volunteerNames = new ArrayList<>();
             for (Usuario vol : voluntariosDisponibles) {
                 volunteerNames.add(vol.getNombre());
             }
 
-            // 🚨 Añadir un item por defecto si la lista está vacía
+            // Añadir un item por defecto si la lista está vacía
             if (volunteerNames.isEmpty()) {
                 volunteerNames.add("No hay voluntarios cargados");
                 spVoluntario.setEnabled(false);
@@ -424,7 +441,25 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
             spVoluntario.setAdapter(spinnerAdapter);
 
             layout.addView(spVoluntario);
+
+        } else if (solicitud.getVoluntarioId() != null && solicitud.getReporteId() == null) {
+            // FASE 2: Esperando Reporte
+            TextView tvEspera = new TextView(context);
+            String mensaje = "\nESTADO: CITA ASIGNADA A VOLUNTARIO. Esperando reporte de visita: " + voluntarioInfo;
+
+            tvEspera.setText(mensaje);
+            tvEspera.setTypeface(null, android.graphics.Typeface.BOLD);
+            tvEspera.setTextColor(context.getResources().getColor(android.R.color.holo_orange_dark));
+            layout.addView(tvEspera);
+        } else if (solicitud.getFechaCita() == null) {
+            // Solicitud en la cola, pero el usuario aún no ha agendado la cita
+            TextView tvPendiente = new TextView(context);
+            tvPendiente.setText("\nESTADO: Pendiente de que el adoptante agende fecha y hora de la visita.");
+            tvPendiente.setTypeface(null, android.graphics.Typeface.BOLD);
+            tvPendiente.setTextColor(context.getResources().getColor(android.R.color.holo_blue_dark));
+            layout.addView(tvPendiente);
         }
+
 
         return layout;
     }

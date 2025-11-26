@@ -68,6 +68,9 @@ public class SolicitudAdopcion implements Serializable {
     private String citaId;    // <--- CITA ASIGNADA (contiene voluntarioId)
     private String reporteId; // <--- REPORTE FINAL DEL VOLUNTARIO (contiene las observaciones)
 
+    // CAMPOS DE ASIGNACIÓN DE VOLUNTARIO
+    private String voluntarioId;
+    private String voluntarioNombre;
     // Constructor vacío para Firestore
     public SolicitudAdopcion() {}
 
@@ -151,6 +154,11 @@ public class SolicitudAdopcion implements Serializable {
     public String getReporteId() { return reporteId; }
     public void setReporteId(String reporteId) { this.reporteId = reporteId; } // <--- NUEVO
 
+    public String getVoluntarioId() { return voluntarioId; }
+    public void setVoluntarioId(String voluntarioId) { this.voluntarioId = voluntarioId; }
+
+    public String getVoluntarioNombre() { return voluntarioNombre; }
+    public void setVoluntarioNombre(String voluntarioNombre) { this.voluntarioNombre = voluntarioNombre; }
     // =========================================================
     // MÉTODOS HELPER PARA EL ADAPTER
     // =========================================================
