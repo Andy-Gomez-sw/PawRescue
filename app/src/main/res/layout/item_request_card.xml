@@ -17,7 +17,6 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- Imagen del Animal -->
         <ImageView
             android:id="@+id/ivAnimalPhoto"
             android:layout_width="80dp"
@@ -30,7 +29,6 @@
             android:contentDescription="@string/animal_photo"
             tools:src="@drawable/placeholder_dog"/>
 
-        <!-- Nombre del Animal -->
         <TextView
             android:id="@+id/tvAnimalName"
             android:layout_width="0dp"
@@ -46,7 +44,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             tools:text="Toby"/>
 
-        <!-- Raza -->
         <TextView
             android:id="@+id/tvBreed"
             android:layout_width="0dp"
@@ -62,7 +59,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             tools:text="Labrador Retriever"/>
 
-        <!-- Folio -->
         <LinearLayout
             android:id="@+id/layoutFolio"
             android:layout_width="0dp"
@@ -92,7 +88,6 @@
                 tools:text="Folio: RF-2024-0123"/>
         </LinearLayout>
 
-        <!-- Fecha -->
         <LinearLayout
             android:id="@+id/layoutDate"
             android:layout_width="0dp"
@@ -122,7 +117,6 @@
                 tools:text="20 Nov 2024"/>
         </LinearLayout>
 
-        <!-- Badge de Estado -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/statusBadge"
             android:layout_width="wrap_content"
@@ -131,11 +125,10 @@
             app:cardCornerRadius="16dp"
             app:cardElevation="0dp"
             app:strokeWidth="1dp"
-            app:strokeColor="@color/status_border"
-            app:cardBackgroundColor="@color/status_background"
+            app:strokeColor="#FFB74D"
+            app:cardBackgroundColor="#FFE0B2"
             app:layout_constraintTop_toBottomOf="@id/ivAnimalPhoto"
             app:layout_constraintStart_toStartOf="parent">
-
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -151,8 +144,8 @@
                     android:layout_width="16dp"
                     android:layout_height="16dp"
                     android:src="@drawable/ic_clock"
+                    app:tint="#000000"
                     android:contentDescription="@string/status"/>
-
                 <TextView
                     android:id="@+id/tvStatus"
                     android:layout_width="wrap_content"
@@ -160,11 +153,11 @@
                     android:layout_marginStart="6dp"
                     android:textSize="13sp"
                     android:textStyle="bold"
+                    android:textColor="#000000"
                     tools:text="En Revisión"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Información de Cita (opcional) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/appointmentCard"
             android:layout_width="0dp"
@@ -205,7 +198,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Botón Ver Detalles -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnVerDetalles"
             android:layout_width="0dp"
