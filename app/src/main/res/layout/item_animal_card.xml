@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/card_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="6dp"
-    app:cardCornerRadius="12dp"
+    app:cardCornerRadius="16dp"
     app:cardElevation="4dp"
+    app:cardBackgroundColor="@color/white"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?android:attr/selectableItemBackground">
@@ -17,48 +19,54 @@
         android:layout_height="wrap_content"
         android:paddingBottom="12dp">
 
+        <!-- Imagen del Animal -->
         <ImageView
             android:id="@+id/iv_animal_photo"
             android:layout_width="0dp"
-            android:layout_height="140dp"
+            android:layout_height="180dp"
             android:scaleType="centerCrop"
-            android:background="#EEEEEE"
+            android:background="@color/gray_light"
             android:contentDescription="Foto del animal"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:src="@drawable/ic_heart"/>
 
+        <!-- Botón de Favorito -->
         <ImageButton
             android:id="@+id/btnFavorite"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:src="@drawable/ic_favorite_border"
             android:background="@drawable/shape_circle_gray"
-            android:backgroundTint="#80FFFFFF"
+            android:backgroundTint="#CC000000"
             android:padding="6dp"
             android:scaleType="fitCenter"
+            app:tint="@color/white"
             android:contentDescription="Favorito"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"/>
 
+        <!-- Nombre del Animal -->
         <TextView
             android:id="@+id/tv_animal_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:layout_marginHorizontal="12dp"
-            android:textSize="16sp"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@android:color/black"
+            android:textColor="@color/text_black"
             android:maxLines="1"
             android:ellipsize="end"
-            tools:text="Max #001"
+            tools:text="Max"
             app:layout_constraintTop_toBottomOf="@id/iv_animal_photo"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"/>
 
+        <!-- Detalles (Raza, Edad) CON LOS DOTS QUE NECESITA TU ADAPTER -->
         <LinearLayout
             android:id="@+id/details_container"
             android:layout_width="0dp"
@@ -71,6 +79,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
+            <!-- 🔴 DOT STATUS MAIN - NECESARIO PARA TU ADAPTER -->
             <View
                 android:id="@+id/dot_status_main"
                 android:layout_width="8dp"
@@ -79,6 +88,7 @@
                 android:visibility="gone"
                 android:background="@drawable/legend_dot_red"/>
 
+            <!-- 🟠 DOT STATUS MEDICATION - NECESARIO PARA TU ADAPTER -->
             <View
                 android:id="@+id/dot_status_medication"
                 android:layout_width="8dp"
@@ -91,28 +101,29 @@
                 android:id="@+id/tv_animal_details"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="#757575"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
                 android:maxLines="1"
                 android:ellipsize="end"
-                tools:text="Golden Retriever" />
+                tools:text="Golden Retriever • 2 años"/>
         </LinearLayout>
 
+        <!-- Estado (Badge) -->
         <TextView
             android:id="@+id/tv_animal_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginStart="12dp"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="4dp"
-            android:textSize="10sp"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp"
+            android:textSize="11sp"
             android:textStyle="bold"
-            android:textColor="@android:color/white"
+            android:textColor="@color/white"
             android:background="@drawable/rounded_status_bg"
-            tools:text="Rescatado"
+            tools:text="Disponible"
             app:layout_constraintTop_toBottomOf="@id/details_container"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

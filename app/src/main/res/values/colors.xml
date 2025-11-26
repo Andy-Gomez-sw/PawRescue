@@ -138,4 +138,11 @@
     <color name="status_border">#CCCCCC</color>
     <color name="status_background">#F0F0F0</color>
 
+    <!-- Textos -->
+    <color name="text_black">#000000</color>
+    <color name="status_pending">#FFC107</color>
+    <color name="status_treatment">#F44336</color>
+
+    <!-- Otros -->
+    <color name="gray_medium">#BDBDBD</color>
 </resources>

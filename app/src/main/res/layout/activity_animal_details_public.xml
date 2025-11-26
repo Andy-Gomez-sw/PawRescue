@@ -5,8 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light"
-    tools:context=".AnimalDetailActivity">
+    android:background="@color/background_white">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
@@ -21,16 +20,17 @@
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
             app:contentScrim="@color/primary_orange"
             app:expandedTitleMarginStart="16dp"
-            app:expandedTitleMarginEnd="64dp">
+            app:expandedTitleMarginEnd="64dp"
+            app:expandedTitleTextColor="@color/white"
+            app:collapsedTitleTextColor="@color/white">
 
-            <!-- ViewPager para Galería de Imágenes -->
             <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/viewPagerImages"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:background="@color/gray_light"
                 app:layout_collapseMode="parallax"/>
 
-            <!-- Indicadores de página -->
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/tabDots"
                 android:layout_width="wrap_content"
@@ -48,17 +48,18 @@
                 android:layout_height="?attr/actionBarSize"
                 app:layout_collapseMode="pin"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-                app:navigationIcon="@drawable/ic_arrow_back"/>
+                app:navigationIcon="@drawable/ic_arrow_back"
+                app:navigationIconTint="@color/white"/>
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Contenido Scrolleable -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
+        android:background="@color/background_card"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -73,7 +74,8 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="16dp"
                 app:cardElevation="4dp"
-                app:cardCornerRadius="12dp">
+                app:cardCornerRadius="12dp"
+                app:cardBackgroundColor="@color/white">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -87,7 +89,7 @@
                         android:layout_height="wrap_content"
                         android:textSize="28sp"
                         android:textStyle="bold"
-                        android:textColor="@color/text_primary"
+                        android:textColor="@color/text_black"
                         tools:text="Toby"/>
 
                     <TextView
@@ -99,7 +101,6 @@
                         android:layout_marginTop="4dp"
                         tools:text="Labrador Retriever • 2 años"/>
 
-                    <!-- Chips de Características -->
                     <com.google.android.material.chip.ChipGroup
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -111,6 +112,8 @@
                             style="@style/Widget.Material3.Chip.Assist"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            app:chipBackgroundColor="@color/primary_orange_light"
+                            android:textColor="@color/white"
                             tools:text="Macho"/>
 
                         <com.google.android.material.chip.Chip
@@ -118,6 +121,8 @@
                             style="@style/Widget.Material3.Chip.Assist"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            app:chipBackgroundColor="@color/primary_orange_light"
+                            android:textColor="@color/white"
                             tools:text="Grande"/>
 
                     </com.google.android.material.chip.ChipGroup>
@@ -134,8 +139,7 @@
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:src="@drawable/ic_location"
-                            android:contentDescription="@string/location"
-                            app:tint="@color/text_secondary"/>
+                            app:tint="@color/primary_orange"/>
 
                         <TextView
                             android:id="@+id/tvLocation"
@@ -159,8 +163,7 @@
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:src="@drawable/ic_calendar"
-                            android:contentDescription="@string/date"
-                            app:tint="@color/text_secondary"/>
+                            app:tint="@color/primary_orange"/>
 
                         <TextView
                             android:id="@+id/tvRescueDate"
@@ -184,7 +187,8 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="8dp"
                 app:cardElevation="2dp"
-                app:cardCornerRadius="8dp">
+                app:cardCornerRadius="8dp"
+                app:cardBackgroundColor="@color/white">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -204,17 +208,17 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="@string/about_animal"
+                            android:text="Sobre el Animal"
                             android:textSize="16sp"
                             android:textStyle="bold"
-                            android:textColor="@color/text_primary"/>
+                            android:textColor="@color/text_black"/>
 
                         <ImageView
                             android:id="@+id/iconAbout"
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@drawable/ic_expand_more"
-                            android:contentDescription="@string/expand"/>
+                            app:tint="@color/primary_orange"/>
                     </LinearLayout>
 
                     <TextView
@@ -224,7 +228,7 @@
                         android:padding="16dp"
                         android:paddingTop="0dp"
                         android:textSize="14sp"
-                        android:textColor="@color/text_secondary"
+                        android:textColor="@color/text_primary"
                         android:lineSpacingExtra="4dp"
                         android:visibility="gone"
                         tools:visibility="visible"
@@ -242,7 +246,8 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="8dp"
                 app:cardElevation="2dp"
-                app:cardCornerRadius="8dp">
+                app:cardCornerRadius="8dp"
+                app:cardBackgroundColor="@color/white">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -265,14 +270,14 @@
                             android:text="⚕️ Historial Médico"
                             android:textSize="16sp"
                             android:textStyle="bold"
-                            android:textColor="@color/text_primary"/>
+                            android:textColor="@color/text_black"/>
 
                         <ImageView
                             android:id="@+id/iconHealth"
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@drawable/ic_expand_more"
-                            android:contentDescription="@string/expand"/>
+                            app:tint="@color/primary_orange"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -282,11 +287,21 @@
                         android:orientation="vertical"
                         android:padding="16dp"
                         android:paddingTop="0dp"
-                        android:visibility="gone"
-                        tools:visibility="visible">
+                        android:visibility="gone">
 
-                        <!-- Lista de checks de salud -->
-                        <include layout="@layout/health_checklist"/>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="✅ Vacunado"
+                            android:textColor="@color/text_primary"
+                            android:padding="8dp"/>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="✅ Desparasitado"
+                            android:textColor="@color/text_primary"
+                            android:padding="8dp"/>
 
                     </LinearLayout>
 
@@ -302,7 +317,8 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
                 app:cardElevation="2dp"
-                app:cardCornerRadius="8dp">
+                app:cardCornerRadius="8dp"
+                app:cardBackgroundColor="@color/white">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -325,14 +341,14 @@
                             android:text="📋 Requisitos de Adopción"
                             android:textSize="16sp"
                             android:textStyle="bold"
-                            android:textColor="@color/text_primary"/>
+                            android:textColor="@color/text_black"/>
 
                         <ImageView
                             android:id="@+id/iconRequirements"
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@drawable/ic_expand_more"
-                            android:contentDescription="@string/expand"/>
+                            app:tint="@color/primary_orange"/>
                     </LinearLayout>
 
                     <LinearLayout
@@ -342,11 +358,21 @@
                         android:orientation="vertical"
                         android:padding="16dp"
                         android:paddingTop="0dp"
-                        android:visibility="gone"
-                        tools:visibility="visible">
+                        android:visibility="gone">
 
-                        <!-- Lista de requisitos -->
-                        <include layout="@layout/requirements_list"/>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="• Ser mayor de edad"
+                            android:textColor="@color/text_primary"
+                            android:padding="4dp"/>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="• Tener espacio adecuado"
+                            android:textColor="@color/text_primary"
+                            android:padding="4dp"/>
 
                     </LinearLayout>
 
@@ -368,8 +394,7 @@
         app:tint="@android:color/white"
         app:backgroundTint="@color/primary_orange"
         app:layout_anchor="@id/appBarLayout"
-        app:layout_anchorGravity="bottom|end"
-        android:contentDescription="@string/add_favorite"/>
+        app:layout_anchorGravity="bottom|end"/>
 
     <!-- Botón de Acción Fijo -->
     <com.google.android.material.button.MaterialButton
@@ -378,8 +403,9 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:layout_margin="16dp"
-        android:text="@string/request_adoption"
+        android:text="Solicitar Adopción"
         android:textSize="16sp"
+        android:textColor="@color/white"
         android:textAllCaps="false"
         app:cornerRadius="8dp"
         app:backgroundTint="@color/primary_orange"

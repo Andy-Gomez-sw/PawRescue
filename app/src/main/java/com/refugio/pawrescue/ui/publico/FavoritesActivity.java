@@ -8,6 +8,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -21,6 +22,7 @@ public class FavoritesActivity extends AppCompatActivity {
 
     private RecyclerView rvFavorites;
     private TextView tvEmptyFavorites;
+    private BottomNavigationView bottomNavigation;
     private AnimalAdapter adapter;
     private List<Animal> favoriteList;
     private FirebaseFirestore db;
@@ -32,27 +34,27 @@ public class FavoritesActivity extends AppCompatActivity {
 
         rvFavorites = findViewById(R.id.rvFavorites);
         tvEmptyFavorites = findViewById(R.id.tvEmptyFavorites);
+        bottomNavigation = findViewById(R.id.bottomNavigation);
         db = FirebaseFirestore.getInstance();
         favoriteList = new ArrayList<>();
 
         setupRecyclerView();
+        setupBottomNavigation();
         loadFavorites();
     }
 
     private void setupRecyclerView() {
-        // Usamos el constructor que acepta la lista, el cual arreglamos antes
         adapter = new AnimalAdapter(this, favoriteList, new AnimalAdapter.OnAnimalClickListener() {
             @Override
             public void onAnimalClick(Animal animal) {
-                // Ir al detalle del animal
                 Intent intent = new Intent(FavoritesActivity.this, AnimalDetailsPublicActivity.class);
                 intent.putExtra("ANIMAL_ID", animal.getId());
+                intent.putExtra("ANIMAL_OBJETO", animal);
                 startActivity(intent);
             }
 
             @Override
             public void onFavoriteClick(Animal animal) {
-                // Opción para quitar de favoritos desde esta misma lista
                 removeFavorite(animal);
             }
         });
@@ -61,11 +63,42 @@ public class FavoritesActivity extends AppCompatActivity {
         rvFavorites.setAdapter(adapter);
     }
 
+    private void setupBottomNavigation() {
+        // Marcar como seleccionado el item de Favoritos
+        bottomNavigation.setSelectedItemId(R.id.nav_favorites);
+
+        bottomNavigation.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+
+            if (id == R.id.nav_home) {
+                startActivity(new Intent(this, GalleryActivity.class));
+                finish();
+                return true;
+            } else if (id == R.id.nav_favorites) {
+                // Ya estamos aquí
+                return true;
+            } else if (id == R.id.nav_requests) {
+                startActivity(new Intent(this, MyRequestsActivity.class));
+                finish();
+                return true;
+            } else if (id == R.id.nav_profile) {
+                startActivity(new Intent(this, ProfileActivity.class));
+                finish();
+                return true;
+            }
+
+            return false;
+        });
+    }
+
     private void loadFavorites() {
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
                 FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
 
-        if (userId == null) return;
+        if (userId == null) {
+            Toast.makeText(this, "Debes iniciar sesión", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         db.collection("usuarios").document(userId).collection("favoritos")
                 .get()
@@ -80,7 +113,7 @@ public class FavoritesActivity extends AppCompatActivity {
                         for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                             Animal animal = doc.toObject(Animal.class);
                             animal.setId(doc.getId());
-                            animal.setFavorited(true); // Ya sabemos que es favorito porque está en esta colección
+                            animal.setFavorited(true);
                             favoriteList.add(animal);
                         }
                         adapter.notifyDataSetChanged();
@@ -99,7 +132,6 @@ public class FavoritesActivity extends AppCompatActivity {
                 .document(animal.getId())
                 .delete()
                 .addOnSuccessListener(aVoid -> {
-                    // Lo quitamos de la lista local y actualizamos
                     favoriteList.remove(animal);
                     adapter.notifyDataSetChanged();
 
@@ -109,5 +141,12 @@ public class FavoritesActivity extends AppCompatActivity {
                     }
                     Toast.makeText(this, "Eliminado de favoritos", Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Recargar favoritos al volver a la actividad
+        loadFavorites();
     }
 }

@@ -1,8 +1,7 @@
 package com.refugio.pawrescue.ui.adapter;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
-import android.graphics.Color;
+import android.graphics.Color; // Se mantiene por si usas Color.BLACK en otro lado, pero no para el estado
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,10 +13,7 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.refugio.pawrescue.R;
-
-// 🔴 IMPORTANTE: Asegúrate de que este import coincida con donde guardaste tu clase
 import com.refugio.pawrescue.ui.publico.AdoptionRequest;
-
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
@@ -41,7 +37,6 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.ViewHold
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Usamos el layout item_request_card que creamos
         View view = LayoutInflater.from(context).inflate(R.layout.item_request_card, parent, false);
         return new ViewHolder(view);
     }
@@ -50,25 +45,20 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         AdoptionRequest req = requests.get(position);
 
-        // 1. Nombre
         holder.tvAnimalName.setText(req.getAnimalNombre() != null ? req.getAnimalNombre() : "Mascota");
 
-        // 2. Raza
         if (req.getAnimalRaza() != null) {
             holder.tvBreed.setText(req.getAnimalRaza());
         } else {
             holder.tvBreed.setText("Raza no especificada");
         }
 
-        // 3. Folio (CORRECCIÓN DEL ERROR AQUÍ)
-        // Usamos una lógica más segura para evitar NullPointerException
         String idStr = req.getId();
         String folioText = req.getFolio();
 
         if (folioText != null && !folioText.isEmpty()) {
             holder.tvFolio.setText(folioText);
         } else {
-            // Si no hay folio, usamos el ID. Verificamos que el ID no sea null y tenga longitud suficiente
             if (idStr != null && idStr.length() >= 8) {
                 holder.tvFolio.setText("ID: " + idStr.substring(0, 8));
             } else {
@@ -76,7 +66,6 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.ViewHold
             }
         }
 
-        // 4. Fecha
         if (req.getFechaSolicitud() != null) {
             SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
             holder.tvDate.setText(sdf.format(req.getFechaSolicitud()));
@@ -84,17 +73,15 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.ViewHold
             holder.tvDate.setText("Fecha pendiente");
         }
 
-        // 5. Foto
         if (req.getAnimalFotoUrl() != null && !req.getAnimalFotoUrl().isEmpty()) {
             Glide.with(context).load(req.getAnimalFotoUrl()).into(holder.ivAnimalPhoto);
         } else {
             holder.ivAnimalPhoto.setImageResource(R.drawable.ic_pet_placeholder);
         }
 
-        // 6. Estado
+        // Configuración de estado (Solo texto, colores vienen del XML)
         configureStatus(holder, req.getEstado());
 
-        // 7. Cita
         if (req.getCitaAgendada() != null) {
             holder.appointmentCard.setVisibility(View.VISIBLE);
             holder.tvAppointmentInfo.setText("Cita: " + req.getCitaAgendada().getFechaHoraFormateada());
@@ -102,7 +89,6 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.ViewHold
             holder.appointmentCard.setVisibility(View.GONE);
         }
 
-        // Clics
         holder.btnVerDetalles.setOnClickListener(v -> listener.onRequestClick(req));
         holder.itemView.setOnClickListener(v -> listener.onRequestClick(req));
     }
@@ -110,34 +96,30 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.ViewHold
     private void configureStatus(ViewHolder holder, String estadoRaw) {
         String estado = estadoRaw != null ? estadoRaw.toLowerCase() : "pendiente";
         String textoEstado;
-        int colorIcon;
 
+        // Definimos SOLO el texto según el estado
         switch (estado) {
             case "aprobada":
                 textoEstado = "Aprobada";
-                colorIcon = Color.parseColor("#4CAF50"); // Verde
                 break;
             case "rechazada":
                 textoEstado = "No Aprobada";
-                colorIcon = Color.parseColor("#F44336"); // Rojo
                 break;
             case "cita_agendada":
                 textoEstado = "Cita Agendada";
-                colorIcon = Color.parseColor("#9C27B0"); // Morado
                 break;
             case "en_revision":
                 textoEstado = "En Revisión";
-                colorIcon = Color.parseColor("#2196F3"); // Azul
                 break;
             default:
                 textoEstado = "Pendiente";
-                colorIcon = Color.parseColor("#FF9800"); // Naranja
                 break;
         }
 
         holder.tvStatus.setText(textoEstado);
-        holder.tvStatus.setTextColor(colorIcon);
-        holder.ivStatusIcon.setColorFilter(colorIcon);
+
+        // 🧹 LIMPIEZA: Eliminamos setCardBackgroundColor, setTextColor y setColorFilter
+        // Ahora el XML manda y asegura que sea Naranja con texto Negro.
     }
 
     @Override
@@ -148,7 +130,7 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.ViewHold
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView ivAnimalPhoto, ivStatusIcon;
         TextView tvAnimalName, tvBreed, tvFolio, tvDate, tvStatus, tvAppointmentInfo;
-        MaterialCardView appointmentCard;
+        MaterialCardView appointmentCard, statusBadge;
         MaterialButton btnVerDetalles;
 
         public ViewHolder(@NonNull View itemView) {
@@ -161,6 +143,7 @@ public class RequestAdapter extends RecyclerView.Adapter<RequestAdapter.ViewHold
             ivStatusIcon = itemView.findViewById(R.id.ivStatusIcon);
             tvStatus = itemView.findViewById(R.id.tvStatus);
             appointmentCard = itemView.findViewById(R.id.appointmentCard);
+            statusBadge = itemView.findViewById(R.id.statusBadge);
             tvAppointmentInfo = itemView.findViewById(R.id.tvAppointmentInfo);
             btnVerDetalles = itemView.findViewById(R.id.btnVerDetalles);
         }
