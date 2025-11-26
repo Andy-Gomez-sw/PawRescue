@@ -93,72 +93,50 @@ public class CitasAdopcionActivity extends AppCompatActivity implements CitasAda
                         if (solicitud != null) {
                             solicitud.setIdSolicitud(doc.getId());
 
-                            // 🔴 PARCHE MEJORADO: Lectura robusta de campos
-                            // Solo aplicamos el parche si el campo está vacío en el objeto
-
-                            // 1. Nombre del Animal
+                            // 🔹 PARCHE: Leer campos manualmente si Firestore falló
                             if (solicitud.getNombreAnimal() == null) {
-                                String animalNombre = doc.getString("animalNombre");
-                                if (animalNombre != null) {
-                                    solicitud.setNombreAnimal(animalNombre);
-                                }
+                                String nombre = doc.getString("animalNombre");
+                                if (nombre != null) solicitud.setNombreAnimal(nombre);
                             }
 
-                            // 2. Estado
-                            if (solicitud.getEstadoSolicitud() == null) {
-                                String estado = doc.getString("estado");
-                                if (estado == null) {
-                                    estado = doc.getString("estadoSolicitud");
-                                }
-                                if (estado != null) {
-                                    solicitud.setEstadoSolicitud(estado);
-                                }
-                            }
-
-                            // 3. ID del Animal
                             if (solicitud.getIdAnimal() == null) {
-                                String animalId = doc.getString("animalId");
-                                if (animalId != null) {
-                                    solicitud.setIdAnimal(animalId);
-                                }
+                                String id = doc.getString("animalId");
+                                if (id != null) solicitud.setIdAnimal(id);
                             }
 
-                            // 4. Nombre completo del adoptante
                             if (solicitud.getNombreCompleto() == null) {
-                                String nombreCompleto = doc.getString("nombreCompleto");
-                                if (nombreCompleto != null) {
-                                    solicitud.setNombreCompleto(nombreCompleto);
-                                }
+                                String nombre = doc.getString("nombreCompleto");
+                                if (nombre != null) solicitud.setNombreCompleto(nombre);
                             }
 
-                            // 5. Teléfono
                             if (solicitud.getTelefono() == null) {
-                                String telefono = doc.getString("telefono");
-                                if (telefono != null) {
-                                    solicitud.setTelefono(telefono);
-                                }
+                                String tel = doc.getString("telefono");
+                                if (tel != null) solicitud.setTelefono(tel);
                             }
 
-                            // 6. Email
                             if (solicitud.getEmail() == null) {
                                 String email = doc.getString("email");
-                                if (email != null) {
-                                    solicitud.setEmail(email);
-                                }
+                                if (email != null) solicitud.setEmail(email);
+                            }
+
+                            if (solicitud.getEstadoSolicitud() == null) {
+                                String estado = doc.getString("estado");
+                                if (estado == null) estado = doc.getString("estadoSolicitud");
+                                if (estado != null) solicitud.setEstadoSolicitud(estado);
                             }
 
                             listaMix.add(solicitud);
 
-                            // Log para debug
-                            Log.d(TAG, String.format("Solicitud cargada - ID: %s, Animal: %s, Estado: %s, Adoptante: %s",
+                            // 🔹 LOG para debug
+                            Log.d(TAG, String.format("✅ Solicitud: ID=%s | Animal=%s | Adoptante=%s | Tel=%s",
                                     solicitud.getIdSolicitud(),
                                     solicitud.getNombreAnimal(),
-                                    solicitud.getEstadoSolicitud(),
-                                    solicitud.getNombreAdoptante()
+                                    solicitud.getNombreAdoptante(),
+                                    solicitud.getTelefonoAdoptante()
                             ));
                         }
                     } catch (Exception ex) {
-                        Log.w(TAG, "Error leyendo solicitud: " + doc.getId(), ex);
+                        Log.w(TAG, "Error parseando solicitud: " + doc.getId(), ex);
                     }
                 }
 
@@ -171,7 +149,7 @@ public class CitasAdopcionActivity extends AppCompatActivity implements CitasAda
                 } else {
                     tvEmpty.setVisibility(View.GONE);
                     recyclerView.setVisibility(View.VISIBLE);
-                    Log.d(TAG, "Total de solicitudes cargadas: " + listaMix.size());
+                    Log.d(TAG, "📊 Total solicitudes: " + listaMix.size());
                 }
             }
         });
