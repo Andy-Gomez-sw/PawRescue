@@ -63,8 +63,10 @@ public class SolicitudAdopcion implements Serializable {
     private String folio;
     private Date fechaSolicitud;
     private Date fechaCita;
-    private String citaId;
-    private String reporteId;
+
+    // NUEVOS CAMPOS DE REFERENCIA
+    private String citaId;    // <--- CITA ASIGNADA (contiene voluntarioId)
+    private String reporteId; // <--- REPORTE FINAL DEL VOLUNTARIO (contiene las observaciones)
 
     // Constructor vacío para Firestore
     public SolicitudAdopcion() {}
@@ -144,10 +146,10 @@ public class SolicitudAdopcion implements Serializable {
     public void setFechaCita(Date fechaCita) { this.fechaCita = fechaCita; }
 
     public String getCitaId() { return citaId; }
-    public void setCitaId(String citaId) { this.citaId = citaId; }
+    public void setCitaId(String citaId) { this.citaId = citaId; } // <--- NUEVO
 
     public String getReporteId() { return reporteId; }
-    public void setReporteId(String reporteId) { this.reporteId = reporteId; }
+    public void setReporteId(String reporteId) { this.reporteId = reporteId; } // <--- NUEVO
 
     // =========================================================
     // MÉTODOS HELPER PARA EL ADAPTER

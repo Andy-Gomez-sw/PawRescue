@@ -1,15 +1,16 @@
 package com.refugio.pawrescue.ui.admin.tabs;
 
 import android.app.AlertDialog;
-import android.app.DatePickerDialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,17 +20,16 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.refugio.pawrescue.R;
 import com.refugio.pawrescue.model.SolicitudAdopcion;
+import com.refugio.pawrescue.model.Usuario; // <-- Importación necesaria del modelo Usuario
 import com.refugio.pawrescue.ui.adapter.SolicitudAdopcionAdapter;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -49,6 +49,12 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
     private FirebaseFirestore db;
     private ListenerRegistration listenerRegistration;
 
+    // 🔴 REEMPLAZO DE MOCK: Listas para almacenar Voluntarios reales cargados de Firestore
+    private List<Usuario> voluntariosDisponibles = new ArrayList<>();
+    private Map<String, String> voluntariosMap = new HashMap<>(); // UID -> Nombre Completo
+
+    // Eliminamos VOLUNTARIOS_MOCK, ya no se usa.
+
     public static AdoptionFragment newInstance(String animalId) {
         AdoptionFragment fragment = new AdoptionFragment();
         Bundle args = new Bundle();
@@ -64,12 +70,14 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
             animalId = getArguments().getString(ARG_ANIMAL_ID);
         }
         db = FirebaseFirestore.getInstance();
+
+        // 🚨 Llamada para cargar los voluntarios al iniciar
+        cargarVoluntariosDisponibles();
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Usamos el layout que ya tienes (fragment_adoption)
         View view = inflater.inflate(R.layout.fragment_adoption, container, false);
 
         recyclerView = view.findViewById(R.id.recycler_solicitudes);
@@ -82,7 +90,6 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
         }
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        // Inicializamos el adaptador pasando 'this' como listener
         adapter = new SolicitudAdopcionAdapter(getContext(), new ArrayList<>(), this);
         recyclerView.setAdapter(adapter);
 
@@ -90,6 +97,38 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
 
         return view;
     }
+
+    /**
+     * 🔴 NUEVO MÉTODO: Carga los usuarios con rol "voluntario" en segundo plano.
+     */
+    private void cargarVoluntariosDisponibles() {
+        if (db == null) return;
+
+        db.collection("usuarios")
+                .whereEqualTo("rol", "voluntario")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    voluntariosDisponibles.clear();
+                    voluntariosMap.clear();
+
+                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        try {
+                            Usuario usuario = doc.toObject(Usuario.class);
+                            if (usuario != null) {
+                                usuario.setUid(doc.getId()); // Asumiendo que el UID es el ID del documento
+                                voluntariosDisponibles.add(usuario);
+                                voluntariosMap.put(usuario.getUid(), usuario.getNombre());
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error al parsear documento de usuario: " + doc.getId(), e);
+                        }
+                    }
+                    Log.d(TAG, "Voluntarios cargados: " + voluntariosDisponibles.size());
+
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Error cargando voluntarios: ", e));
+    }
+
 
     private void cargarSolicitudes() {
         if (animalId == null) {
@@ -103,7 +142,6 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
         progressBar.setVisibility(View.VISIBLE);
         if(tvEmpty != null) tvEmpty.setVisibility(View.GONE);
 
-        // Consulta a la colección correcta "solicitudes_adopcion"
         Query query = db.collection("solicitudes_adopcion")
                 .whereEqualTo("animalId", animalId)
                 .orderBy("fechaSolicitud", Query.Direction.DESCENDING);
@@ -128,16 +166,19 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
                         if (sol != null) {
                             sol.setIdSolicitud(doc.getId());
 
-                            // --- PARCHE DE COMPATIBILIDAD (Lectura segura) ---
-                            // Si falta el nombre, lo buscamos manualmente
+                            // --- PARCHES DE COMPATIBILIDAD (Lectura segura de campos) ---
+                            if (sol.getCitaId() == null && doc.contains("citaId")) {
+                                sol.setCitaId(doc.getString("citaId"));
+                            }
+                            if (sol.getReporteId() == null && doc.contains("reporteId")) {
+                                sol.setReporteId(doc.getString("reporteId"));
+                            }
                             if ((sol.getNombreAdoptante() == null || sol.getNombreAdoptante().equals("Usuario Desconocido")) && doc.contains("nombreCompleto")) {
                                 sol.setNombreCompleto(doc.getString("nombreCompleto"));
                             }
-                            // Si falta el teléfono
                             if ((sol.getTelefonoAdoptante() == null || sol.getTelefonoAdoptante().equals("Sin teléfono")) && doc.contains("telefono")) {
                                 sol.setTelefono(doc.getString("telefono"));
                             }
-                            // Si falta el estado
                             if (sol.getEstado() == null && doc.contains("estado")) {
                                 sol.setEstado(doc.getString("estado"));
                             }
@@ -163,98 +204,247 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
         });
     }
 
-    // --- INTERFAZ: Cuando tocas una tarjeta ---
+    // ========================================================================
+    // --- LÓGICA CENTRAL DE GESTIÓN EN DIÁLOGO ---
+    // ========================================================================
+
     @Override
     public void onSolicitudClick(SolicitudAdopcion solicitud) {
-        // Menú simple
-        String[] opciones = {"📅 Agendar Cita", "✅ Aprobar / ❌ Rechazar"};
-
-        new AlertDialog.Builder(getContext())
-                .setTitle("Gestionar Solicitud")
-                .setItems(opciones, (dialog, which) -> {
-                    if (which == 0) {
-                        mostrarDialogoCita(solicitud);
-                    } else {
-                        mostrarDialogoResultadoSinXML(solicitud);
-                    }
-                })
-                .show();
+        mostrarDialogoGestionCompleta(solicitud);
     }
 
-    // --- Lógica de Cita (DatePicker simple) ---
-    private void mostrarDialogoCita(SolicitudAdopcion solicitud) {
-        final Calendar c = Calendar.getInstance();
-        DatePickerDialog datePicker = new DatePickerDialog(getContext(),
-                (view, year, month, dayOfMonth) -> {
-                    c.set(year, month, dayOfMonth);
-                    // Actualizamos estado a "cita_agendada"
-                    actualizarEstadoSolicitud(solicitud, "cita_agendada", new Timestamp(c.getTime()));
-                },
-                c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
+    /**
+     * Muestra un diálogo unificado para ver detalles completos, asignar voluntario
+     * y aprobar/rechazar la solicitud, dependiendo del estado actual.
+     */
+    private void mostrarDialogoGestionCompleta(SolicitudAdopcion solicitud) {
+        if (getContext() == null) return;
 
-        datePicker.setTitle("Fecha de la Cita");
-        datePicker.show();
-    }
-
-    // --- Lógica de Resultado (SIN XML EXTRA) ---
-    private void mostrarDialogoResultadoSinXML(SolicitudAdopcion solicitud) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setTitle("Dictamen Final");
-        builder.setMessage("¿Deseas aprobar o rechazar esta solicitud?");
+        builder.setTitle("Gestión de Solicitud: " + solicitud.getNombreAnimal());
 
-        // Creamos un campo de texto programáticamente
-        final EditText input = new EditText(getContext());
-        input.setHint("Comentarios opcionales...");
+        LinearLayout layout = buildDialogLayout(getContext(), solicitud);
+        builder.setView(layout);
 
-        // Le damos un poco de margen al EditText
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-        input.setLayoutParams(lp);
+        String estadoActual = solicitud.getEstado() != null ? solicitud.getEstado() : "pendiente";
 
-        // Contenedor para margenes
-        LinearLayout container = new LinearLayout(getContext());
-        container.setPadding(50, 20, 50, 20);
-        container.addView(input);
+        // --- Lógica condicional para botones ---
 
-        builder.setView(container);
+        if (solicitud.getCitaId() == null) {
+            // FASE 1: ASIGNACIÓN DE VOLUNTARIO (Crea la Cita)
 
-        // Botón APROBAR (Positivo)
-        builder.setPositiveButton("APROBAR", (dialog, which) -> {
-            actualizarEstadoSolicitud(solicitud, "aprobada", null);
-            marcarAnimalAdoptado(); // Cambia el estado del animal
-        });
+            final Spinner spVoluntario = layout.findViewWithTag("spVoluntario");
 
-        // Botón RECHAZAR (Negativo)
-        builder.setNegativeButton("RECHAZAR", (dialog, which) -> {
-            actualizarEstadoSolicitud(solicitud, "rechazada", null);
-        });
+            builder.setPositiveButton("ASIGNAR VOLUNTARIO", (dialog, which) -> {
+                String selectedName = (String) spVoluntario.getSelectedItem();
 
-        // Botón CANCELAR (Neutral)
-        builder.setNeutralButton("Cancelar", null);
+                String selectedVolunteerId = null;
+                // 🔴 Búsqueda del ID real
+                for (Map.Entry<String, String> entry : voluntariosMap.entrySet()) {
+                    if (entry.getValue().equals(selectedName)) {
+                        selectedVolunteerId = entry.getKey();
+                        break;
+                    }
+                }
+
+                if (selectedVolunteerId != null) {
+                    // Acción: Crear la cita y actualizar solicitud con citaId
+                    crearCitaYAsignar(solicitud, selectedVolunteerId);
+                } else {
+                    Toast.makeText(getContext(), "Seleccione un voluntario válido.", Toast.LENGTH_SHORT).show();
+                }
+            });
+            builder.setNegativeButton("Cancelar", null);
+
+        } else if (solicitud.getCitaId() != null && solicitud.getReporteId() == null) {
+            // FASE 2: EN ESPERA DE REPORTE
+            builder.setNeutralButton("Cerrar", null);
+
+        } else if (solicitud.getReporteId() != null) {
+            // FASE 3: DECISIÓN FINAL DEL ADMIN (Existe Reporte)
+
+            // Simulación de carga de reporte (en app real, deberías usar reporteId para cargar Seguimiento.java)
+            TextView tvReporte = new TextView(getContext());
+            tvReporte.setText("\n--- REPORTE DEL VOLUNTARIO (" + solicitud.getReporteId() + ") ---");
+            tvReporte.setTypeface(null, android.graphics.Typeface.BOLD);
+            layout.addView(tvReporte);
+
+            addTextViewToLayout(layout, "Comentario:", "Reporte simulado: El adoptante parece responsable y apto. Recomiendo la adopción.");
+
+            builder.setPositiveButton("APROBAR ADOPCIÓN", (dialog, which) -> {
+                actualizarEstadoFinal(solicitud, "Aprobada");
+                marcarAnimalAdoptado();
+            });
+            builder.setNegativeButton("RECHAZAR ADOPCIÓN", (dialog, which) -> {
+                actualizarEstadoFinal(solicitud, "Rechazada");
+            });
+
+        } else {
+            // Estado por defecto (e.g., Voluntario asignado sin reporte aún)
+            builder.setNeutralButton("Cerrar", null);
+        }
 
         builder.show();
     }
 
-    private void actualizarEstadoSolicitud(SolicitudAdopcion solicitud, String nuevoEstado, @Nullable Timestamp fechaCita) {
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("estado", nuevoEstado); // Para la app pública
-        updates.put("estadoSolicitud", nuevoEstado); // Para compatibilidad admin
-
-        if (fechaCita != null) {
-            updates.put("fechaCita", fechaCita);
+    /**
+     * Lógica para simular la creación de la Cita en Firestore
+     * y actualizar la Solicitud con el citaId generado.
+     */
+    private void crearCitaYAsignar(SolicitudAdopcion solicitud, String voluntarioId) {
+        if (solicitud.getFechaCita() == null) {
+            Toast.makeText(getContext(), "Error: La solicitud no tiene fecha de cita agendada.", Toast.LENGTH_LONG).show();
+            return;
         }
+
+        // 1. CREAR EL DOCUMENTO DE CITA (Simulado - Colección 'citas')
+        Map<String, Object> citaData = new HashMap<>();
+        citaData.put("solicitudId", solicitud.getIdSolicitud());
+        citaData.put("animalId", solicitud.getIdAnimal());
+        citaData.put("voluntarioId", voluntarioId); // ID del voluntario real
+        citaData.put("fechaCita", solicitud.getFechaCita());
+
+        db.collection("citas")
+                .add(citaData)
+                .addOnSuccessListener(documentReference -> {
+                    String newCitaId = documentReference.getId();
+
+                    // 2. ACTUALIZAR LA SOLICITUD con el ID de la Cita
+                    Map<String, Object> updates = new HashMap<>();
+                    updates.put("citaId", newCitaId);
+                    updates.put("estado", "Voluntario asignado");
+                    updates.put("estadoSolicitud", "Voluntario asignado");
+
+                    // Usar el nombre del voluntario para el Toast de confirmación
+                    String nombreVoluntario = voluntariosMap.getOrDefault(voluntarioId, "Voluntario Desconocido");
+
+                    db.collection("solicitudes_adopcion").document(solicitud.getIdSolicitud())
+                            .update(updates)
+                            .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Cita asignada a: " + nombreVoluntario, Toast.LENGTH_LONG).show())
+                            .addOnFailureListener(e -> Toast.makeText(getContext(), "Error al actualizar solicitud: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                })
+                .addOnFailureListener(e -> Toast.makeText(getContext(), "Error al crear la cita: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    /**
+     * Centraliza la actualización de estado final (Aprobada/Rechazada) en la base de datos.
+     */
+    private void actualizarEstadoFinal(SolicitudAdopcion solicitud, String nuevoEstado) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("estado", nuevoEstado);
+        updates.put("estadoSolicitud", nuevoEstado);
 
         db.collection("solicitudes_adopcion").document(solicitud.getIdSolicitud())
                 .update(updates)
-                .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Estado actualizado a: " + nuevoEstado, Toast.LENGTH_SHORT).show())
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Error al actualizar", Toast.LENGTH_SHORT).show());
+                .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Dictamen final: " + nuevoEstado, Toast.LENGTH_LONG).show())
+                .addOnFailureListener(e -> Toast.makeText(getContext(), "Error al actualizar: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    /**
+     * Construye el Layout del diálogo con todos los detalles de la solicitud.
+     * 🔴 MODIFICADO para usar la lista REAL de voluntarios en el Spinner.
+     */
+    private LinearLayout buildDialogLayout(Context context, SolicitudAdopcion solicitud) {
+        LinearLayout layout = new LinearLayout(context);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 20, 50, 20);
+
+        // --- 1. DETALLES ESENCIALES ---
+        TextView tvTitulo = new TextView(context);
+        tvTitulo.setText("DETALLES DE LA SOLICITUD (" + solicitud.getFolio() + ")");
+        tvTitulo.setTextSize(16);
+        tvTitulo.setTypeface(null, android.graphics.Typeface.BOLD);
+        layout.addView(tvTitulo);
+
+        // ... (Mostrar campos principales) ...
+        addTextViewToLayout(layout, "Adoptante:", solicitud.getNombreCompleto());
+        addTextViewToLayout(layout, "Teléfono:", solicitud.getTelefono());
+        addTextViewToLayout(layout, "Email:", solicitud.getEmail());
+        addTextViewToLayout(layout, "Dirección:", solicitud.getDireccion());
+        addTextViewToLayout(layout, "Tipo Vivienda:", solicitud.getTipoVivienda());
+
+        String fechaCitaStr = solicitud.getFechaCita() != null ?
+                new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(solicitud.getFechaCita()) :
+                "PENDIENTE DE AGENDAR";
+        addTextViewToLayout(layout, "Fecha Cita Agendada:", fechaCitaStr);
+        addTextViewToLayout(layout, "Estado:", solicitud.getEstado());
+
+        String citaInfo = solicitud.getCitaId() != null ? "ID Cita: " + solicitud.getCitaId() : "Ninguna";
+        addTextViewToLayout(layout, "Cita Asignada:", citaInfo);
+
+        String reporteInfo = solicitud.getReporteId() != null ? "ID Reporte: " + solicitud.getReporteId() : "Ninguno";
+        addTextViewToLayout(layout, "Reporte Final:", reporteInfo);
+
+
+        // --- 2. DETALLES DE MAPS (Mapear claves/valores) ---
+        addTextViewToLayout(layout, "\n--- DATOS DEL FORMULARIO DETALLADOS ---", "");
+        displayMapData(layout, "Familia:", solicitud.getDatosFamilia());
+        displayMapData(layout, "Experiencia:", solicitud.getDatosExperiencia());
+        displayMapData(layout, "Compromiso:", solicitud.getDatosCompromiso());
+
+        // --- 3. SELECTOR DE VOLUNTARIO (Condicional si no hay cita) ---
+        if (solicitud.getCitaId() == null) {
+            TextView tvAsignar = new TextView(context);
+            tvAsignar.setText("\nSeleccione el Voluntario para esta Cita:");
+            tvAsignar.setTypeface(null, android.graphics.Typeface.BOLD);
+            layout.addView(tvAsignar);
+
+            Spinner spVoluntario = new Spinner(context);
+            spVoluntario.setTag("spVoluntario");
+
+            // 🔴 Llenar el Spinner con NOMBRES REALES
+            List<String> volunteerNames = new ArrayList<>();
+            for (Usuario vol : voluntariosDisponibles) {
+                volunteerNames.add(vol.getNombre());
+            }
+
+            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
+                    context,
+                    android.R.layout.simple_spinner_item,
+                    volunteerNames
+            );
+            spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spVoluntario.setAdapter(spinnerAdapter);
+
+            layout.addView(spVoluntario);
+        }
+
+        return layout;
+    }
+
+    /**
+     * Helper para mostrar los datos de los Map<String, Object>
+     */
+    private void displayMapData(LinearLayout layout, String sectionTitle, Map<String, Object> data) {
+        if (data != null && !data.isEmpty()) {
+            TextView tvTitle = new TextView(getContext());
+            tvTitle.setText(sectionTitle);
+            tvTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+            layout.addView(tvTitle);
+
+            for (Map.Entry<String, Object> entry : data.entrySet()) {
+                addTextViewToLayout(layout, "  - " + entry.getKey() + ":", String.valueOf(entry.getValue()));
+            }
+        }
+    }
+
+    private void addTextViewToLayout(LinearLayout layout, String label, String value) {
+        TextView tv = new TextView(getContext());
+        if (value.isEmpty()) {
+            tv.setText(label);
+        } else {
+            tv.setText(label + " " + (value != null ? value : "-"));
+        }
+        layout.addView(tv);
     }
 
     private void marcarAnimalAdoptado() {
-        db.collection("animales").document(animalId)
-                .update("estadoRefugio", "Adoptado")
-                .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "¡El animal ha sido marcado como ADOPTADO!", Toast.LENGTH_LONG).show());
+        if (animalId != null) {
+            db.collection("animales").document(animalId)
+                    .update("estadoRefugio", "Adoptado")
+                    .addOnSuccessListener(aVoid -> Log.d(TAG, "Animal marcado como ADOPTADO"))
+                    .addOnFailureListener(e -> Log.e(TAG, "Error al marcar animal como adoptado: ", e));
+        }
     }
 
     @Override
