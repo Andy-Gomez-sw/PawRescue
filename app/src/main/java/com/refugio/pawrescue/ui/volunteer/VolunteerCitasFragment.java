@@ -108,7 +108,7 @@ public class VolunteerCitasFragment extends Fragment implements CitasAdapter.OnC
         // OJO: Aquí filtrabas por "Aprobada", pero usualmente las citas son "cita_agendada".
         // Si no te salen datos, intenta cambiar "Aprobada" por "cita_agendada".
         Query query = db.collection("solicitudes_adopcion")
-                .whereEqualTo("idAnimal", animalId);
+                .whereEqualTo("animalId", animalId);
         // .whereEqualTo("estadoSolicitud", "cita_agendada"); // Descomenta si quieres filtrar estado
 
         listenerRegistration = query.addSnapshotListener((snapshots, e) -> {

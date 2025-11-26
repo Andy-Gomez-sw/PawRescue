@@ -130,7 +130,9 @@
                 android:value=".ui.volunteer.VolunteerMainActivity" />
         </activity>
         <activity android:name=".ui.volunteer.VolunteerCitaDetailActivity" />
-
+        <activity
+            android:name=".ui.volunteer.VolunteerAppointmentActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

@@ -14,115 +14,227 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize" />
+            android:layout_height="?attr/actionBarSize"
+            app:popupTheme="@style/ThemeOverlay.MaterialComponents.Light"
+            app:title="Detalle de cita" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="16dp"
+        android:fillViewport="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
 
+            <!-- Sección: Datos del adoptante -->
             <TextView
-                android:id="@+id/tv_label_adoptante"
-                android:layout_width="wrap_content"
+                android:id="@+id/tv_titulo_adoptante"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Adoptante"
+                android:text="Datos del adoptante"
                 android:textStyle="bold"
-                android:textSize="14sp"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
+                android:textSize="18sp"
+                android:paddingBottom="4dp" />
 
             <TextView
                 android:id="@+id/tv_adoptante"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:text="Nombre"
                 android:textSize="16sp"
-                app:layout_constraintTop_toBottomOf="@id/tv_label_adoptante"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                tools:text="Joshua García" />
-
-            <TextView
-                android:id="@+id/tv_label_correo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Correo"
-                android:textStyle="bold"
-                android:textSize="14sp"
-                app:layout_constraintTop_toBottomOf="@id/tv_adoptante"
-                app:layout_constraintStart_toStartOf="parent" />
+                tools:text="Juan Pérez" />
 
             <TextView
                 android:id="@+id/tv_correo"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
+                android:text="Correo"
                 android:textSize="16sp"
-                app:layout_constraintTop_toBottomOf="@id/tv_label_correo"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                tools:text="joshua@example.com" />
+                tools:text="correo@ejemplo.com" />
 
             <TextView
-                android:id="@+id/tv_label_fecha"
-                android:layout_width="wrap_content"
+                android:id="@+id/tv_telefono"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Teléfono"
+                android:textSize="16sp"
+                tools:text="55 1234 5678" />
+
+            <TextView
+                android:id="@+id/tv_direccion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Dirección"
+                android:textSize="16sp"
+                tools:text="Calle X, Col. Y, Ciudad Z" />
+
+            <TextView
+                android:id="@+id/tv_tipo_vivienda"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Tipo de vivienda"
+                android:textSize="16sp"
+                tools:text="Casa / Departamento" />
+
+            <TextView
+                android:id="@+id/tv_propiedad_vivienda"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Propiedad de la vivienda"
+                android:textSize="16sp"
+                tools:text="Propia / Rentada" />
+
+            <TextView
+                android:id="@+id/tv_fecha_nacimiento"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Fecha de nacimiento"
+                android:textSize="16sp"
+                tools:text="01/01/1990" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="16dp"
+                android:background="@android:color/darker_gray" />
+
+            <!-- Sección: Fechas y folio -->
+            <TextView
+                android:id="@+id/tv_titulo_solicitud"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Fecha de la cita"
+                android:text="Solicitud y cita"
                 android:textStyle="bold"
-                android:textSize="14sp"
-                app:layout_constraintTop_toBottomOf="@id/tv_correo"
-                app:layout_constraintStart_toStartOf="parent" />
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/tv_folio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Folio"
+                android:textSize="16sp"
+                tools:text="FOL-20251126-0001" />
+
+            <TextView
+                android:id="@+id/tv_fecha_solicitud"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Fecha de solicitud"
+                android:textSize="16sp"
+                tools:text="25/11/2025" />
 
             <TextView
                 android:id="@+id/tv_fecha"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
+                android:text="Fecha y hora de la cita"
                 android:textSize="16sp"
-                app:layout_constraintTop_toBottomOf="@id/tv_label_fecha"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                tools:text="24 nov 2025, 12:00" />
+                tools:text="26/11/2025 10:00" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="16dp"
+                android:background="@android:color/darker_gray" />
+
+            <!-- Sección: Resumen del formulario (los mapas) -->
+            <TextView
+                android:id="@+id/tv_titulo_formulario"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Respuestas del formulario"
+                android:textStyle="bold"
+                android:textSize="18sp" />
 
             <TextView
-                android:id="@+id/tv_label_estado"
-                android:layout_width="wrap_content"
+                android:id="@+id/tv_datos_personales"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Cambiar estado del animal"
-                android:textStyle="bold"
+                android:layout_marginTop="8dp"
+                android:text="Datos personales"
                 android:textSize="14sp"
-                app:layout_constraintTop_toBottomOf="@id/tv_fecha"
-                app:layout_constraintStart_toStartOf="parent" />
+                tools:text="• campo1: valor1&#10;• campo2: valor2" />
+
+            <TextView
+                android:id="@+id/tv_datos_familia"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Datos de la familia"
+                android:textSize="14sp"
+                tools:text="• campo1: valor1" />
+
+            <TextView
+                android:id="@+id/tv_datos_experiencia"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Experiencia con animales"
+                android:textSize="14sp"
+                tools:text="• campo1: valor1" />
+
+            <TextView
+                android:id="@+id/tv_datos_compromiso"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Compromiso"
+                android:textSize="14sp"
+                tools:text="• campo1: valor1" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="16dp"
+                android:background="@android:color/darker_gray" />
+
+            <!-- Sección: Estado y acciones del voluntario -->
+            <TextView
+                android:id="@+id/tv_label_estado"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Estado del animal en el refugio"
+                android:textStyle="bold"
+                android:textSize="16sp" />
 
             <Spinner
                 android:id="@+id/sp_estado"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                app:layout_constraintTop_toBottomOf="@id/tv_label_estado"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+                android:layout_marginTop="8dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_guardar_estado"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Guardar"
-                app:layout_constraintTop_toBottomOf="@id/sp_estado"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+                android:layout_marginTop="16dp"
+                android:text="Guardar estado" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_reporte_visita"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Llenar reporte de visita" />
+
+        </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
