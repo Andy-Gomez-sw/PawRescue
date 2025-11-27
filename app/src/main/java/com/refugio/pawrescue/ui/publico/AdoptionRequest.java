@@ -24,6 +24,11 @@ public class AdoptionRequest implements Serializable {
     // 🚨 CAMPO AÑADIDO PARA SOLUCIONAR EL ERROR DE COMPILACIÓN
     private String citaId;
 
+    // 🟢 NUEVOS CAMPOS PARA DOCUMENTOS
+    private String urlIneFrente;
+    private String urlIneReverso;
+    private String urlComprobante;
+
     // Constructor vacío requerido por Firestore
     public AdoptionRequest() {}
 
@@ -35,7 +40,33 @@ public class AdoptionRequest implements Serializable {
         this.fechaSolicitud = fechaSolicitud;
     }
 
-    // Getters y Setters
+    // 🟢 GETTERS Y SETTERS PARA DOCUMENTOS
+    public String getUrlIneFrente() {
+        return urlIneFrente;
+    }
+
+    public void setUrlIneFrente(String urlIneFrente) {
+        this.urlIneFrente = urlIneFrente;
+    }
+
+    public String getUrlIneReverso() {
+        return urlIneReverso;
+    }
+
+    public void setUrlIneReverso(String urlIneReverso) {
+        this.urlIneReverso = urlIneReverso;
+    }
+
+    public String getUrlComprobante() {
+        return urlComprobante;
+    }
+
+    public void setUrlComprobante(String urlComprobante) {
+        this.urlComprobante = urlComprobante;
+    }
+    // FIN GETTERS Y SETTERS DOCUMENTOS
+
+    // Getters y Setters existentes
     public String getId() {
         return id;
     }
@@ -161,6 +192,7 @@ public class AdoptionRequest implements Serializable {
 
     // Métodos helper
     public String getEstadoTexto() {
+        if (estado == null) return "Desconocido";
         switch (estado) {
             case "pendiente":
                 return "Pendiente";
@@ -178,6 +210,7 @@ public class AdoptionRequest implements Serializable {
     }
 
     public int getEstadoColor() {
+        if (estado == null) return R.color.gray_light;
         switch (estado) {
             case "pendiente":
                 return R.color.status_pending_bg;
@@ -195,6 +228,7 @@ public class AdoptionRequest implements Serializable {
     }
 
     public int getEstadoIcon() {
+        if (estado == null) return R.drawable.ic_help;
         switch (estado) {
             case "pendiente":
                 return R.drawable.ic_clock;

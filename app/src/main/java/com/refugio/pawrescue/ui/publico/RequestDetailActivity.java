@@ -4,8 +4,9 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log; // 🚨 Importación de Log
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -38,10 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Locale;
 
-
 public class RequestDetailActivity extends AppCompatActivity {
 
-    // 🚨 TAG para el Logcat
     private static final String TAG = "RequestDetailActivity";
 
     // Vistas
@@ -87,11 +86,16 @@ public class RequestDetailActivity extends AppCompatActivity {
             setupButtons();
 
             if (request != null) {
+                // Si viene el objeto serializado, lo usamos pero refrescamos datos críticos
                 displayRequestData();
                 loadTimeline();
                 loadDocuments();
                 loadCitaInfo();
                 listenToMessages();
+                // 🟢 Verificar imagen del animal por si falta
+                if (request.getAnimalFotoUrl() == null && request.getAnimalId() != null) {
+                    fetchAnimalImage(request.getAnimalId());
+                }
             } else {
                 loadRequestData();
             }
@@ -152,7 +156,8 @@ public class RequestDetailActivity extends AppCompatActivity {
         recyclerViewTimeline.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewTimeline.setAdapter(timelineAdapter);
 
-        documentAdapter = new DocumentAdapter(this, documents, this::onDocumentUploadClick);
+        // 🟢 Cambiamos el listener para abrir documentos
+        documentAdapter = new DocumentAdapter(this, documents, this::onDocumentClick);
         recyclerViewDocuments.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewDocuments.setAdapter(documentAdapter);
 
@@ -177,15 +182,9 @@ public class RequestDetailActivity extends AppCompatActivity {
                         if (request != null) {
                             request.setId(documentSnapshot.getId());
 
-                            // Mapear campos faltantes que no se mapean automáticamente
-                            if (documentSnapshot.contains("fechaEntrega")) {
-                                request.setFechaEntrega(documentSnapshot.getDate("fechaEntrega"));
-                            }
-                            if (documentSnapshot.contains("voluntarioId")) {
-                                request.setVoluntarioId(documentSnapshot.getString("voluntarioId"));
-                            }
-                            if (documentSnapshot.contains("citaId")) {
-                                request.setCitaId(documentSnapshot.getString("citaId"));
+                            // Si la foto no vino en el objeto principal, intentamos buscarla en la BD de animales
+                            if (request.getAnimalFotoUrl() == null && request.getAnimalId() != null) {
+                                fetchAnimalImage(request.getAnimalId());
                             }
 
                             displayRequestData();
@@ -201,31 +200,48 @@ public class RequestDetailActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * 🟢 NUEVO: Busca la imagen del animal si no está en la solicitud
+     */
+    private void fetchAnimalImage(String animalId) {
+        db.collection("animales").document(animalId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String fotoUrl = doc.getString("imageUrl"); // O "fotoUrl" según tu modelo Animal
+                        if (fotoUrl == null) fotoUrl = doc.getString("fotoUrl");
+
+                        if (fotoUrl != null && !isDestroyed()) {
+                            request.setAnimalFotoUrl(fotoUrl); // Actualizar localmente
+                            Glide.with(this).load(fotoUrl).into(ivAnimalPhoto);
+                        }
+                    }
+                });
+    }
+
     private void displayRequestData() {
         if (request == null) return;
 
-        String estado = request.getEstado();
-
+        // Cargar imagen si ya la tenemos
         if (request.getAnimalFotoUrl() != null) {
-            Glide.with(this).load(request.getAnimalFotoUrl()).into(ivAnimalPhoto);
+            Glide.with(this).load(request.getAnimalFotoUrl()).placeholder(R.drawable.ic_pet_placeholder).into(ivAnimalPhoto);
         }
+
         tvAnimalName.setText(request.getAnimalNombre());
-        tvAnimalDetails.setText(request.getAnimalRaza());
+        tvAnimalDetails.setText(request.getAnimalRaza() != null ? request.getAnimalRaza() : "Raza desconocida");
         tvFolio.setText("#" + (request.getFolio() != null ? request.getFolio() : solicitudId.substring(0,8)));
         tvCurrentStatus.setText(request.getEstadoTexto());
         ivStatusIcon.setImageResource(request.getEstadoIcon());
 
-        // MOSTRAR FECHA DE ENTREGA SI ESTÁ APROBADA
+        // Configuración para estado Aprobado
+        String estado = request.getEstado();
         if (estado != null && (estado.equalsIgnoreCase("aprobada") || estado.equalsIgnoreCase("adoptado"))) {
             if (request.getFechaEntrega() != null) {
                 SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy, HH:mm", new Locale("es", "MX"));
                 String fechaEntregaStr = sdf.format(request.getFechaEntrega());
-                tvAnimalDetails.setText(request.getAnimalRaza() + " - Entrega Agendada: " + fechaEntregaStr);
+                tvAnimalDetails.setText(request.getAnimalRaza() + " - Entrega: " + fechaEntregaStr);
             }
-
-            // LÓGICA DEL BOTÓN DE SEGUIMIENTO
             btnSeguimiento.setVisibility(View.VISIBLE);
-
             btnSeguimiento.setOnClickListener(v -> {
                 Intent intent = new Intent(RequestDetailActivity.this, PostAdoptionActivity.class);
                 intent.putExtra("ANIMAL_ID", request.getAnimalId());
@@ -233,10 +249,7 @@ public class RequestDetailActivity extends AppCompatActivity {
                 intent.putExtra("SOLICITUD_ID", request.getId());
                 startActivity(intent);
             });
-
         } else {
-            // Si no está aprobada, mostrar detalles normales
-            tvAnimalDetails.setText(request.getAnimalRaza());
             btnSeguimiento.setVisibility(View.GONE);
         }
     }
@@ -245,53 +258,79 @@ public class RequestDetailActivity extends AppCompatActivity {
         timelineSteps.clear();
         if (request == null) return;
 
-        // Paso 1: Solicitud Recibida (Siempre completada)
+        // Paso 1: Solicitud Recibida
         timelineSteps.add(new TimelineStep("Solicitud Recibida", request.getFechaFormateada(), "completed", "Solicitud registrada", null));
 
         String estado = request.getEstado();
-
         if (estado != null) {
-
             if (estado.equalsIgnoreCase("aprobada") || estado.equalsIgnoreCase("adoptado")) {
-                // Estado 3: APROBADA (Final)
-
-                // Paso 2: Revisión de Visita (Finalizado)
                 timelineSteps.add(new TimelineStep("Revisión de Visita", "Finalizada", "completed", "Reporte de visita completado.", null));
-
-                // Paso 3: Aprobación y Entrega (Final)
                 String dateText = request.getFechaEntrega() != null
                         ? new SimpleDateFormat("dd/MM/yyyy HH:mm").format(request.getFechaEntrega())
                         : "Fecha Pendiente";
-
-                timelineSteps.add(new TimelineStep("Entrega Agendada", dateText, "completed", "¡Felicidades! Adopción aprobada. Recoger el animal en la fecha indicada.", null));
-
+                timelineSteps.add(new TimelineStep("Entrega Agendada", dateText, "completed", "¡Felicidades! Adopción aprobada.", null));
             } else if (estado.equalsIgnoreCase("rechazada")) {
-                // Estado: RECHAZADA
-                timelineSteps.add(new TimelineStep("Revisión de Visita", "Finalizada", "error", "La solicitud fue rechazada por el administrador.", null));
-
+                timelineSteps.add(new TimelineStep("Revisión de Visita", "Finalizada", "error", "Solicitud rechazada.", null));
             } else if (request.getVoluntarioId() != null) {
-                // Estado 2: EN REVISIÓN (Cita asignada y pendiente de reporte)
-                timelineSteps.add(new TimelineStep("Revisión de Visita", "En proceso", "current", "El voluntario revisará tu perfil y domicilio.", null));
-
-            } else if (request.getCitaId() != null) {
-                // Estado 1.5: Cita Agendada
+                timelineSteps.add(new TimelineStep("Revisión de Visita", "En proceso", "current", "El voluntario revisará tu perfil.", null));
+            } else if (request.getCitaId() != null || "cita_agendada".equals(estado)) {
                 timelineSteps.add(new TimelineStep("Revisión de Visita", "Cita Agendada", "current", "Esperando la asignación de voluntario.", null));
-
             } else if (!estado.equalsIgnoreCase("pendiente")) {
-                // Estado 1: En Revisión inicial (antes de agendar cita)
                 timelineSteps.add(new TimelineStep("En Revisión", "En proceso", "current", "Revisando perfil inicial.", null));
             }
         }
-
         timelineAdapter.notifyDataSetChanged();
     }
 
+    /**
+     * 🟢 NUEVO: Carga los documentos reales usando las URLs guardadas
+     */
     private void loadDocuments() {
         documents.clear();
-        documents.add(new DocumentItem("INE / Identificación", true));
-        documents.add(new DocumentItem("Comprobante de domicilio", true));
+        if (request == null) return;
+
+        // Verificar INE Frente
+        if (request.getUrlIneFrente() != null && !request.getUrlIneFrente().isEmpty()) {
+            documents.add(new DocumentItem("INE (Frente)", "Subido", request.getUrlIneFrente()));
+        } else {
+            documents.add(new DocumentItem("INE (Frente)", true)); // Pendiente
+        }
+
+        // Verificar INE Reverso
+        if (request.getUrlIneReverso() != null && !request.getUrlIneReverso().isEmpty()) {
+            documents.add(new DocumentItem("INE (Reverso)", "Subido", request.getUrlIneReverso()));
+        } else {
+            documents.add(new DocumentItem("INE (Reverso)", true));
+        }
+
+        // Verificar Comprobante
+        if (request.getUrlComprobante() != null && !request.getUrlComprobante().isEmpty()) {
+            documents.add(new DocumentItem("Comprobante Domicilio", "Subido", request.getUrlComprobante()));
+        } else {
+            documents.add(new DocumentItem("Comprobante Domicilio", true));
+        }
+
         documentAdapter.notifyDataSetChanged();
     }
+
+    /**
+     * 🟢 NUEVO: Maneja el clic en el documento para abrirlo
+     */
+    private void onDocumentClick(DocumentItem document) {
+        if (document.getUrl() != null && !document.getUrl().isEmpty()) {
+            try {
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(document.getUrl()));
+                startActivity(intent);
+            } catch (Exception e) {
+                Toast.makeText(this, "No se pudo abrir el documento", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(this, "Este documento aún no se ha subido", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // ... Resto de métodos (listenToMessages, sendMessage, copyFolioToClipboard, loadCitaInfo, etc.) se mantienen igual ...
 
     private void listenToMessages() {
         if (solicitudId == null) return;
@@ -331,10 +370,6 @@ public class RequestDetailActivity extends AppCompatActivity {
         Toast.makeText(this, "Folio copiado", Toast.LENGTH_SHORT).show();
     }
 
-    private void onDocumentUploadClick(DocumentItem document) {
-        Toast.makeText(this, "Subir documento...", Toast.LENGTH_SHORT).show();
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -342,21 +377,14 @@ public class RequestDetailActivity extends AppCompatActivity {
     }
 
     private void loadCitaInfo() {
-        // 🚨 VERIFICACIÓN DEFENSIVA CRÍTICA
-        if (btnAgendarCita == null || sectionCita == null) {
-            Log.e(TAG, "loadCitaInfo: Elementos de la sección Cita son nulos (Revisa activity_request_detail.xml).");
-            return;
-        }
-
+        if (btnAgendarCita == null || sectionCita == null) return;
         if (request == null || request.getId() == null) return;
 
         String estado = request.getEstado();
 
-        // Mostrar botón de agendar cita solo si está en estado "pendiente_cita"
         if ("pendiente_cita".equals(estado)) {
             btnAgendarCita.setVisibility(View.VISIBLE);
             sectionCita.setVisibility(View.GONE);
-
             btnAgendarCita.setOnClickListener(v -> {
                 Intent intent = new Intent(RequestDetailActivity.this, AppointmentSelectionActivity.class);
                 intent.putExtra("SOLICITUD_ID", request.getId());
@@ -364,15 +392,12 @@ public class RequestDetailActivity extends AppCompatActivity {
                 intent.putExtra("ANIMAL_NAME", request.getAnimalNombre());
                 startActivity(intent);
             });
-        }
-        // Si ya tiene cita agendada, cargar la info
-        else if ("cita_agendada".equals(estado) || "en_revision".equals(estado) ||
+        } else if ("cita_agendada".equals(estado) || "en_revision".equals(estado) ||
                 "aprobada".equals(estado) || "rechazada".equals(estado)) {
 
             btnAgendarCita.setVisibility(View.GONE);
             sectionCita.setVisibility(View.VISIBLE);
 
-            // Buscar la cita en Firestore
             db.collection("citas")
                     .whereEqualTo("solicitudId", request.getId())
                     .limit(1)
@@ -382,13 +407,7 @@ public class RequestDetailActivity extends AppCompatActivity {
                             Cita cita = queryDocumentSnapshots.getDocuments().get(0).toObject(Cita.class);
                             if (cita != null) {
                                 cita.setId(queryDocumentSnapshots.getDocuments().get(0).getId());
-
-                                // 🚨 Verificación defensiva antes de llamar a displayCitaInfo
-                                if (tvEstadoCita != null && tvFechaCita != null && tvVoluntarioAsignado != null) {
-                                    displayCitaInfo(cita);
-                                } else {
-                                    Log.e(TAG, "loadCitaInfo: Elementos de displayCitaInfo son nulos.");
-                                }
+                                displayCitaInfo(cita);
                             }
                         }
                     });
@@ -398,17 +417,15 @@ public class RequestDetailActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Muestra la información de la cita
-     */
     private void displayCitaInfo(Cita cita) {
+        if (tvEstadoCita == null) return;
+
         String estadoCita = cita.getEstadoTexto();
         String fecha = cita.getFechaHoraCompleta();
 
         tvEstadoCita.setText(estadoCita);
         tvFechaCita.setText("📅 " + fecha);
 
-        // Mostrar voluntario si está asignado
         if (cita.getVoluntarioNombre() != null && !cita.getVoluntarioNombre().isEmpty()) {
             tvVoluntarioAsignado.setText("👤 Atendido por: " + cita.getVoluntarioNombre());
             tvVoluntarioAsignado.setVisibility(View.VISIBLE);
@@ -416,7 +433,6 @@ public class RequestDetailActivity extends AppCompatActivity {
             tvVoluntarioAsignado.setVisibility(View.GONE);
         }
 
-        // Configurar color del badge según estado
         switch (cita.getEstado()) {
             case "pendiente_asignacion":
                 tvEstadoCita.setBackgroundResource(R.drawable.bg_badge_warning);
@@ -429,5 +445,4 @@ public class RequestDetailActivity extends AppCompatActivity {
                 break;
         }
     }
-
 }
