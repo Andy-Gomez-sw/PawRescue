@@ -27,6 +27,7 @@ import com.google.firebase.firestore.Query;
 import com.refugio.pawrescue.R;
 import com.refugio.pawrescue.data.helper.FirebaseHelper;
 import com.refugio.pawrescue.model.Cita;
+import com.refugio.pawrescue.model.Seguimiento;
 import com.refugio.pawrescue.model.SolicitudAdopcion;
 import com.refugio.pawrescue.model.Usuario;
 import com.refugio.pawrescue.ui.adapter.SolicitudAdopcionAdapter;
@@ -169,13 +170,12 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
                         if (sol != null) {
                             sol.setIdSolicitud(doc.getId());
 
-                            // Lectura de campos de referencia
-                            if (doc.contains("citaId")) sol.setCitaId(doc.getString("citaId"));
-                            if (doc.contains("reporteId")) sol.setReporteId(doc.getString("reporteId"));
-
-                            // Lectura de los campos de voluntario (NUEVOS CAMPOS)
-                            if (doc.contains("voluntarioId")) sol.setVoluntarioId(doc.getString("voluntarioId"));
-                            if (doc.contains("voluntarioNombre")) sol.setVoluntarioNombre(doc.getString("voluntarioNombre"));
+                            // 🚨 FIX CRÍTICO: Lectura explícita de campos de referencia
+                            // Esto asegura que el adaptador reciba los IDs correctamente aunque Firestore no los mapee automáticamente.
+                            sol.setCitaId(doc.contains("citaId") ? doc.getString("citaId") : null);
+                            sol.setReporteId(doc.contains("reporteId") ? doc.getString("reporteId") : null);
+                            sol.setVoluntarioId(doc.contains("voluntarioId") ? doc.getString("voluntarioId") : null);
+                            sol.setVoluntarioNombre(doc.contains("voluntarioNombre") ? doc.getString("voluntarioNombre") : null);
 
                             // Lectura de los campos Map<String, Object> para evitar que salgan null en el diálogo
                             if (doc.contains("datosPersonales")) sol.setDatosPersonales((Map<String, Object>) doc.get("datosPersonales"));
@@ -238,10 +238,15 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
         LinearLayout layout = buildDialogLayout(getContext(), solicitud);
         builder.setView(layout);
 
-        // CONDICIONAL PRINCIPAL: EL USUARIO YA AGENDÓ LA CITA (fechaCita != null)
-        if (solicitud.getFechaCita() != null && solicitud.getVoluntarioId() == null) {
-            // FASE 1: ASIGNACIÓN DE VOLUNTARIO (Activamos la lógica asíncrona de disponibilidad)
+        // --- FASE 3: REPORTE ENVIADO (Decisión Final) ---
+        if (solicitud.getReporteId() != null) {
+            // 🚨 Cargamos el reporte real de forma asíncrona
+            cargarYMostrarReporte(solicitud, builder, layout);
+            return;
+        }
 
+        // --- FASE 1: ASIGNACIÓN DE VOLUNTARIO ---
+        if (solicitud.getFechaCita() != null && solicitud.getVoluntarioId() == null) {
             // 1. Cargamos la Cita para obtener fecha y hora exacta (string)
             db.collection("citas").document(solicitud.getCitaId()).get()
                     .addOnSuccessListener(citaSnapshot -> {
@@ -253,7 +258,6 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
                                 // 2. Filtramos la lista global de voluntarios disponibles
                                 filtrarYMostrarDialogo(solicitud, builder, layout, fechaAgendada, horaAgendada);
                             } else {
-                                // Cita incompleta (debería ser raro si el usuario validó)
                                 Toast.makeText(getContext(), "Error: Cita agendada incompleta.", Toast.LENGTH_LONG).show();
                                 builder.setNeutralButton("Cerrar", null).show();
                             }
@@ -267,46 +271,76 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
                         builder.setNeutralButton("Cerrar", null).show();
                     });
 
-            return; // Salimos del flujo principal, el diálogo se mostrará en el callback
+            return;
         }
 
-        // --- FASES 2, 3, y Default (Síncrono) ---
+        // --- FASE 2 y Default (Síncrono) ---
         if (solicitud.getVoluntarioId() != null && solicitud.getReporteId() == null) {
             // FASE 2: EN ESPERA DE REPORTE
             builder.setNeutralButton("Cerrar", null);
-
-        } else if (solicitud.getReporteId() != null) {
-            // FASE 3: DECISIÓN FINAL DEL ADMIN (Existe Reporte)
-
-            TextView tvReporte = new TextView(getContext());
-            tvReporte.setText("\n--- REPORTE DEL VOLUNTARIO (" + solicitud.getReporteId() + ") ---");
-            tvReporte.setTypeface(null, android.graphics.Typeface.BOLD);
-            layout.addView(tvReporte);
-
-            addTextViewToLayout(layout, "Comentario:", "Reporte simulado: El adoptante parece responsable y apto.");
-
-            builder.setPositiveButton("APROBAR ADOPCIÓN", (dialog, which) -> {
-                actualizarEstadoFinal(solicitud, "Aprobada");
-                marcarAnimalAdoptado();
-            });
-            builder.setNegativeButton("RECHAZAR ADOPCIÓN", (dialog, which) -> {
-                actualizarEstadoFinal(solicitud, "Rechazada");
-            });
-
         } else {
             // Caso por defecto (Ej: No hay fecha de cita agendada por el usuario aún)
             builder.setNeutralButton("Cerrar", null);
         }
 
         // Solo se muestra el diálogo aquí si no se entró en el flujo asíncrono
-        if (solicitud.getFechaCita() == null || solicitud.getVoluntarioId() != null) {
+        if (solicitud.getReporteId() == null && (solicitud.getFechaCita() == null || solicitud.getVoluntarioId() != null)) {
             builder.show();
         }
     }
 
+    /**
+     * Carga el reporte del voluntario y actualiza el diálogo para la decisión final.
+     */
+    private void cargarYMostrarReporte(SolicitudAdopcion solicitud, AlertDialog.Builder builder, LinearLayout layout) {
+        db.collection("seguimiento").document(solicitud.getReporteId()).get()
+                .addOnSuccessListener(reporteDoc -> {
+                    if (reporteDoc.exists()) {
+                        Seguimiento reporte = reporteDoc.toObject(Seguimiento.class);
+
+                        if (reporte != null) {
+                            // Título del Reporte
+                            TextView tvReporte = new TextView(getContext());
+                            tvReporte.setText("\n--- REPORTE DEL VOLUNTARIO ---");
+                            tvReporte.setTextSize(16);
+                            tvReporte.setTypeface(null, android.graphics.Typeface.BOLD);
+                            layout.addView(tvReporte);
+
+                            // Resultados (Usamos getResultadoVisita, asumiendo la actualización)
+                            String resultado = reporte.getResultadoVisita() != null ? reporte.getResultadoVisita() : solicitud.getEstadoSolicitud();
+                            addTextViewToLayout(layout, "Resultado de la Visita:", resultado);
+                            addTextViewToLayout(layout, "Voluntario:", solicitud.getVoluntarioNombre());
+                            addTextViewToLayout(layout, "Comentarios:", reporte.getComentario());
+
+                            // Botones de Decisión Final
+                            builder.setPositiveButton("APROBAR ADOPCIÓN", (dialog, which) -> {
+                                actualizarEstadoFinal(solicitud, "Aprobada");
+                                marcarAnimalAdoptado(); // Actualizar estado del animal
+                            });
+                            builder.setNegativeButton("RECHAZAR ADOPCIÓN", (dialog, which) -> {
+                                actualizarEstadoFinal(solicitud, "Rechazada");
+                            });
+
+                        } else {
+                            addTextViewToLayout(layout, "Error al cargar reporte:", "Reporte inválido.");
+                            builder.setNeutralButton("Cerrar", null);
+                        }
+                    } else {
+                        addTextViewToLayout(layout, "Error al cargar reporte:", "Documento de reporte no encontrado.");
+                        builder.setNeutralButton("Cerrar", null);
+                    }
+
+                    builder.show(); // Mostrar el diálogo con los datos o error
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Error al cargar reporte: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    builder.setNeutralButton("Cerrar", null).show();
+                });
+    }
+
 
     /**
-     * 🟢 NUEVO MÉTODO: Filtra voluntarios ocupados en esa cita, actualiza el Spinner y muestra el diálogo final.
+     * Filtra voluntarios ocupados en esa cita, actualiza el Spinner y muestra el diálogo final.
      */
     private void filtrarYMostrarDialogo(SolicitudAdopcion solicitud, AlertDialog.Builder builder, LinearLayout layout, String fecha, String hora) {
 
@@ -440,6 +474,8 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
         db.collection("solicitudes_adopcion").document(solicitud.getIdSolicitud())
                 .update(updates)
                 .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Dictamen final: " + nuevoEstado, Toast.LENGTH_LONG).show())
+                // Aseguramos que la lista se refresque para ver el cambio de estado
+                .addOnSuccessListener(aVoid -> cargarSolicitudes())
                 .addOnFailureListener(e -> Toast.makeText(getContext(), "Error al actualizar: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
@@ -489,8 +525,8 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
         displayMapData(layout, "Compromiso:", solicitud.getDatosCompromiso());
 
         // --- 3. SELECTOR DE VOLUNTARIO Y MENSAJES DE FASE (Condicional en el nuevo flujo) ---
-        if (solicitud.getFechaCita() != null && solicitud.getVoluntarioId() == null) {
-            // FASE 1: Asignar Voluntario
+        if (solicitud.getFechaCita() != null && solicitud.getVoluntarioId() == null && solicitud.getReporteId() == null) {
+            // FASE 1: Asignar Voluntario (Muestra el Spinner)
             TextView tvAsignar = new TextView(context);
             tvAsignar.setText("\nCita Agendada por el Adoptante. Asigne un Voluntario:");
             tvAsignar.setTypeface(null, android.graphics.Typeface.BOLD);

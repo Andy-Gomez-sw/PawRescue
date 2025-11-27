@@ -1,7 +1,6 @@
 package com.refugio.pawrescue.ui.adapter;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,7 +49,7 @@ public class SolicitudAdopcionAdapter extends RecyclerView.Adapter<SolicitudAdop
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // 🟢 FIX: Usamos item_solicitud_adopcion.xml que contiene los botones.
+        // Se infla item_solicitud_adopcion.xml
         View view = LayoutInflater.from(context).inflate(R.layout.item_solicitud_adopcion, parent, false);
         return new ViewHolder(view);
     }
@@ -60,21 +59,21 @@ public class SolicitudAdopcionAdapter extends RecyclerView.Adapter<SolicitudAdop
         SolicitudAdopcion solicitud = listaSolicitudes.get(position);
 
         // 1. MAPEAMOS LOS DATOS
-        holder.tvAdoptanteNombre.setText(solicitud.getNombreAdoptante()); // Corresponde a tv_adoptante_nombre
-        holder.tvAdoptanteTelefono.setText("Tel: " + solicitud.getTelefonoAdoptante()); // Corresponde a tv_adoptante_telefono
+        holder.tvAdoptanteNombre.setText(solicitud.getNombreAdoptante());
+        holder.tvAdoptanteTelefono.setText("Tel: " + solicitud.getTelefonoAdoptante());
 
         // Estado
         String estado = solicitud.getEstado() != null ? solicitud.getEstado() : "Pendiente";
-        holder.tvSolicitudEstado.setText("Estado: " + estado); // Corresponde a tv_solicitud_estado
+        holder.tvSolicitudEstado.setText("Estado: " + estado);
 
-        // 🔴 Se usa tv_fecha_solicitud para la fecha de la solicitud, no la cita.
+        // Fecha de Solicitud
         if (solicitud.getFechaSolicitud() != null) {
             holder.tvFechaSolicitud.setText(dateFormat.format(solicitud.getFechaSolicitud()));
         } else {
             holder.tvFechaSolicitud.setText("--/--/----");
         }
 
-        // 2. LÓGICA DE BOTONES (Nueva lógica de 3 Fases)
+        // 2. LÓGICA DE BOTONES (Fases)
 
         boolean isCitaAgendada = solicitud.getFechaCita() != null;
         boolean isVoluntarioAsignado = solicitud.getVoluntarioId() != null;
@@ -84,24 +83,25 @@ public class SolicitudAdopcionAdapter extends RecyclerView.Adapter<SolicitudAdop
         holder.btnAgendarCita.setVisibility(View.VISIBLE);
         holder.btnAgendarCita.setEnabled(true);
 
-        if (!isCitaAgendada) {
+        if (isReporteEnviado) {
+            // 🟢 FASE 3: Reporte Enviado -> Decisión Final
+            holder.btnAgendarCita.setText("VER REPORTE / DECIDIR"); // 🚨 Texto solicitado
+            holder.btnAgendarCita.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.primary_green));
+            holder.btnAgendarCita.setEnabled(true);
+        } else if (!isCitaAgendada) {
             // Estado Inicial: El usuario aún no ha agendado.
             holder.btnAgendarCita.setText("CITA PENDIENTE");
             holder.btnAgendarCita.setBackgroundTintList(ContextCompat.getColorStateList(context, android.R.color.darker_gray));
-            holder.btnAgendarCita.setEnabled(false); // No se puede asignar sin fecha de cita
+            holder.btnAgendarCita.setEnabled(false);
         } else if (!isVoluntarioAsignado) {
             // FASE 1: Cita agendada, requiere asignación.
             holder.btnAgendarCita.setText("ASIGNAR VOLUNTARIO");
             holder.btnAgendarCita.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.accent_orange));
-        } else if (!isReporteEnviado) {
+        } else {
             // FASE 2: Voluntario asignado, esperando reporte.
             holder.btnAgendarCita.setText("ESPERANDO REPORTE");
             holder.btnAgendarCita.setBackgroundTintList(ContextCompat.getColorStateList(context, android.R.color.holo_orange_dark));
-            holder.btnAgendarCita.setEnabled(false); // Deshabilitar la acción principal
-        } else {
-            // FASE 3: Reporte Enviado, requiere decisión final.
-            holder.btnAgendarCita.setText("DECISIÓN FINAL");
-            holder.btnAgendarCita.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.primary_green));
+            holder.btnAgendarCita.setEnabled(false);
         }
 
         // --- Configuración Botón 2 (btn_registrar_resultado -> VER DETALLES) ---
@@ -114,7 +114,6 @@ public class SolicitudAdopcionAdapter extends RecyclerView.Adapter<SolicitudAdop
 
         // Clic en el botón principal
         holder.btnAgendarCita.setOnClickListener(v -> {
-            // Solo se permite click si el botón está habilitado (Fase 1 o Fase 3)
             if (holder.btnAgendarCita.isEnabled()) {
                 listener.onSolicitudClick(solicitud);
             } else {
@@ -122,7 +121,7 @@ public class SolicitudAdopcionAdapter extends RecyclerView.Adapter<SolicitudAdop
             }
         });
 
-        // Clic en el botón DETALLES (Abre el diálogo de gestión)
+        // Clic en el botón DETALLES
         holder.btnRegistrarResultado.setOnClickListener(v -> listener.onSolicitudClick(solicitud));
     }
 
@@ -133,15 +132,15 @@ public class SolicitudAdopcionAdapter extends RecyclerView.Adapter<SolicitudAdop
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         final TextView tvAdoptanteNombre;
-        final TextView tvFechaSolicitud; // Usado para fecha de solicitud en el XML
+        final TextView tvFechaSolicitud;
         final TextView tvSolicitudEstado;
         final TextView tvAdoptanteTelefono;
-        final Button btnAgendarCita; // Botón principal (Asignar / Decisión)
-        final Button btnRegistrarResultado; // Botón secundario (Detalles)
+        final Button btnAgendarCita;
+        final Button btnRegistrarResultado;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            // 🟢 IDs del layout item_solicitud_adopcion.xml
+            // IDs del layout item_solicitud_adopcion.xml
             tvAdoptanteNombre = itemView.findViewById(R.id.tv_adoptante_nombre);
             tvFechaSolicitud = itemView.findViewById(R.id.tv_fecha_solicitud);
             tvSolicitudEstado = itemView.findViewById(R.id.tv_solicitud_estado);
