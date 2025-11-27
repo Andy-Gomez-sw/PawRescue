@@ -3,6 +3,7 @@ package com.refugio.pawrescue.ui.publico;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.LinearLayout; // 🟢 IMPORTACIÓN AGREGADA
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,7 +22,7 @@ import java.util.List;
 public class FavoritesActivity extends AppCompatActivity {
 
     private RecyclerView rvFavorites;
-    private TextView tvEmptyFavorites;
+    private LinearLayout tvEmptyFavorites; // 🟢 CAMBIO: De TextView a LinearLayout
     private BottomNavigationView bottomNavigation;
     private AnimalAdapter adapter;
     private List<Animal> favoriteList;
@@ -33,7 +34,7 @@ public class FavoritesActivity extends AppCompatActivity {
         setContentView(R.layout.activity_favorites);
 
         rvFavorites = findViewById(R.id.rvFavorites);
-        tvEmptyFavorites = findViewById(R.id.tvEmptyFavorites);
+        tvEmptyFavorites = findViewById(R.id.tvEmptyFavorites); // Ahora esto es correcto (LinearLayout)
         bottomNavigation = findViewById(R.id.bottomNavigation);
         db = FirebaseFirestore.getInstance();
         favoriteList = new ArrayList<>();

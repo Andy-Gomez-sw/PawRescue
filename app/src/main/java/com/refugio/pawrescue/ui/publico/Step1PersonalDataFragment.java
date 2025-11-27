@@ -8,7 +8,6 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
@@ -28,7 +27,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import com.bumptech.glide.Glide; // IMPORTANTE: Usar Glide evita crasheos de memoria
+import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
@@ -80,6 +79,8 @@ public class Step1PersonalDataFragment extends Fragment {
         setupTipoViviendaDropdown();
         setupResultLaunchers(); // Configurar los manejadores de resultados
         setupFileListeners();   // Configurar los clics
+
+        // 🟢 Cargar datos del usuario (incluyendo teléfono editado en perfil)
         loadUserData();
 
         return view;
@@ -136,7 +137,8 @@ public class Step1PersonalDataFragment extends Fragment {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                         uriComprobantePdf = result.getData().getData();
                         tvNombrePdf.setText("Archivo PDF cargado correctamente");
-                        tvNombrePdf.setTextColor(requireContext().getColor(R.color.black)); // Asegúrate de tener un color válido
+                        // Asegúrate de tener el color negro o usa android.R.color.black
+                        tvNombrePdf.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.black));
                     }
                 });
 
@@ -160,14 +162,12 @@ public class Step1PersonalDataFragment extends Fragment {
 
         if (isFrenteSelection) {
             uriIneFrente = uri;
-            // 🟢 USAR GLIDE PARA EVITAR CRASHEO DE MEMORIA
             Glide.with(this)
                     .load(uriIneFrente)
                     .centerCrop()
                     .into(ivIneFrente);
         } else {
             uriIneReverso = uri;
-            // 🟢 USAR GLIDE
             Glide.with(this)
                     .load(uriIneReverso)
                     .centerCrop()
@@ -207,8 +207,7 @@ public class Step1PersonalDataFragment extends Fragment {
     }
 
     private void openGallery() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT); // O Intent.ACTION_PICK para imágenes específicas
-        intent.setType("image/*");
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         launcherGallery.launch(intent);
     }
 
@@ -232,19 +231,28 @@ public class Step1PersonalDataFragment extends Fragment {
         launcherCamera.launch(cameraIntent);
     }
 
+    /**
+     * 🟢 CARGA DE DATOS: Aquí es donde recuperamos el teléfono guardado en Perfil
+     */
     private void loadUserData() {
         FirebaseUser user = auth.getCurrentUser();
         if (user != null) {
             etEmail.setText(user.getEmail());
             String userId = user.getUid();
+
             db.collection("usuarios").document(userId)
                     .get()
                     .addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists()) {
+                            // Recuperar Nombre
                             String nombre = documentSnapshot.getString("nombre");
                             if (nombre != null) etNombreCompleto.setText(nombre);
+
+                            // Recuperar Teléfono (Este es el que editaste en ProfileActivity)
                             String telefono = documentSnapshot.getString("telefono");
                             if (telefono != null) etTelefono.setText(telefono);
+
+                            // Recuperar Dirección
                             String direccion = documentSnapshot.getString("direccion");
                             if (direccion != null) etDireccion.setText(direccion);
                         }
@@ -285,7 +293,7 @@ public class Step1PersonalDataFragment extends Fragment {
         actvTipoVivienda.setAdapter(adapter);
     }
 
-    // 🟢 VALIDACIONES
+    // 🟢 VALIDACIONES (Edad, campos vacíos y documentos)
     public boolean isValidStep() {
         String nombre = etNombreCompleto.getText().toString().trim();
         String fecha = etFechaNacimiento.getText().toString().trim();
