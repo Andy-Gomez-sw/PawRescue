@@ -68,7 +68,6 @@
             android:orientation="vertical"
             android:paddingBottom="80dp">
 
-            <!-- Card de Información Básica -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -127,7 +126,6 @@
 
                     </com.google.android.material.chip.ChipGroup>
 
-                    <!-- Ubicación -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -151,7 +149,6 @@
                             tools:text="Rescatado en Centro, CDMX"/>
                     </LinearLayout>
 
-                    <!-- Fecha de Rescate -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -179,7 +176,6 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Sección Expandible: Sobre el Animal -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -238,7 +234,6 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Sección Expandible: Salud -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -309,7 +304,6 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Sección Expandible: Requisitos -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -384,7 +378,6 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <!-- FAB Favorito -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabFavorite"
         android:layout_width="wrap_content"
@@ -396,7 +389,6 @@
         app:layout_anchor="@id/appBarLayout"
         app:layout_anchorGravity="bottom|end"/>
 
-    <!-- Botón de Acción Fijo -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSolicitar"
         android:layout_width="match_parent"

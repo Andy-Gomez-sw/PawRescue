@@ -35,8 +35,9 @@ public class ImagePagerAdapter extends RecyclerView.Adapter<ImagePagerAdapter.Im
         // Cargar imagen con Glide
         Glide.with(context)
                 .load(imageUrl)
-                .placeholder(R.drawable.placeholder_animal) // O ic_pet_placeholder
-                .error(R.drawable.ic_pet_error)       // O ic_pet_placeholder
+                .centerCrop() // Importante para que llene bien el espacio en el slider
+                .placeholder(R.drawable.ic_pet_placeholder) // Usa un drawable genérico si no tienes el otro
+                .error(R.drawable.ic_pet_error)
                 .into(holder.imageView);
     }
 
@@ -50,6 +51,7 @@ public class ImagePagerAdapter extends RecyclerView.Adapter<ImagePagerAdapter.Im
 
         public ImageViewHolder(@NonNull View itemView) {
             super(itemView);
+            // Este ID debe coincidir con el del XML de abajo
             imageView = itemView.findViewById(R.id.ivSliderImage);
         }
     }

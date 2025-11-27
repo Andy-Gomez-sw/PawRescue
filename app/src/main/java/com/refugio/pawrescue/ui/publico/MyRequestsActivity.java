@@ -3,38 +3,51 @@ package com.refugio.pawrescue.ui.publico;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.LinearLayout; // 🟢 Cambiado a LinearLayout
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.refugio.pawrescue.R;
-import com.refugio.pawrescue.ui.adapter.RequestAdapter;
+import com.refugio.pawrescue.ui.adapter.RequestAdapter; // 🟢 Asegúrate de usar RequestAdapter
 import java.util.ArrayList;
 import java.util.List;
 
 public class MyRequestsActivity extends AppCompatActivity {
 
     private RecyclerView rvRequests;
-    private View tvEmptyRequests;
+    private LinearLayout tvEmptyRequests; // 🟢 Tipo corregido
     private BottomNavigationView bottomNavigation;
+
     private RequestAdapter requestAdapter;
     private List<AdoptionRequest> requestList;
+
     private FirebaseFirestore db;
+    private FirebaseAuth auth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_my_requests);
+        // ⚠️ Verifica que el nombre de tu layout sea correcto.
+        // Si tu archivo se llama 'activity_my_adoption_requests.xml', cámbialo aquí.
+        setContentView(R.layout.activity_my_adoption_requests);
 
-        initViews();
         initFirebase();
+        initViews();
         setupRecyclerView();
         setupBottomNavigation();
+
+        // Cargar datos inicialmente
         loadRequests();
+    }
+
+    private void initFirebase() {
+        db = FirebaseFirestore.getInstance();
+        auth = FirebaseAuth.getInstance();
     }
 
     private void initViews() {
@@ -43,15 +56,14 @@ public class MyRequestsActivity extends AppCompatActivity {
         bottomNavigation = findViewById(R.id.bottomNavigation);
     }
 
-    private void initFirebase() {
-        db = FirebaseFirestore.getInstance();
-    }
-
     private void setupRecyclerView() {
         requestList = new ArrayList<>();
+
+        // Inicializamos el adaptador con el listener de clic
         requestAdapter = new RequestAdapter(this, requestList, request -> {
             Intent intent = new Intent(MyRequestsActivity.this, RequestDetailActivity.class);
             intent.putExtra("REQUEST_OBJ", request);
+            intent.putExtra("REQUEST_ID", request.getId()); // 🟢 Respaldo importante
             startActivity(intent);
         });
 
@@ -60,14 +72,13 @@ public class MyRequestsActivity extends AppCompatActivity {
     }
 
     private void setupBottomNavigation() {
-        // Marcar como seleccionado el item de Solicitudes
         bottomNavigation.setSelectedItemId(R.id.nav_requests);
 
         bottomNavigation.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
 
             if (id == R.id.nav_home) {
-                startActivity(new Intent(this, GalleryActivity.class));
+                startActivity(new Intent(this, PublicMainActivity.class)); // 🟢 Ajustado a PublicMainActivity (común en tu app)
                 finish();
                 return true;
             } else if (id == R.id.nav_favorites) {
@@ -75,45 +86,46 @@ public class MyRequestsActivity extends AppCompatActivity {
                 finish();
                 return true;
             } else if (id == R.id.nav_requests) {
-                // Ya estamos aquí
                 return true;
             } else if (id == R.id.nav_profile) {
                 startActivity(new Intent(this, ProfileActivity.class));
                 finish();
                 return true;
             }
-
             return false;
         });
     }
 
     private void loadRequests() {
-        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
-                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
-
-        if (userId == null) {
+        if (auth.getCurrentUser() == null) {
             Toast.makeText(this, "Debes iniciar sesión", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        String userId = auth.getCurrentUser().getUid();
 
         db.collection("solicitudes_adopcion")
                 .whereEqualTo("usuarioId", userId)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     requestList.clear();
+
                     if (queryDocumentSnapshots.isEmpty()) {
                         showEmptyState(true);
                     } else {
                         showEmptyState(false);
-                        for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        for (DocumentSnapshot doc : queryDocumentSnapshots) {
                             try {
                                 AdoptionRequest req = doc.toObject(AdoptionRequest.class);
-                                req.setId(doc.getId());
+                                if (req != null) {
+                                    req.setId(doc.getId());
 
-                                if (req.getAnimalNombre() == null && doc.contains("animalNombre")) {
-                                    req.setAnimalNombre(doc.getString("animalNombre"));
+                                    // Validación extra por si faltan datos en Firestore
+                                    if (req.getAnimalNombre() == null && doc.contains("animalNombre")) {
+                                        req.setAnimalNombre(doc.getString("animalNombre"));
+                                    }
+                                    requestList.add(req);
                                 }
-                                requestList.add(req);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -122,8 +134,8 @@ public class MyRequestsActivity extends AppCompatActivity {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    showEmptyState(true);
+                    Toast.makeText(this, "Error al cargar solicitudes: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    showEmptyState(true); // Mostrar vacío en caso de error también
                 });
     }
 
@@ -140,7 +152,6 @@ public class MyRequestsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Recargar solicitudes al volver a la actividad
-        loadRequests();
+        loadRequests(); // Recargar al volver para actualizar estados
     }
 }
