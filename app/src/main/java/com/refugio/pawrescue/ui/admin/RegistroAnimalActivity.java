@@ -57,7 +57,7 @@ import java.util.Map;
 public class RegistroAnimalActivity extends AppCompatActivity {
 
     private static final int PERMISSIONS_REQUEST_CODE = 100;
-    private static final int REQUEST_TAKE_PHOTO = 101;
+    public static final int REQUEST_TAKE_PHOTO = 101;
     private static final String TAG = "RegistroAnimalActivity";
     private static final int MAX_IMAGE_DIMENSION = 1920;
 
