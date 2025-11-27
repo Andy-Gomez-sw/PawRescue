@@ -5,4 +5,4 @@
     android:layout_height="match_parent"
     android:scaleType="centerCrop"
     android:contentDescription="Imagen del animal"
-    android:adjustViewBounds="true" />
+    android:src="@drawable/ic_pet_placeholder"/>

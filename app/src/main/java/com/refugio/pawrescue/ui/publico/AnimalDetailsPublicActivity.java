@@ -1,7 +1,7 @@
 package com.refugio.pawrescue.ui.publico;
 
 import android.content.Intent;
-import android.graphics.Color; // Importante para cambiar colores
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -12,7 +12,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.viewpager2.widget.ViewPager2;
 
-// Imports
 import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
@@ -24,6 +23,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.refugio.pawrescue.R;
 import com.refugio.pawrescue.model.Animal;
 import com.refugio.pawrescue.ui.adapter.ImagePagerAdapter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AnimalDetailsPublicActivity extends AppCompatActivity {
 
@@ -59,7 +61,7 @@ public class AnimalDetailsPublicActivity extends AppCompatActivity {
             displayAnimalData();
             checkIfFavorite();
         } else {
-            // Plan B: Cargar por ID
+            // Cargar por ID si no viene el objeto completo
             String animalId = getIntent().getStringExtra("ANIMAL_ID");
             if (animalId != null) {
                 loadAnimalFromId(animalId);
@@ -83,15 +85,19 @@ public class AnimalDetailsPublicActivity extends AppCompatActivity {
         chipSize = findViewById(R.id.chipSize);
         tvLocation = findViewById(R.id.tvLocation);
         tvRescueDate = findViewById(R.id.tvRescueDate);
+
         headerAbout = findViewById(R.id.headerAbout);
         iconAbout = findViewById(R.id.iconAbout);
         tvAboutContent = findViewById(R.id.tvAboutContent);
+
         headerHealth = findViewById(R.id.headerHealth);
         iconHealth = findViewById(R.id.iconHealth);
         healthContent = findViewById(R.id.healthContent);
+
         headerRequirements = findViewById(R.id.headerRequirements);
         iconRequirements = findViewById(R.id.iconRequirements);
         requirementsContent = findViewById(R.id.requirementsContent);
+
         fabFavorite = findViewById(R.id.fabFavorite);
         btnSolicitar = findViewById(R.id.btnSolicitar);
     }
@@ -134,7 +140,6 @@ public class AnimalDetailsPublicActivity extends AppCompatActivity {
         fabFavorite.setOnClickListener(v -> toggleFavorite());
 
         btnSolicitar.setOnClickListener(v -> {
-            // Solo permite clic si está habilitado (aunque visualmente ya lo bloqueamos abajo)
             if (btnSolicitar.isEnabled() && animal != null && animal.getId() != null) {
                 Intent intent = new Intent(AnimalDetailsPublicActivity.this, AdoptionFormActivity.class);
                 intent.putExtra("ANIMAL_ID", animal.getId());
@@ -161,50 +166,107 @@ public class AnimalDetailsPublicActivity extends AppCompatActivity {
     private void displayAnimalData() {
         if (animal == null) return;
 
+        // --- 1. DATOS BÁSICOS ---
         tvAnimalName.setText(animal.getNombre());
         tvBreedAge.setText(animal.getRaza() + " • " + animal.getEdadTexto());
-        chipGender.setText(animal.getSexo());
-        chipSize.setText(animal.getTamano());
         tvLocation.setText(animal.getUbicacionRescate());
         tvRescueDate.setText("Ingreso: " + animal.getFechaRescate());
-        tvAboutContent.setText(animal.getDescripcion() + "\n\nPersonalidad:\n" + animal.getPersonalidad());
 
-        if (animal.getFotosUrls() != null && !animal.getFotosUrls().isEmpty()) {
-            ImagePagerAdapter imageAdapter = new ImagePagerAdapter(this, animal.getFotosUrls());
-            viewPagerImages.setAdapter(imageAdapter);
-            new TabLayoutMediator(tabDots, viewPagerImages, (tab, position) -> {}).attach();
+        // 🟢 CORRECCIÓN CHIPS (Cuadritos) 🟢
+        // Validar Sexo
+        if (animal.getSexo() != null && !animal.getSexo().isEmpty()) {
+            chipGender.setText(animal.getSexo());
+            chipGender.setVisibility(View.VISIBLE);
+        } else {
+            chipGender.setVisibility(View.GONE);
+        }
+
+        // Validar Tamaño (Aquí es donde salía el cuadro vacío)
+        if (animal.getTamano() != null && !animal.getTamano().isEmpty()) {
+            chipSize.setText(animal.getTamano());
+            chipSize.setVisibility(View.VISIBLE);
+        } else {
+            chipSize.setVisibility(View.GONE); // Se oculta si no hay dato
         }
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle(animal.getNombre());
         }
 
-        // 🔴 LÓGICA DE DISPONIBILIDAD (AQUÍ ESTÁ EL CAMBIO)
-        String estado = animal.getEstadoRefugio(); // Ej: "Disponible Adopcion", "En Tratamiento"
+        // --- 2. SECCIÓN: SOBRE EL ANIMAL ---
+        String descripcion = (animal.getDescripcion() != null && !animal.getDescripcion().isEmpty())
+                ? animal.getDescripcion()
+                : "Sin descripción disponible.";
 
-        // Normalizamos el texto (quitamos espacios extra y mayúsculas)
+        String personalidad = (animal.getPersonalidad() != null && !animal.getPersonalidad().isEmpty())
+                ? "\n\nPersonalidad:\n" + animal.getPersonalidad()
+                : "";
+
+        tvAboutContent.setText(descripcion + personalidad);
+
+        // --- 3. SECCIÓN: HISTORIAL MÉDICO ---
+        healthContent.removeAllViews();
+
+        if (animal.getEstadoSalud() != null && !animal.getEstadoSalud().isEmpty()) {
+            addDynamicInfo(healthContent, "Estado General: " + animal.getEstadoSalud());
+        }
+
+        if (animal.getCondicionesEspeciales() != null && !animal.getCondicionesEspeciales().isEmpty()) {
+            for (String condicion : animal.getCondicionesEspeciales()) {
+                addDynamicInfo(healthContent, "✅ " + condicion);
+            }
+        }
+
+        if (healthContent.getChildCount() == 0) {
+            addDynamicInfo(healthContent, "No hay información médica registrada.");
+        }
+
+        // --- 4. LÓGICA DE IMÁGENES ---
+        List<String> listaImagenes = new ArrayList<>();
+        if (animal.getFotosUrls() != null && !animal.getFotosUrls().isEmpty()) {
+            listaImagenes.addAll(animal.getFotosUrls());
+        }
+        if (listaImagenes.isEmpty()) {
+            if (animal.getFotoUrl() != null && !animal.getFotoUrl().isEmpty()) {
+                listaImagenes.add(animal.getFotoUrl());
+            }
+        }
+
+        if (!listaImagenes.isEmpty()) {
+            ImagePagerAdapter imageAdapter = new ImagePagerAdapter(this, listaImagenes);
+            viewPagerImages.setAdapter(imageAdapter);
+            new TabLayoutMediator(tabDots, viewPagerImages, (tab, position) -> {}).attach();
+        } else {
+            viewPagerImages.setBackgroundResource(R.drawable.ic_pet_placeholder);
+        }
+
+        // --- 5. DISPONIBILIDAD ---
+        String estado = animal.getEstadoRefugio();
         boolean disponible = estado != null &&
                 (estado.trim().equalsIgnoreCase("Disponible Adopcion") ||
                         estado.trim().equalsIgnoreCase("Disponible"));
 
         if (disponible) {
-            // CASO 1: Disponible
             btnSolicitar.setEnabled(true);
             btnSolicitar.setText("Solicitar Adopción");
-            // Restauramos el color original (o el que tengas en tu tema)
-            // btnSolicitar.setBackgroundColor(ContextCompat.getColor(this, R.color.primary));
+            btnSolicitar.setBackgroundColor(getResources().getColor(R.color.primary_orange));
+            btnSolicitar.setTextColor(Color.WHITE);
         } else {
-            // CASO 2: NO Disponible (Adoptado, Enfermo, etc.)
-            btnSolicitar.setEnabled(false); // Deshabilita el clic
-
-            // Mostramos por qué no está disponible
+            btnSolicitar.setEnabled(false);
             String motivo = estado != null ? estado : "No disponible";
             btnSolicitar.setText(motivo.toUpperCase());
-
-            // Cambiamos color a Gris para indicar deshabilitado
-            btnSolicitar.setBackgroundColor(Color.parseColor("#BDBDBD")); // Gris
+            btnSolicitar.setBackgroundColor(Color.parseColor("#BDBDBD"));
             btnSolicitar.setTextColor(Color.WHITE);
         }
+    }
+
+    private void addDynamicInfo(LinearLayout container, String text) {
+        TextView textView = new TextView(this);
+        textView.setText(text);
+        textView.setTextColor(Color.BLACK);
+        textView.setTextSize(14);
+        textView.setPadding(0, 0, 0, 8);
+        container.addView(textView);
     }
 
     private void checkIfFavorite() {
