@@ -1,6 +1,7 @@
 package com.refugio.pawrescue.ui.volunteer;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
@@ -11,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.refugio.pawrescue.R;
@@ -22,7 +24,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-
 public class VolunteerCitaDetailActivity extends AppCompatActivity {
 
     private TextView tvAdoptante, tvCorreo, tvFecha;
@@ -33,12 +34,28 @@ public class VolunteerCitaDetailActivity extends AppCompatActivity {
     private Spinner spEstado;
     private MaterialButton btnGuardar, btnReporteVisita;
 
+    // Cards para ver documentos
+    private MaterialCardView cardIneFrente, cardIneReverso, cardComprobante;
+    private String urlIneFrente, urlIneReverso, urlComprobante;
+
     private FirebaseFirestore db;
 
     private String idSolicitud;
     private String idAnimal;
 
     private SolicitudAdopcion cita;
+
+    // Campos extra del documento (flat en Firestore)
+    private String numAdultos;
+    private String numNinos;
+    private String familiaAcuerdo;
+    private String familiaAlergias;
+    private String tuvoMascotasAntes;
+    private String tieneMascotasActuales;
+    private String detalleMascotas;
+    private String horasSolo;
+    private String lugarDormir;
+    private String planMudanza;
 
     private final SimpleDateFormat dateTimeFormat =
             new SimpleDateFormat("dd MMM yyyy, HH:mm", new Locale("es", "MX"));
@@ -80,8 +97,15 @@ public class VolunteerCitaDetailActivity extends AppCompatActivity {
         btnGuardar = findViewById(R.id.btn_guardar_estado);
         btnReporteVisita = findViewById(R.id.btn_reporte_visita);
 
+        // Cards documentos
+        cardIneFrente = findViewById(R.id.cardIneFrente);
+        cardIneReverso = findViewById(R.id.cardIneReverso);
+        cardComprobante = findViewById(R.id.cardComprobante);
 
-
+        // De inicio apagadas
+        deshabilitarCard(cardIneFrente);
+        deshabilitarCard(cardIneReverso);
+        deshabilitarCard(cardComprobante);
 
         // Spinner
         ArrayAdapter<String> estadoAdapter = new ArrayAdapter<>(
@@ -125,6 +149,28 @@ public class VolunteerCitaDetailActivity extends AppCompatActivity {
                         return;
                     }
 
+                    // URLs de documentos desde la solicitud
+                    urlIneFrente = doc.getString("urlIneFrente");
+                    urlIneReverso = doc.getString("urlIneReverso");
+                    urlComprobante = doc.getString("urlComprobante");
+
+                    // Campos "sueltos" (no en los mapas)
+                    numAdultos = doc.getString("numAdultos");
+                    numNinos = doc.getString("numNinos");
+                    familiaAcuerdo = doc.getString("familiaAcuerdo");
+                    familiaAlergias = doc.getString("familiaAlergias");
+                    tuvoMascotasAntes = doc.getString("tuvoMascotasAntes");
+                    tieneMascotasActuales = doc.getString("tieneMascotasActuales");
+                    detalleMascotas = doc.getString("detalleMascotas");
+                    horasSolo = doc.getString("horasSolo");
+                    lugarDormir = doc.getString("lugarDormir");
+                    planMudanza = doc.getString("planMudanza");
+
+                    // Configurar cards según haya o no URL
+                    configurarCardDocumento(cardIneFrente, urlIneFrente);
+                    configurarCardDocumento(cardIneReverso, urlIneReverso);
+                    configurarCardDocumento(cardComprobante, urlComprobante);
+
                     mostrarDatos();
                 })
                 .addOnFailureListener(e -> {
@@ -141,7 +187,8 @@ public class VolunteerCitaDetailActivity extends AppCompatActivity {
         // Fecha de la cita
         Date fechaCita = cita.getFechaCita();
         if (fechaCita != null) {
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault());
+            java.text.SimpleDateFormat sdf =
+                    new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault());
             tvFecha.setText(sdf.format(fechaCita));
         } else {
             tvFecha.setText("Sin fecha asignada");
@@ -159,17 +206,75 @@ public class VolunteerCitaDetailActivity extends AppCompatActivity {
 
         Date fechaSolicitud = cita.getFechaSolicitud();
         if (fechaSolicitud != null) {
-            java.text.SimpleDateFormat sdfSol = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
+            java.text.SimpleDateFormat sdfSol =
+                    new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
             tvFechaSolicitud.setText(sdfSol.format(fechaSolicitud));
         } else {
             tvFechaSolicitud.setText("Sin fecha registrada");
         }
 
-        // Mapas de los 4 pasos del formulario
-        tvDatosPersonales.setText(formatearMapa(cita.getDatosPersonales()));
-        tvDatosFamilia.setText(formatearMapa(cita.getDatosFamilia()));
-        tvDatosExperiencia.setText(formatearMapa(cita.getDatosExperiencia()));
-        tvDatosCompromiso.setText(formatearMapa(cita.getDatosCompromiso()));
+        // Mapas de los 4 pasos del formulario (tal como ya los tenías)
+        String datosPersonalesTxt = formatearMapa(cita.getDatosPersonales());
+        String datosFamiliaTxt = formatearMapa(cita.getDatosFamilia());
+        String datosExperienciaTxt = formatearMapa(cita.getDatosExperiencia());
+        String datosCompromisoTxt = formatearMapa(cita.getDatosCompromiso());
+
+        // Extras de familia
+        StringBuilder extraFamilia = new StringBuilder();
+        if (!esVacio(numAdultos)) {
+            extraFamilia.append("• Número de adultos en casa: ").append(noVacio(numAdultos)).append("\n");
+        }
+        if (!esVacio(numNinos)) {
+            extraFamilia.append("• Número de niños en casa: ").append(noVacio(numNinos)).append("\n");
+        }
+        if (!esVacio(familiaAcuerdo)) {
+            extraFamilia.append("• Familia de acuerdo con la adopción: ").append(noVacio(familiaAcuerdo)).append("\n");
+        }
+        if (!esVacio(familiaAlergias)) {
+            extraFamilia.append("• Hay alergias a animales en la familia: ").append(noVacio(familiaAlergias)).append("\n");
+        }
+
+        // Extras de experiencia con mascotas
+        StringBuilder extraExperiencia = new StringBuilder();
+        if (!esVacio(tuvoMascotasAntes)) {
+            extraExperiencia.append("• Ha tenido mascotas antes: ").append(noVacio(tuvoMascotasAntes)).append("\n");
+        }
+        if (!esVacio(tieneMascotasActuales)) {
+            extraExperiencia.append("• Tiene mascotas actualmente: ").append(noVacio(tieneMascotasActuales)).append("\n");
+        }
+        if (!esVacio(detalleMascotas)) {
+            extraExperiencia.append("• Detalle de mascotas actuales/anteriores: ").append(noVacio(detalleMascotas)).append("\n");
+        }
+
+        // Extras de compromiso/hogar
+        StringBuilder extraCompromiso = new StringBuilder();
+        if (!esVacio(horasSolo)) {
+            extraCompromiso.append("• Horas que el animal estaría solo: ").append(noVacio(horasSolo)).append("\n");
+        }
+        if (!esVacio(lugarDormir)) {
+            extraCompromiso.append("• Lugar donde dormirá el animal: ").append(noVacio(lugarDormir)).append("\n");
+        }
+        if (!esVacio(planMudanza)) {
+            extraCompromiso.append("• Plan en caso de mudanza: ").append(noVacio(planMudanza)).append("\n");
+        }
+
+        // Asignar textos combinando mapa + extras
+        tvDatosPersonales.setText(datosPersonalesTxt);
+
+        tvDatosFamilia.setText(
+                (datosFamiliaTxt.isEmpty() ? "" : datosFamiliaTxt + "\n") +
+                        extraFamilia.toString().trim()
+        );
+
+        tvDatosExperiencia.setText(
+                (datosExperienciaTxt.isEmpty() ? "" : datosExperienciaTxt + "\n") +
+                        extraExperiencia.toString().trim()
+        );
+
+        tvDatosCompromiso.setText(
+                (datosCompromisoTxt.isEmpty() ? "" : datosCompromisoTxt + "\n") +
+                        extraCompromiso.toString().trim()
+        );
 
         // Configurar botón de reporte
         final String citaId = cita.getCitaId();
@@ -184,9 +289,6 @@ public class VolunteerCitaDetailActivity extends AppCompatActivity {
             btnReporteVisita.setOnClickListener(null);
         }
     }
-
-
-
 
     private void guardarCambioEstado() {
         String valor = (String) spEstado.getSelectedItem();
@@ -212,10 +314,9 @@ public class VolunteerCitaDetailActivity extends AppCompatActivity {
                 );
     }
 
-
     private String formatearMapa(Map<String, Object> datos) {
         if (datos == null || datos.isEmpty()) {
-            return "Sin información capturada.";
+            return "";
         }
 
         StringBuilder sb = new StringBuilder();
@@ -245,8 +346,39 @@ public class VolunteerCitaDetailActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-
     private String noVacio(String s) {
         return (s == null || s.isEmpty()) ? "-" : s;
+    }
+
+    private boolean esVacio(String s) {
+        return s == null || s.trim().isEmpty();
+    }
+
+    // ------------ Helpers para documentos ------------
+
+    private void deshabilitarCard(MaterialCardView card) {
+        card.setEnabled(false);
+        card.setAlpha(0.3f);
+        card.setOnClickListener(null);
+    }
+
+    private void configurarCardDocumento(MaterialCardView card, String url) {
+        if (url == null || url.isEmpty()) {
+            deshabilitarCard(card);
+            return;
+        }
+
+        card.setEnabled(true);
+        card.setAlpha(1f);
+        card.setOnClickListener(v -> abrirUrl(url));
+    }
+
+    private void abrirUrl(String url) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "No se pudo abrir el documento", Toast.LENGTH_SHORT).show();
+        }
     }
 }

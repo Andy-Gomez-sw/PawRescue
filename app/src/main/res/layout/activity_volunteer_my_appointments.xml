@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -25,62 +26,201 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Mis Citas Asignadas"
+            android:text="Reporte de visita"
             android:textColor="@android:color/white"
             android:textSize="20sp"
             android:textStyle="bold"
             android:layout_marginStart="16dp" />
     </com.google.android.material.appbar.MaterialToolbar>
 
-    <!-- Tabs -->
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tabLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        android:elevation="2dp"
-        app:tabIndicatorColor="@color/primary_orange"
-        app:tabSelectedTextColor="@color/primary_orange"
-        app:tabTextColor="@color/text_secondary"
-        app:tabMode="fixed"
-        app:tabGravity="fill" />
-
-    <!-- RecyclerView de citas -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvAppointments"
+    <!-- Contenido scrolleable -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="8dp"
-        android:clipToPadding="false" />
+        android:fillViewport="true">
 
-    <!-- Empty State -->
-    <LinearLayout
-        android:id="@+id/llEmptyState"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:padding="32dp"
-        android:visibility="gone">
-
-        <ImageView
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:src="@drawable/ic_calendar_check"
-            android:alpha="0.3"
-            android:contentDescription="Sin citas" />
-
-        <TextView
-            android:id="@+id/tvEmptyState"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="No tienes citas asignadas"
-            android:textSize="16sp"
-            android:textColor="@color/text_secondary"
-            android:layout_marginTop="16dp"
-            android:gravity="center" />
-    </LinearLayout>
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Datos generales de la cita -->
+            <TextView
+                android:id="@+id/tvAnimalName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:textColor="@color/text_primary"
+                tools:text="Cita para adoptar a Firulais" />
+
+            <TextView
+                android:id="@+id/tvUsuarioEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                tools:text="Usuario: correo@example.com" />
+
+            <TextView
+                android:id="@+id/tvFechaHora"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                tools:text="Fecha: 24/11/2025 12:00" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:background="@color/text_secondary" />
+
+            <!-- Contenedor donde se crean dinámicamente las filas "Ver INE..." -->
+            <LinearLayout
+                android:id="@+id/llDocumentosContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="8dp"
+                android:padding="8dp" />
+
+            <!-- Botón para subir documento (no se usa, pero el código lo referencia) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSubirDocumento"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Subir documento"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@color/primary_green"
+                app:cornerRadius="8dp"
+                android:visibility="gone" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="12dp"
+                android:background="@color/text_secondary" />
+
+            <!-- Checklist de evaluación -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Evaluación del adoptante"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
+
+            <CheckBox
+                android:id="@+id/cbIneRecibida"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="INE revisada"
+                android:textColor="@color/text_primary" />
+
+            <CheckBox
+                android:id="@+id/cbComprobanteRecibido"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Comprobante de domicilio revisado"
+                android:textColor="@color/text_primary" />
+
+            <CheckBox
+                android:id="@+id/cbDomicilioAdecuado"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Domicilio adecuado para el animal"
+                android:textColor="@color/text_primary" />
+
+            <CheckBox
+                android:id="@+id/cbActitudPositiva"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Actitud positiva hacia el animal"
+                android:textColor="@color/text_primary" />
+
+            <CheckBox
+                android:id="@+id/cbExperienciaPrevia"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Cuenta con experiencia previa con mascotas"
+                android:textColor="@color/text_primary" />
+
+            <CheckBox
+                android:id="@+id/cbRecomiendaAprobacion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Recomendar aprobación de la adopción"
+                android:textColor="@color/text_primary" />
+
+            <!-- Observaciones -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Observaciones"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
+
+            <EditText
+                android:id="@+id/etObservaciones"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minLines="3"
+                android:gravity="top|start"
+                android:layout_marginTop="4dp"
+                android:background="@android:color/white"
+                android:padding="8dp"
+                android:hint="Escribe aquí tus observaciones de la visita"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary" />
+
+            <!-- Recomendaciones -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Recomendaciones"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
+
+            <EditText
+                android:id="@+id/etRecomendaciones"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minLines="3"
+                android:gravity="top|start"
+                android:layout_marginTop="4dp"
+                android:background="@android:color/white"
+                android:padding="8dp"
+                android:hint="Recomendaciones para la adopción o seguimiento"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_secondary" />
+
+            <!-- Botón Enviar -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEnviarReporte"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="16dp"
+                android:text="Enviar Reporte"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@color/primary_green"
+                app:cornerRadius="8dp" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
 </LinearLayout>
