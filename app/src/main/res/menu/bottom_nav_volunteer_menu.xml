@@ -6,6 +6,12 @@
         android:icon="@drawable/ic_pets"
         android:title="Animales" />
 
+    <!-- NUEVO BOTÓN DE SEGUIMIENTO POST ADOPCIÓN -->
+    <item
+        android:id="@+id/menu_seguimiento"
+        android:icon="@drawable/seguimiento"
+        android:title="Seguimiento" />
+
     <item
         android:id="@+id/menu_mi_cuenta"
         android:icon="@drawable/ic_user"

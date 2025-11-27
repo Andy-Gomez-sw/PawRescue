@@ -133,6 +133,14 @@
         <activity
             android:name=".ui.volunteer.VolunteerAppointmentActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.volunteer.VolunteerSeguimientoActivity"
+            android:parentActivityName=".ui.volunteer.VolunteerMainActivity" />
+
+        <activity
+            android:name=".ui.volunteer.VolunteerSeguimientoDetailActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

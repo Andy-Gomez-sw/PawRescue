@@ -25,58 +25,57 @@ import com.refugio.pawrescue.ui.adapter.AnimalAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VolunteerMainActivity extends AppCompatActivity
+public class VolunteerSeguimientoActivity extends AppCompatActivity
         implements AnimalAdapter.OnAnimalClickListener {
 
-    private static final String TAG = "VolunteerMainActivity";
+    private static final String TAG = "VolunteerSeguimiento";
 
-    private TextView tvEmpty;
-    private RecyclerView recyclerView;
-    private AnimalAdapter animalAdapter;
     private BottomNavigationView bottomNav;
+    private RecyclerView recyclerView;
+    private TextView tvEmpty;
 
-    private FirebaseAuth mAuth;
+    private AnimalAdapter animalAdapter;
+
     private FirebaseFirestore db;
+    private FirebaseAuth auth;
     private ListenerRegistration listenerRegistration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_volunteer_main);
+        setContentView(R.layout.activity_volunteer_seguimiento);
 
-        // Toolbar / banner
+        // Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayShowTitleEnabled(false);
+            getSupportActionBar().setTitle("PawRescue-Seguimiento");
         }
 
-        // Firebase
-        mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        auth = FirebaseAuth.getInstance();
 
-        // UI
-        tvEmpty = findViewById(R.id.tv_empty);
-        recyclerView = findViewById(R.id.recycler_animales);
+        tvEmpty = findViewById(R.id.tv_empty_seguimiento);
+        recyclerView = findViewById(R.id.recycler_animales_adoptados);
         bottomNav = findViewById(R.id.bottom_navigation_volunteer);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         animalAdapter = new AnimalAdapter(this, this);
         recyclerView.setAdapter(animalAdapter);
 
-        // Bottom navigation (Animales / Mi Cuenta)
+        // Bottom navigation
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
 
             if (id == R.id.menu_animales) {
-                // Ya estamos en Animales
-                return true;
-
-            } else if (id == R.id.menu_seguimiento) {
-                Intent intent = new Intent(this, VolunteerSeguimientoActivity.class);
+                Intent intent = new Intent(this, VolunteerMainActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivity(intent);
                 overridePendingTransition(0, 0);
+                return true;
+
+            } else if (id == R.id.menu_seguimiento) {
+                // Ya estamos aquí
                 return true;
 
             } else if (id == R.id.menu_mi_cuenta) {
@@ -90,30 +89,28 @@ public class VolunteerMainActivity extends AppCompatActivity
             return false;
         });
 
-
-        bottomNav.setSelectedItemId(R.id.menu_animales);
-
-        // Cargar animales al entrar
-        cargarAnimalesAsignados();
+        // Dejar seleccionado el icono de seguimiento
+        bottomNav.setSelectedItemId(R.id.menu_seguimiento);
     }
 
-    private void cargarAnimalesAsignados() {
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+    @Override
+    protected void onStart() {
+        super.onStart();
 
-        if (currentUser == null) {
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) {
             tvEmpty.setVisibility(View.VISIBLE);
-            tvEmpty.setText("Inicia sesión para ver tus animales asignados.");
+            tvEmpty.setText("Sesión no válida. Vuelve a iniciar sesión.");
             recyclerView.setVisibility(View.GONE);
             return;
         }
 
-        String uid = currentUser.getUid();
+        String uid = user.getUid();
 
-        tvEmpty.setVisibility(View.GONE);
-        recyclerView.setVisibility(View.VISIBLE);
-
+        // Animales de este voluntario y con estado Adoptado
         Query query = db.collection("animales")
-                .whereEqualTo("idVoluntario", uid);
+                .whereEqualTo("idVoluntario", uid)
+                .whereEqualTo("estadoRefugio", "Adoptado");
 
         if (listenerRegistration != null) {
             listenerRegistration.remove();
@@ -121,9 +118,9 @@ public class VolunteerMainActivity extends AppCompatActivity
 
         listenerRegistration = query.addSnapshotListener((snapshots, e) -> {
             if (e != null) {
-                Log.e(TAG, "Error obteniendo animales asignados", e);
+                Log.e(TAG, "Error obteniendo animales adoptados", e);
                 tvEmpty.setVisibility(View.VISIBLE);
-                tvEmpty.setText("Error al cargar animales asignados.");
+                tvEmpty.setText("Error al cargar el seguimiento.");
                 recyclerView.setVisibility(View.GONE);
                 return;
             }
@@ -131,7 +128,7 @@ public class VolunteerMainActivity extends AppCompatActivity
             if (snapshots == null || snapshots.isEmpty()) {
                 animalAdapter.setAnimalesList(new ArrayList<>());
                 tvEmpty.setVisibility(View.VISIBLE);
-                tvEmpty.setText("Actualmente no tienes animales asignados.");
+                tvEmpty.setText("Aún no tienes animales adoptados con seguimiento.");
                 recyclerView.setVisibility(View.GONE);
                 return;
             }
@@ -156,17 +153,17 @@ public class VolunteerMainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onAnimalClick(Animal animal) {
-        Intent intent = new Intent(this, VolunteerAnimalDetailActivity.class);
-        intent.putExtra(VolunteerAnimalDetailActivity.EXTRA_ANIMAL, animal);
-        startActivity(intent);
-    }
-
-    @Override
     protected void onDestroy() {
         super.onDestroy();
         if (listenerRegistration != null) {
             listenerRegistration.remove();
         }
+    }
+
+    @Override
+    public void onAnimalClick(Animal animal) {
+        Intent intent = new Intent(this, VolunteerSeguimientoDetailActivity.class);
+        intent.putExtra(VolunteerSeguimientoDetailActivity.EXTRA_ANIMAL, animal);
+        startActivity(intent);
     }
 }

@@ -35,8 +35,14 @@ public class VolunteerAccountActivity extends AppCompatActivity {
             int id = item.getItemId();
 
             if (id == R.id.menu_animales) {
-                // Ir a la pantalla principal de voluntario sin animación de cambio
                 Intent intent = new Intent(this, VolunteerMainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+                return true;
+
+            } else if (id == R.id.menu_seguimiento) {
+                Intent intent = new Intent(this, VolunteerSeguimientoActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                 startActivity(intent);
                 overridePendingTransition(0, 0);
@@ -49,6 +55,7 @@ public class VolunteerAccountActivity extends AppCompatActivity {
 
             return false;
         });
+
 
         // Dejar "Mi cuenta" seleccionada
         bottomNav.setSelectedItemId(R.id.menu_mi_cuenta);
