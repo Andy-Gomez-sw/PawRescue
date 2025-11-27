@@ -1,156 +1,171 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/background_white"
+    tools:context=".ui.publico.PublicMainActivity">
 
-    <!-- AppBar -->
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarLayout"
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        app:elevation="4dp">
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/primary_orange"
+        app:title="PawRescue"
+        app:titleTextColor="@color/white"
+        app:layout_constraintTop_toTopOf="parent"/>
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:layout_marginTop="35dp"
-            app:titleTextColor="@android:color/black"
-            app:layout_scrollFlags="scroll|enterAlways"/>
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigation">
 
-        <!-- Barra de búsqueda y filtros -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp"
-            android:background="@android:color/white">
+            android:padding="16dp">
 
-            <!-- Campo de búsqueda -->
-            <com.google.android.material.textfield.TextInputLayout
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:startIconDrawable="@android:drawable/ic_menu_search"
-                app:boxBackgroundMode="outline"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusBottomEnd="12dp">
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@color/primary_orange">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etSearch"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Buscar por nombre o raza"
-                    android:inputType="text"
-                    android:maxLines="1"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
-            <!-- Chips de filtros -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="¡Adopta, no compres!"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/white"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="El amor incondicional tiene 4 patas. Tu nuevo mejor amigo te está esperando aquí."
+                        android:textSize="14sp"
+                        android:textColor="@color/white"
+                        android:alpha="0.9"
+                        android:layout_marginTop="8dp"
+                        android:lineSpacingExtra="2dp"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Categorías"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="8dp"/>
+
             <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:scrollbars="none">
+                android:scrollbars="none"
+                android:layout_marginBottom="16dp">
 
                 <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/chipGroup"
+                    android:id="@+id/chipGroupFilters"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    app:singleLine="true"
                     app:singleSelection="true"
-                    app:selectionRequired="false"
-                    app:chipSpacingHorizontal="8dp">
+                    app:selectionRequired="true">
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chipTodos"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Todos"
-                        android:checked="true"/>
+                        android:checked="true"
+                        app:chipBackgroundColor="@color/white"
+                        android:textColor="@color/text_black"/>
 
                     <com.google.android.material.chip.Chip
-                        android:id="@+id/chipPerros"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        android:id="@+id/chipPerro"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Perros"/>
+                        android:text="Perro"
+                        app:chipIcon="@drawable/ic_paw"
+                        app:chipBackgroundColor="@color/white"
+                        android:textColor="@color/text_black"/>
 
                     <com.google.android.material.chip.Chip
-                        android:id="@+id/chipGatos"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        android:id="@+id/chipGato"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Gatos"/>
+                        android:text="Gato"
+                        app:chipIcon="@drawable/ic_pets"
+                        app:chipBackgroundColor="@color/white"
+                        android:textColor="@color/text_black"/>
 
                     <com.google.android.material.chip.Chip
-                        android:id="@+id/chipAves"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        android:id="@+id/chipAve"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Aves"/>
+                        android:text="Ave"
+                        app:chipBackgroundColor="@color/white"
+                        android:textColor="@color/text_black"/>
 
                     <com.google.android.material.chip.Chip
-                        android:id="@+id/chipOtros"
-                        style="@style/Widget.Material3.Chip.Filter"
+                        android:id="@+id/chipOtro"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Otros"/>
+                        android:text="Otro"
+                        app:chipBackgroundColor="@color/white"
+                        android:textColor="@color/text_black"/>
+
                 </com.google.android.material.chip.ChipGroup>
             </HorizontalScrollView>
-        </LinearLayout>
-    </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Contenido principal con SwipeRefresh -->
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipeRefresh"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mascotas Disponibles"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_black"
+                android:layout_marginBottom="12dp"/>
 
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <!-- RecyclerView de animales -->
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvAnimals"
+                android:id="@+id/rvPublicAnimals"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="8dp"
-                android:clipToPadding="false"/>
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"/>
 
-            <!-- Estado vacío -->
-            <LinearLayout
-                android:id="@+id/llEmptyState"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:padding="32dp"
-                android:visibility="gone">
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
-                <ImageView
-                    android:layout_width="120dp"
-                    android:layout_height="120dp"
-                    android:src="@android:drawable/ic_dialog_info"
-                    android:alpha="0.3"
-                    android:contentDescription="Sin resultados"/>
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        app:menu="@menu/bottom_nav_menu"
+        app:itemIconTint="@color/bottom_nav_color"
+        app:itemTextColor="@color/bottom_nav_color"
+        app:labelVisibilityMode="labeled"
+        app:elevation="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
-                <TextView
-                    android:id="@+id/tvEmptyState"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="No hay animales disponibles"
-                    android:textSize="16sp"
-                    android:textColor="@android:color/darker_gray"
-                    android:gravity="center"/>
-            </LinearLayout>
-        </FrameLayout>
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

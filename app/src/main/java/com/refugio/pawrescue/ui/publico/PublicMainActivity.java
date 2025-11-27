@@ -2,301 +2,166 @@ package com.refugio.pawrescue.ui.publico;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
-import com.google.android.material.chip.Chip;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.refugio.pawrescue.R;
 import com.refugio.pawrescue.model.Animal;
-import com.refugio.pawrescue.databinding.ActivityPublicMainBinding;
-import com.refugio.pawrescue.ui.auth.LoginActivity;
-import com.refugio.pawrescue.ui.adapter.AnimalAdapter;
+import com.refugio.pawrescue.ui.adapter.PublicAnimalsAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class PublicMainActivity extends AppCompatActivity {
 
-    private static final String TAG = "PublicMain";
+    private RecyclerView rvPublicAnimals;
+    private BottomNavigationView bottomNavigation;
+    private ChipGroup chipGroupFilters;
 
-    private ActivityPublicMainBinding binding;
-    private AnimalAdapter adapter;
+    private PublicAnimalsAdapter adapter;
+    private List<Animal> animalList;     // Lista visible
+    private List<Animal> fullAnimalList; // Lista completa (respaldo)
+
     private FirebaseFirestore db;
-
-    private List<Animal> animalList = new ArrayList<>();
-    private List<Animal> filteredList = new ArrayList<>();
-    private String currentFilter = "Todos";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityPublicMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        setContentView(R.layout.activity_public_main);
 
-        db = FirebaseFirestore.getInstance();
-
-        setupToolbar();
+        initViews();
+        initFirebase();
         setupRecyclerView();
-        setupSearch();
         setupFilters();
+        setupBottomNavigation();
+
         loadAnimals();
     }
 
-    private void setupToolbar() {
-        setSupportActionBar(binding.toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Adopta un Amigo");
-        }
+    private void initViews() {
+        rvPublicAnimals = findViewById(R.id.rvPublicAnimals);
+        bottomNavigation = findViewById(R.id.bottomNavigation);
+        chipGroupFilters = findViewById(R.id.chipGroupFilters);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.public_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_my_requests) {
-            startActivity(new Intent(this, MyRequestsActivity.class));
-            return true;
-        } else if (id == R.id.action_logout) {
-            logout();
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+    private void initFirebase() {
+        db = FirebaseFirestore.getInstance();
     }
 
     private void setupRecyclerView() {
-        adapter = new AnimalAdapter(this, filteredList, new AnimalAdapter.OnAnimalClickListener() {
-            @Override
-            public void onAnimalClick(Animal animal) {
-                showAnimalDetails(animal);
-            }
+        animalList = new ArrayList<>();
+        fullAnimalList = new ArrayList<>();
 
-            @Override
-            public void onFavoriteClick(Animal animal) {
-                Toast.makeText(PublicMainActivity.this,
-                        "Favorito: " + animal.getNombre(),
-                        Toast.LENGTH_SHORT).show();
-            }
+        adapter = new PublicAnimalsAdapter(this, animalList, animal -> {
+            Intent intent = new Intent(PublicMainActivity.this, AnimalDetailsPublicActivity.class);
+            intent.putExtra("ANIMAL_ID", animal.getId());
+            intent.putExtra("ANIMAL_OBJETO", animal);
+            startActivity(intent);
         });
 
-        binding.rvAnimals.setLayoutManager(new GridLayoutManager(this, 2));
-        binding.rvAnimals.setAdapter(adapter);
-    }
-
-    private void setupSearch() {
-        if (binding.etSearch != null) {
-            binding.etSearch.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    filterAnimals(s.toString(), currentFilter);
-                }
-
-                @Override
-                public void afterTextChanged(Editable s) {}
-            });
-        }
+        rvPublicAnimals.setLayoutManager(new GridLayoutManager(this, 2));
+        rvPublicAnimals.setAdapter(adapter);
     }
 
     private void setupFilters() {
-        if (binding.chipGroup != null) {
-            binding.chipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
-                if (!checkedIds.isEmpty()) {
-                    Chip chip = findViewById(checkedIds.get(0));
-                    if (chip != null) {
-                        currentFilter = chip.getText().toString();
-                        android.util.Log.d(TAG, "🏷️ Filtro seleccionado: " + currentFilter);
-                        filterAnimals(
-                                binding.etSearch != null ? binding.etSearch.getText().toString() : "",
-                                currentFilter
-                        );
-                    }
-                } else {
-                    currentFilter = "Todos";
-                    android.util.Log.d(TAG, "🏷️ Filtro: Mostrar todos");
-                    filterAnimals(
-                            binding.etSearch != null ? binding.etSearch.getText().toString() : "",
-                            currentFilter
-                    );
+        chipGroupFilters.setOnCheckedChangeListener((group, checkedId) -> {
+            String filtro = "Todos";
+
+            if (checkedId == R.id.chipPerro) filtro = "Perro";
+            else if (checkedId == R.id.chipGato) filtro = "Gato";
+            else if (checkedId == R.id.chipAve) filtro = "Ave";
+            else if (checkedId == R.id.chipOtro) filtro = "Otro";
+
+            aplicarFiltro(filtro);
+        });
+    }
+
+    private void aplicarFiltro(String especie) {
+        animalList.clear();
+
+        if (especie.equals("Todos")) {
+            animalList.addAll(fullAnimalList);
+        } else {
+            for (Animal animal : fullAnimalList) {
+                // Comparar ignorando mayúsculas
+                if (animal.getEspecie() != null && animal.getEspecie().equalsIgnoreCase(especie)) {
+                    animalList.add(animal);
                 }
-            });
+            }
+        }
+
+        adapter.notifyDataSetChanged();
+
+        if (animalList.isEmpty()) {
+            Toast.makeText(this, "No hay " + especie + "s disponibles", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void loadAnimals() {
-        binding.swipeRefresh.setOnRefreshListener(this::loadAnimalesDisponibles);
-        loadAnimalesDisponibles();
-    }
-
-    private void loadAnimalesDisponibles() {
-        showLoading(true);
-
+        // Descargar SOLO los animales disponibles
         db.collection("animales")
                 .whereEqualTo("estadoRefugio", "Disponible Adopcion")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
+                    fullAnimalList.clear();
                     animalList.clear();
 
-                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         try {
                             Animal animal = doc.toObject(Animal.class);
-                            if (animal != null) {
-                                animal.setIdAnimal(doc.getId());
-                                animal.setId(doc.getId());
+                            animal.setId(doc.getId());
 
-                                android.util.Log.d(TAG, "✅ Animal: " + animal.getNombre() +
-                                        " | ID: " + animal.getId() +
-                                        " | Especie: " + animal.getEspecie() +
-                                        " | Estado: " + animal.getEstadoRefugio());
-
-                                animalList.add(animal);
-                            }
+                            fullAnimalList.add(animal);
+                            animalList.add(animal);
                         } catch (Exception e) {
-                            android.util.Log.e(TAG, "❌ Error parseando animal: " + doc.getId(), e);
+                            e.printStackTrace();
                         }
                     }
+                    adapter.notifyDataSetChanged();
 
-                    android.util.Log.d(TAG, "📊 Total animales cargados: " + animalList.size());
-
-                    showLoading(false);
-
-                    // Aplicar filtros después de cargar
-                    String searchText = binding.etSearch != null ?
-                            binding.etSearch.getText().toString() : "";
-                    filterAnimals(searchText, currentFilter);
-
-                    if (animalList.isEmpty()) {
-                        Toast.makeText(this,
-                                "No hay animales disponibles para adopción",
-                                Toast.LENGTH_LONG).show();
+                    if (fullAnimalList.isEmpty()) {
+                        Toast.makeText(this, "No hay mascotas disponibles por ahora", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    showLoading(false);
-                    android.util.Log.e(TAG, "❌ Error de Firestore", e);
-                    Toast.makeText(this,
-                            "Error al cargar animales: " + e.getMessage(),
-                            Toast.LENGTH_SHORT).show();
-                    updateEmptyState(true);
+                    Toast.makeText(this, "Error al cargar: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
-    private void filterAnimals(String searchText, String filterCategory) {
-        filteredList.clear();
-        String searchLower = searchText.toLowerCase().trim();
+    private void setupBottomNavigation() {
+        bottomNavigation.setSelectedItemId(R.id.nav_home);
 
-        android.util.Log.d(TAG, "🔎 Filtrando: Búsqueda='" + searchText +
-                "', Categoría='" + filterCategory + "'");
-        android.util.Log.d(TAG, "📊 Total en animalList: " + animalList.size());
+        bottomNavigation.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
 
-        for (Animal animal : animalList) {
-            // Filtro de búsqueda por texto
-            boolean matchesSearch = searchText.isEmpty() ||
-                    (animal.getNombre() != null && animal.getNombre().toLowerCase().contains(searchLower)) ||
-                    (animal.getRaza() != null && animal.getRaza().toLowerCase().contains(searchLower));
-
-            // Filtro por categoría
-            boolean matchesFilter = true;
-            if (!filterCategory.equals("Todos")) {
-                String especie = animal.getEspecie();
-
-                // Log para debug
-                android.util.Log.d(TAG, "🐾 Animal: " + animal.getNombre() +
-                        " | Especie en BD: '" + especie + "' | Filtro: '" + filterCategory + "'");
-
-                if (especie != null && !especie.isEmpty()) {
-                    switch (filterCategory) {
-                        case "Perros":
-                        case "Perro":
-                            matchesFilter = especie.equalsIgnoreCase("Perro");
-                            break;
-                        case "Gatos":
-                        case "Gato":
-                            matchesFilter = especie.equalsIgnoreCase("Gato");
-                            break;
-                        case "Aves":
-                        case "Ave":
-                            matchesFilter = especie.equalsIgnoreCase("Ave") ||
-                                    especie.equalsIgnoreCase("Aves");
-                            break;
-                        case "Otros":
-                        case "Otro":
-                            matchesFilter = !especie.equalsIgnoreCase("Perro") &&
-                                    !especie.equalsIgnoreCase("Gato") &&
-                                    !especie.equalsIgnoreCase("Ave") &&
-                                    !especie.equalsIgnoreCase("Aves");
-                            break;
-                        default:
-                            matchesFilter = true;
-                    }
-
-                    android.util.Log.d(TAG, "  ➡️ matchesFilter: " + matchesFilter);
-                } else {
-                    android.util.Log.w(TAG, "⚠️ Animal sin especie: " + animal.getNombre());
-                    matchesFilter = false;
-                }
+            if (id == R.id.nav_home) {
+                return true;
+            } else if (id == R.id.nav_favorites) {
+                startActivity(new Intent(this, FavoritesActivity.class));
+                return true;
+            } else if (id == R.id.nav_requests) {
+                startActivity(new Intent(this, MyRequestsActivity.class));
+                return true;
+            } else if (id == R.id.nav_profile) {
+                startActivity(new Intent(this, ProfileActivity.class));
+                return true;
             }
+            return false;
+        });
+    }
 
-            if (matchesSearch && matchesFilter) {
-                filteredList.add(animal);
-                android.util.Log.d(TAG, "  ✅ AGREGADO a filteredList");
-            } else {
-                android.util.Log.d(TAG, "  ❌ NO agregado (search:" + matchesSearch +
-                        ", filter:" + matchesFilter + ")");
-            }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (bottomNavigation != null) {
+            bottomNavigation.setSelectedItemId(R.id.nav_home);
         }
-
-        android.util.Log.d(TAG, "📋 Resultados FINALES: " + filteredList.size() +
-                " de " + animalList.size() + " animales");
-        android.util.Log.d(TAG, "============================================");
-
-        adapter.notifyDataSetChanged();
-        updateEmptyState(filteredList.isEmpty());
-    }
-
-    private void showAnimalDetails(Animal animal) {
-        Intent intent = new Intent(this, AnimalDetailsPublicActivity.class);
-        intent.putExtra("ANIMAL_ID", animal.getId());
-        startActivity(intent);
-    }
-
-    private void updateEmptyState(boolean isEmpty) {
-        if (isEmpty) {
-            binding.rvAnimals.setVisibility(View.GONE);
-            binding.llEmptyState.setVisibility(View.VISIBLE);
-        } else {
-            binding.rvAnimals.setVisibility(View.VISIBLE);
-            binding.llEmptyState.setVisibility(View.GONE);
-        }
-    }
-
-    private void showLoading(boolean isLoading) {
-        binding.swipeRefresh.setRefreshing(isLoading);
-    }
-
-    private void logout() {
-        FirebaseAuth.getInstance().signOut();
-        Intent intent = new Intent(this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
     }
 }

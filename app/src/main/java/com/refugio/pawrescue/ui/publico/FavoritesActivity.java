@@ -3,8 +3,8 @@ package com.refugio.pawrescue.ui.publico;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.LinearLayout; // 🟢 IMPORTACIÓN AGREGADA
-import android.widget.TextView;
+import android.widget.LinearLayout;
+import android.widget.TextView; // Se mantiene por si acaso
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -22,7 +22,7 @@ import java.util.List;
 public class FavoritesActivity extends AppCompatActivity {
 
     private RecyclerView rvFavorites;
-    private LinearLayout tvEmptyFavorites; // 🟢 CAMBIO: De TextView a LinearLayout
+    private LinearLayout tvEmptyFavorites;
     private BottomNavigationView bottomNavigation;
     private AnimalAdapter adapter;
     private List<Animal> favoriteList;
@@ -34,7 +34,7 @@ public class FavoritesActivity extends AppCompatActivity {
         setContentView(R.layout.activity_favorites);
 
         rvFavorites = findViewById(R.id.rvFavorites);
-        tvEmptyFavorites = findViewById(R.id.tvEmptyFavorites); // Ahora esto es correcto (LinearLayout)
+        tvEmptyFavorites = findViewById(R.id.tvEmptyFavorites);
         bottomNavigation = findViewById(R.id.bottomNavigation);
         db = FirebaseFirestore.getInstance();
         favoriteList = new ArrayList<>();
@@ -72,7 +72,8 @@ public class FavoritesActivity extends AppCompatActivity {
             int id = item.getItemId();
 
             if (id == R.id.nav_home) {
-                startActivity(new Intent(this, GalleryActivity.class));
+                // 🟢 CORRECCIÓN AQUÍ: Cambiado a PublicMainActivity
+                startActivity(new Intent(this, PublicMainActivity.class));
                 finish();
                 return true;
             } else if (id == R.id.nav_favorites) {
@@ -147,7 +148,6 @@ public class FavoritesActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Recargar favoritos al volver a la actividad
         loadFavorites();
     }
 }
