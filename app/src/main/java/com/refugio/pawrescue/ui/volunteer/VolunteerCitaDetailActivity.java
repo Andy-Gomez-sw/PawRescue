@@ -1,6 +1,7 @@
 package com.refugio.pawrescue.ui.volunteer;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
@@ -11,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.refugio.pawrescue.R;
@@ -22,7 +24,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-
 public class VolunteerCitaDetailActivity extends AppCompatActivity {
 
     private TextView tvAdoptante, tvCorreo, tvFecha;
@@ -32,6 +33,10 @@ public class VolunteerCitaDetailActivity extends AppCompatActivity {
 
     private Spinner spEstado;
     private MaterialButton btnGuardar, btnReporteVisita;
+
+    // Cards para ver documentos
+    private MaterialCardView cardIneFrente, cardIneReverso, cardComprobante;
+    private String urlIneFrente, urlIneReverso, urlComprobante;
 
     private FirebaseFirestore db;
 
@@ -80,8 +85,15 @@ public class VolunteerCitaDetailActivity extends AppCompatActivity {
         btnGuardar = findViewById(R.id.btn_guardar_estado);
         btnReporteVisita = findViewById(R.id.btn_reporte_visita);
 
+        // Cards documentos
+        cardIneFrente = findViewById(R.id.cardIneFrente);
+        cardIneReverso = findViewById(R.id.cardIneReverso);
+        cardComprobante = findViewById(R.id.cardComprobante);
 
-
+        // De inicio apagadas
+        deshabilitarCard(cardIneFrente);
+        deshabilitarCard(cardIneReverso);
+        deshabilitarCard(cardComprobante);
 
         // Spinner
         ArrayAdapter<String> estadoAdapter = new ArrayAdapter<>(
@@ -125,6 +137,16 @@ public class VolunteerCitaDetailActivity extends AppCompatActivity {
                         return;
                     }
 
+                    // URLs de documentos desde la solicitud
+                    urlIneFrente = doc.getString("urlIneFrente");
+                    urlIneReverso = doc.getString("urlIneReverso");
+                    urlComprobante = doc.getString("urlComprobante");
+
+                    // Configurar cards según haya o no URL
+                    configurarCardDocumento(cardIneFrente, urlIneFrente);
+                    configurarCardDocumento(cardIneReverso, urlIneReverso);
+                    configurarCardDocumento(cardComprobante, urlComprobante);
+
                     mostrarDatos();
                 })
                 .addOnFailureListener(e -> {
@@ -141,7 +163,8 @@ public class VolunteerCitaDetailActivity extends AppCompatActivity {
         // Fecha de la cita
         Date fechaCita = cita.getFechaCita();
         if (fechaCita != null) {
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault());
+            java.text.SimpleDateFormat sdf =
+                    new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault());
             tvFecha.setText(sdf.format(fechaCita));
         } else {
             tvFecha.setText("Sin fecha asignada");
@@ -159,7 +182,8 @@ public class VolunteerCitaDetailActivity extends AppCompatActivity {
 
         Date fechaSolicitud = cita.getFechaSolicitud();
         if (fechaSolicitud != null) {
-            java.text.SimpleDateFormat sdfSol = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
+            java.text.SimpleDateFormat sdfSol =
+                    new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
             tvFechaSolicitud.setText(sdfSol.format(fechaSolicitud));
         } else {
             tvFechaSolicitud.setText("Sin fecha registrada");
@@ -185,9 +209,6 @@ public class VolunteerCitaDetailActivity extends AppCompatActivity {
         }
     }
 
-
-
-
     private void guardarCambioEstado() {
         String valor = (String) spEstado.getSelectedItem();
 
@@ -211,7 +232,6 @@ public class VolunteerCitaDetailActivity extends AppCompatActivity {
                         Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show()
                 );
     }
-
 
     private String formatearMapa(Map<String, Object> datos) {
         if (datos == null || datos.isEmpty()) {
@@ -245,8 +265,35 @@ public class VolunteerCitaDetailActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-
     private String noVacio(String s) {
         return (s == null || s.isEmpty()) ? "-" : s;
+    }
+
+    // ------------ Helpers para documentos ------------
+
+    private void deshabilitarCard(MaterialCardView card) {
+        card.setEnabled(false);
+        card.setAlpha(0.3f);
+        card.setOnClickListener(null);
+    }
+
+    private void configurarCardDocumento(MaterialCardView card, String url) {
+        if (url == null || url.isEmpty()) {
+            deshabilitarCard(card);
+            return;
+        }
+
+        card.setEnabled(true);
+        card.setAlpha(1f);
+        card.setOnClickListener(v -> abrirUrl(url));
+    }
+
+    private void abrirUrl(String url) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "No se pudo abrir el documento", Toast.LENGTH_SHORT).show();
+        }
     }
 }

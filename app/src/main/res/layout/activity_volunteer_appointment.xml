@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="@android:color/white"
+    tools:context=".ui.volunteer.VolunteerMyAppointmentActivity">
 
-    <LinearLayout
+    <!-- BANNER VERDE -->
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="wrap_content">
 
-        <!-- Header -->
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@drawable/bg_gradient_green"
-            android:elevation="4dp">
+            android:background="@color/primary_green"
+            android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
 
             <ImageButton
                 android:id="@+id/btnBack"
@@ -29,222 +30,224 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Reporte de Cita"
+                android:layout_marginStart="16dp"
+                android:text="Reporte de cita"
                 android:textColor="@android:color/white"
                 android:textSize="20sp"
-                android:textStyle="bold"
-                android:layout_marginStart="16dp" />
+                android:textStyle="bold" />
         </com.google.android.material.appbar.MaterialToolbar>
+    </com.google.android.material.appbar.AppBarLayout>
 
-        <!-- Contenido -->
+    <!-- CONTENIDO SCROLLEABLE -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:background="@android:color/white"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Info de la cita -->
-            <com.google.android.material.card.MaterialCardView
+            <!-- DATOS DE LA CITA / ANIMAL -->
+            <TextView
+                android:id="@+id/tvAnimalName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                android:layout_marginBottom="16dp">
+                android:text="Cita para adoptar a ..."
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                tools:text="Cita para adoptar a Max" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+            <TextView
+                android:id="@+id/tvUsuarioEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Usuario: correo@ejemplo.com"
+                android:textSize="14sp"
+                android:textColor="@android:color/black"
+                tools:text="Usuario: joshua@example.com" />
 
-                    <TextView
-                        android:id="@+id/tvAnimalName"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Cita para adoptar a Max"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary" />
+            <TextView
+                android:id="@+id/tvFechaHora"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Fecha: --/--/---- --:--"
+                android:textSize="14sp"
+                android:textColor="@android:color/black"
+                tools:text="Fecha: 24/11/2025 12:00" />
 
-                    <TextView
-                        android:id="@+id/tvUsuarioEmail"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Usuario: juan@example.com"
-                        android:textSize="14sp"
-                        android:textColor="@color/text_secondary"
-                        android:layout_marginTop="4dp" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:background="@android:color/darker_gray" />
 
-                    <TextView
-                        android:id="@+id/tvFechaHora"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Fecha: 2025-01-30 a las 10:00"
-                        android:textSize="14sp"
-                        android:textColor="@color/text_secondary"
-                        android:layout_marginTop="4dp" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Sección: Documentos Recibidos -->
+            <!-- CHECKLIST -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="📄 Documentos Recibidos"
-                android:textSize="18sp"
+                android:layout_marginTop="12dp"
+                android:text="Checklist de visita"
+                android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="12dp" />
+                android:textColor="@android:color/black" />
 
             <CheckBox
                 android:id="@+id/cbIneRecibida"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Identificación oficial (INE)"
-                android:textSize="16sp"
-                android:textColor="@color/text_primary" />
+                android:text="INE recibida y verificada"
+                android:textColor="@android:color/black" />
 
             <CheckBox
                 android:id="@+id/cbComprobanteRecibido"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Comprobante de domicilio"
-                android:textSize="16sp"
-                android:textColor="@color/text_primary" />
-
-            <!-- Sección: Evaluación -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="✅ Evaluación del Usuario"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="12dp" />
+                android:text="Comprobante de domicilio recibido"
+                android:textColor="@android:color/black" />
 
             <CheckBox
                 android:id="@+id/cbDomicilioAdecuado"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="El domicilio es adecuado para la mascota"
-                android:textSize="16sp"
-                android:textColor="@color/text_primary" />
+                android:text="Domicilio adecuado para el animal"
+                android:textColor="@android:color/black" />
 
             <CheckBox
                 android:id="@+id/cbActitudPositiva"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Actitud responsable y positiva"
-                android:textSize="16sp"
-                android:textColor="@color/text_primary" />
+                android:text="Actitud positiva del adoptante"
+                android:textColor="@android:color/black" />
 
             <CheckBox
                 android:id="@+id/cbExperienciaPrevia"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Experiencia previa con mascotas"
-                android:textSize="16sp"
-                android:textColor="@color/text_primary" />
+                android:text="Cuenta con experiencia previa con mascotas"
+                android:textColor="@android:color/black" />
 
             <CheckBox
                 android:id="@+id/cbRecomiendaAprobacion"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Se recomienda la aprobación de la adopción"
+                android:text="Se recomienda aprobación de la adopción"
+                android:textColor="@android:color/black" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:background="@android:color/darker_gray" />
+
+            <!-- DOCUMENTOS DE LA SOLICITUD -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Documentos del adoptante"
                 android:textSize="16sp"
-                android:textColor="@color/text_primary" />
+                android:textStyle="bold"
+                android:textColor="@android:color/black" />
 
-            <!-- Observaciones -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="🗒️ Observaciones de la visita"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="8dp" />
-
-            <EditText
-                android:id="@+id/etObservaciones"
-                android:layout_width="match_parent"
-                android:layout_height="120dp"
-                android:gravity="top|start"
-                android:background="@drawable/bg_edittext_rounded"
-                android:padding="12dp"
-                android:textColor="@color/text_primary"
-                android:textColorHint="@color/text_secondary"
-                android:hint="Describe cómo se comportó el usuario, ambiente del hogar, etc." />
-
-            <!-- Recomendaciones -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="📌 Recomendaciones finales"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="8dp" />
-
-            <EditText
-                android:id="@+id/etRecomendaciones"
-                android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:gravity="top|start"
-                android:background="@drawable/bg_edittext_rounded"
-                android:padding="12dp"
-                android:textColor="@color/text_primary"
-                android:textColorHint="@color/text_secondary"
-                android:hint="Anota si recomiendas aprobar, posponer o rechazar la adopción." />
-
-            <!-- Documentos subidos -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="📎 Documentos subidos"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="8dp" />
+                android:text="(INE frente y reverso, comprobante de domicilio)"
+                android:textSize="13sp"
+                android:textColor="@android:color/darker_gray" />
 
             <LinearLayout
                 android:id="@+id/llDocumentosContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="4dp" />
+                android:orientation="vertical"
+                android:layout_marginTop="8dp" />
 
-            <!-- Botón subir documento -->
+            <!-- (Se agregarán TextViews clicables desde el código) -->
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:background="@android:color/darker_gray" />
+
+            <!-- OBSERVACIONES -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Observaciones de la visita"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black" />
+
+            <EditText
+                android:id="@+id/etObservaciones"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:layout_marginTop="4dp"
+                android:gravity="top|start"
+                android:hint="Describe lo que observaste durante la visita..."
+                android:padding="8dp"
+                android:textColor="@android:color/black"
+                android:textColorHint="@android:color/darker_gray"
+                android:inputType="textMultiLine" />
+
+            <!-- RECOMENDACIONES -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Recomendaciones"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black" />
+
+            <EditText
+                android:id="@+id/etRecomendaciones"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginTop="4dp"
+                android:gravity="top|start"
+                android:hint="Opcional: recomendaciones para el adoptante o el refugio"
+                android:padding="8dp"
+                android:textColor="@android:color/black"
+                android:textColorHint="@android:color/darker_gray"
+                android:inputType="textMultiLine" />
+
+            <!-- Botón oculto (ya no se usa, pero el código lo referencia) -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSubirDocumento"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Subir fotografía o documento"
-                android:textSize="16sp"
-                android:textColor="@android:color/white"
-                android:backgroundTint="@color/primary_green"
                 android:layout_marginTop="16dp"
-                app:cornerRadius="8dp" />
+                android:text="Subir documento (no usado)"
+                android:textAllCaps="false"
+                android:visibility="gone" />
 
-            <!-- Botón enviar -->
+            <!-- ENVIAR REPORTE -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnEnviarReporte"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Enviar reporte al admin"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="24dp"
+                android:text="Enviar reporte"
+                android:textAllCaps="false"
                 android:textSize="16sp"
                 android:textColor="@android:color/white"
                 android:backgroundTint="@color/primary_green"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="24dp"
                 app:cornerRadius="8dp" />
 
         </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
-    </LinearLayout>
-
-</ScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
