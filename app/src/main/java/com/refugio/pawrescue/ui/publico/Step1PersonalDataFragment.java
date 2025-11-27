@@ -5,11 +5,16 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.ContentValues;
+import android.content.Context; // 🚨 Importación de Contexto para Geocoder
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address; // 🚨 Importación para Geocoding
+import android.location.Geocoder; // 🚨 Importación para Geocoding
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +31,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.core.app.ActivityCompat;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
@@ -35,9 +41,16 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.refugio.pawrescue.R;
 
+// 🚨 Importaciones de Localización
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+
+import java.io.IOException; // 🚨 Necesario para Geocoder
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -47,6 +60,7 @@ public class Step1PersonalDataFragment extends Fragment {
     private AutoCompleteTextView actvTipoVivienda;
     private RadioGroup rgPropiedadVivienda;
     private Calendar calendar = Calendar.getInstance();
+    private static final String TAG = "Step1Fragment";
 
     // Vistas de archivos
     private ImageView ivIneFrente, ivIneReverso;
@@ -67,6 +81,9 @@ public class Step1PersonalDataFragment extends Fragment {
     private FirebaseAuth auth;
     private FirebaseFirestore db;
 
+    // 🚨 Cliente de Localización
+    private FusedLocationProviderClient fusedLocationClient;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -75,12 +92,13 @@ public class Step1PersonalDataFragment extends Fragment {
 
         initViews(view);
         initFirebase();
+        // 🚨 Inicializar cliente de localización
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+
         setupDatePicker();
         setupTipoViviendaDropdown();
-        setupResultLaunchers(); // Configurar los manejadores de resultados
-        setupFileListeners();   // Configurar los clics
-
-        // 🟢 Cargar datos del usuario (incluyendo teléfono editado en perfil)
+        setupResultLaunchers();
+        setupFileListeners();
         loadUserData();
 
         return view;
@@ -125,7 +143,6 @@ public class Step1PersonalDataFragment extends Fragment {
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK) {
-                        // La URI ya está en tempCameraUri
                         handleImageSelection(tempCameraUri);
                     }
                 });
@@ -137,8 +154,7 @@ public class Step1PersonalDataFragment extends Fragment {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                         uriComprobantePdf = result.getData().getData();
                         tvNombrePdf.setText("Archivo PDF cargado correctamente");
-                        // Asegúrate de tener el color negro o usa android.R.color.black
-                        tvNombrePdf.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.black));
+                        tvNombrePdf.setTextColor(requireContext().getColor(R.color.black));
                     }
                 });
 
@@ -147,12 +163,19 @@ public class Step1PersonalDataFragment extends Fragment {
                 new ActivityResultContracts.RequestPermission(),
                 isGranted -> {
                     if (isGranted) {
-                        openCamera();
+                        // Si el permiso concedido es de cámara (el último solicitado)
+                        if (whichPermissionWasRequested == 1) { // 1 = Cámara
+                            openCamera();
+                        } else if (whichPermissionWasRequested == 2) { // 2 = Ubicación
+                            requestLocationAndSave();
+                        }
                     } else {
-                        Toast.makeText(getContext(), "Se requiere permiso de cámara", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Se requiere permiso para esta acción", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
+
+    private int whichPermissionWasRequested = 0; // 0=none, 1=camera, 2=location
 
     /**
      * Procesa la imagen seleccionada (Cámara o Galería) y la muestra con Glide
@@ -207,7 +230,8 @@ public class Step1PersonalDataFragment extends Fragment {
     }
 
     private void openGallery() {
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
         launcherGallery.launch(intent);
     }
 
@@ -215,6 +239,7 @@ public class Step1PersonalDataFragment extends Fragment {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             openCamera();
         } else {
+            whichPermissionWasRequested = 1; // Bandera para Cámara
             requestPermissionLauncher.launch(Manifest.permission.CAMERA);
         }
     }
@@ -231,34 +256,118 @@ public class Step1PersonalDataFragment extends Fragment {
         launcherCamera.launch(cameraIntent);
     }
 
-    /**
-     * 🟢 CARGA DE DATOS: Aquí es donde recuperamos el teléfono guardado en Perfil
-     */
     private void loadUserData() {
         FirebaseUser user = auth.getCurrentUser();
         if (user != null) {
             etEmail.setText(user.getEmail());
             String userId = user.getUid();
 
+            // 🚨 1. Solicitar permiso de ubicación al cargar los datos
+            checkLocationPermissionAndRequest();
+
             db.collection("usuarios").document(userId)
                     .get()
                     .addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists()) {
-                            // Recuperar Nombre
                             String nombre = documentSnapshot.getString("nombre");
                             if (nombre != null) etNombreCompleto.setText(nombre);
-
-                            // Recuperar Teléfono (Este es el que editaste en ProfileActivity)
                             String telefono = documentSnapshot.getString("telefono");
                             if (telefono != null) etTelefono.setText(telefono);
-
-                            // Recuperar Dirección
                             String direccion = documentSnapshot.getString("direccion");
                             if (direccion != null) etDireccion.setText(direccion);
+
+                            // Si se carga la dirección, se puede asumir que no se necesita la ubicación, pero la guardamos de todos modos.
                         }
                     });
         }
     }
+
+    /**
+     * 🚨 NUEVO MÉTODO: Verifica si tiene permiso de ubicación.
+     */
+    private void checkLocationPermissionAndRequest() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            requestLocationAndSave();
+        } else {
+            whichPermissionWasRequested = 2; // Bandera para Ubicación
+            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
+        }
+    }
+
+    /**
+     * 🚨 NUEVO MÉTODO CRÍTICO: Obtiene la ubicación, realiza Geocoding y llena el campo.
+     */
+    private void requestLocationAndSave() {
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) return;
+
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+        fusedLocationClient.getLastLocation().addOnSuccessListener(requireActivity(), location -> {
+            if (location != null) {
+                double lat = location.getLatitude();
+                double lon = location.getLongitude();
+                String userId = user.getUid();
+
+                // 1. Intentar obtener la dirección legible
+                String direccionActual = getAddressFromCoordinates(lat, lon);
+
+                // 2. Llenar el campo etDireccion solo si está vacío
+                if (etDireccion.getText().toString().trim().isEmpty() && !direccionActual.isEmpty()) {
+                    etDireccion.setText(direccionActual);
+                    Toast.makeText(getContext(), "Dirección cargada por ubicación.", Toast.LENGTH_SHORT).show();
+                }
+
+                // 3. Actualizar Firestore con las coordenadas
+                Map<String, Object> updates = new HashMap<>();
+                updates.put("latitud", lat);
+                updates.put("longitud", lon);
+                updates.put("ultimaUbicacionFecha", new Date());
+
+                db.collection("usuarios").document(userId).update(updates)
+                        .addOnSuccessListener(aVoid -> Log.d(TAG, "Coordenadas actualizadas en Firestore."))
+                        .addOnFailureListener(e -> Log.e(TAG, "Fallo al actualizar coordenadas: ", e));
+            } else {
+                Log.d(TAG, "Última ubicación es nula.");
+            }
+        });
+    }
+
+    /**
+     * 🚨 NUEVA FUNCIÓN: Realiza Geocodificación Inversa (coordenadas a dirección).
+     */
+    private String getAddressFromCoordinates(double lat, double lon) {
+        if (getContext() == null) return "";
+        Geocoder geocoder = new Geocoder(getContext(), Locale.getDefault());
+        String addressString = "";
+
+        try {
+            // Se puede obtener una lista, tomamos la primera.
+            List<Address> addresses = geocoder.getFromLocation(lat, lon, 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                Address address = addresses.get(0);
+                StringBuilder sb = new StringBuilder();
+
+                // Construye la dirección completa (puedes ajustar el formato)
+                for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
+                    sb.append(address.getAddressLine(i));
+                    if (i < address.getMaxAddressLineIndex()) {
+                        sb.append(", ");
+                    }
+                }
+                addressString = sb.toString();
+            }
+        } catch (IOException e) {
+            Log.e(TAG, "Error en Geocoder: " + e.getMessage());
+            // Si Geocoder falla (sin conexión, etc.), devuelve las coordenadas como texto.
+            addressString = String.format(Locale.getDefault(), "Lat: %.4f, Lon: %.4f", lat, lon);
+        }
+        return addressString;
+    }
+
 
     private void setupDatePicker() {
         etFechaNacimiento.setOnClickListener(v -> {
@@ -293,7 +402,7 @@ public class Step1PersonalDataFragment extends Fragment {
         actvTipoVivienda.setAdapter(adapter);
     }
 
-    // 🟢 VALIDACIONES (Edad, campos vacíos y documentos)
+    // 🟢 VALIDACIONES
     public boolean isValidStep() {
         String nombre = etNombreCompleto.getText().toString().trim();
         String fecha = etFechaNacimiento.getText().toString().trim();
