@@ -85,8 +85,10 @@ public class SolicitudAdopcionAdapter extends RecyclerView.Adapter<SolicitudAdop
 
         if (isReporteEnviado) {
             // 🟢 FASE 3: Reporte Enviado -> Decisión Final
-            holder.btnAgendarCita.setText("VER REPORTE / DECIDIR"); // 🚨 Texto solicitado
-            holder.btnAgendarCita.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.primary_green));
+            // 🚨 CORRECCIÓN: Botón "VER REPORTE" en naranja
+            holder.btnAgendarCita.setText("VER REPORTE");
+            // Se usa R.color.accent_orange, que se usa en la Fase 1 y parece ser el color de acción.
+            holder.btnAgendarCita.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.accent_orange));
             holder.btnAgendarCita.setEnabled(true);
         } else if (!isCitaAgendada) {
             // Estado Inicial: El usuario aún no ha agendado.

@@ -18,6 +18,11 @@ public class AdoptionRequest implements Serializable {
     private String estadoActual;
     private Date fechaSolicitud;
     private CitaAgendada citaAgendada;
+    private Date fechaEntrega;
+    private String voluntarioId;
+
+    // 🚨 CAMPO AÑADIDO PARA SOLUCIONAR EL ERROR DE COMPILACIÓN
+    private String citaId;
 
     // Constructor vacío requerido por Firestore
     public AdoptionRequest() {}
@@ -127,6 +132,33 @@ public class AdoptionRequest implements Serializable {
         this.citaAgendada = citaAgendada;
     }
 
+    public Date getFechaEntrega() {
+        return fechaEntrega;
+    }
+
+    public void setFechaEntrega(Date fechaEntrega) {
+        this.fechaEntrega = fechaEntrega;
+    }
+
+    public String getVoluntarioId() {
+        return voluntarioId;
+    }
+
+    public void setVoluntarioId(String voluntarioId) {
+        this.voluntarioId = voluntarioId;
+    }
+
+    // 🚨 GETTER Y SETTER AÑADIDOS PARA EL NUEVO CAMPO
+    public String getCitaId() {
+        return citaId;
+    }
+
+    public void setCitaId(String citaId) {
+        this.citaId = citaId;
+    }
+    // FIN GETTER Y SETTER AÑADIDOS
+
+
     // Métodos helper
     public String getEstadoTexto() {
         switch (estado) {
@@ -185,6 +217,7 @@ public class AdoptionRequest implements Serializable {
                 java.util.Locale.getDefault());
         return sdf.format(fechaSolicitud);
     }
+
 
     // Clase interna para citas
     public static class CitaAgendada implements Serializable {
