@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 import com.refugio.pawrescue.R;
+import android.graphics.Color;
 
 public class AdoptionRequest implements Serializable {
     private String id;
@@ -13,21 +14,20 @@ public class AdoptionRequest implements Serializable {
     private String animalRaza;
     private String animalFotoUrl;
     private String usuarioId;
+
+    // Campos de documentos
+    private String urlIneFrente;
+    private String urlIneReverso;
+    private String urlComprobante;
+
     private Map<String, Object> datosPersonales;
     private String estado; // pendiente, en_revision, cita_agendada, aprobada, rechazada
     private String estadoActual;
     private Date fechaSolicitud;
-    private CitaAgendada citaAgendada;
     private Date fechaEntrega;
     private String voluntarioId;
-
-    // 🚨 CAMPO AÑADIDO PARA SOLUCIONAR EL ERROR DE COMPILACIÓN
     private String citaId;
-
-    // 🟢 NUEVOS CAMPOS PARA DOCUMENTOS
-    private String urlIneFrente;
-    private String urlIneReverso;
-    private String urlComprobante;
+    private CitaAgendada citaAgendada;
 
     // Constructor vacío requerido por Firestore
     public AdoptionRequest() {}
@@ -40,218 +40,112 @@ public class AdoptionRequest implements Serializable {
         this.fechaSolicitud = fechaSolicitud;
     }
 
-    // 🟢 GETTERS Y SETTERS PARA DOCUMENTOS
-    public String getUrlIneFrente() {
-        return urlIneFrente;
-    }
+    // --- GETTERS Y SETTERS ---
 
-    public void setUrlIneFrente(String urlIneFrente) {
-        this.urlIneFrente = urlIneFrente;
-    }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public String getUrlIneReverso() {
-        return urlIneReverso;
-    }
+    public String getFolio() { return folio; }
+    public void setFolio(String folio) { this.folio = folio; }
 
-    public void setUrlIneReverso(String urlIneReverso) {
-        this.urlIneReverso = urlIneReverso;
-    }
+    public String getAnimalId() { return animalId; }
+    public void setAnimalId(String animalId) { this.animalId = animalId; }
 
-    public String getUrlComprobante() {
-        return urlComprobante;
-    }
+    public String getAnimalNombre() { return animalNombre; }
+    public void setAnimalNombre(String animalNombre) { this.animalNombre = animalNombre; }
 
-    public void setUrlComprobante(String urlComprobante) {
-        this.urlComprobante = urlComprobante;
-    }
-    // FIN GETTERS Y SETTERS DOCUMENTOS
+    public String getAnimalRaza() { return animalRaza; }
+    public void setAnimalRaza(String animalRaza) { this.animalRaza = animalRaza; }
 
-    // Getters y Setters existentes
-    public String getId() {
-        return id;
-    }
+    public String getAnimalFotoUrl() { return animalFotoUrl; }
+    public void setAnimalFotoUrl(String animalFotoUrl) { this.animalFotoUrl = animalFotoUrl; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getUsuarioId() { return usuarioId; }
+    public void setUsuarioId(String usuarioId) { this.usuarioId = usuarioId; }
 
-    public String getFolio() {
-        return folio;
-    }
+    // Documentos
+    public String getUrlIneFrente() { return urlIneFrente; }
+    public void setUrlIneFrente(String urlIneFrente) { this.urlIneFrente = urlIneFrente; }
 
-    public void setFolio(String folio) {
-        this.folio = folio;
-    }
+    public String getUrlIneReverso() { return urlIneReverso; }
+    public void setUrlIneReverso(String urlIneReverso) { this.urlIneReverso = urlIneReverso; }
 
-    public String getAnimalId() {
-        return animalId;
-    }
+    public String getUrlComprobante() { return urlComprobante; }
+    public void setUrlComprobante(String urlComprobante) { this.urlComprobante = urlComprobante; }
 
-    public void setAnimalId(String animalId) {
-        this.animalId = animalId;
-    }
+    public Map<String, Object> getDatosPersonales() { return datosPersonales; }
+    public void setDatosPersonales(Map<String, Object> datosPersonales) { this.datosPersonales = datosPersonales; }
 
-    public String getAnimalNombre() {
-        return animalNombre;
-    }
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
 
-    public void setAnimalNombre(String animalNombre) {
-        this.animalNombre = animalNombre;
-    }
+    public String getEstadoActual() { return estadoActual; }
+    public void setEstadoActual(String estadoActual) { this.estadoActual = estadoActual; }
 
-    public String getAnimalRaza() {
-        return animalRaza;
-    }
+    public Date getFechaSolicitud() { return fechaSolicitud; }
+    public void setFechaSolicitud(Date fechaSolicitud) { this.fechaSolicitud = fechaSolicitud; }
 
-    public void setAnimalRaza(String animalRaza) {
-        this.animalRaza = animalRaza;
-    }
+    public Date getFechaEntrega() { return fechaEntrega; }
+    public void setFechaEntrega(Date fechaEntrega) { this.fechaEntrega = fechaEntrega; }
 
-    public String getAnimalFotoUrl() {
-        return animalFotoUrl;
-    }
+    public String getVoluntarioId() { return voluntarioId; }
+    public void setVoluntarioId(String voluntarioId) { this.voluntarioId = voluntarioId; }
 
-    public void setAnimalFotoUrl(String animalFotoUrl) {
-        this.animalFotoUrl = animalFotoUrl;
-    }
+    public String getCitaId() { return citaId; }
+    public void setCitaId(String citaId) { this.citaId = citaId; }
 
-    public String getUsuarioId() {
-        return usuarioId;
-    }
+    public CitaAgendada getCitaAgendada() { return citaAgendada; }
+    public void setCitaAgendada(CitaAgendada citaAgendada) { this.citaAgendada = citaAgendada; }
 
-    public void setUsuarioId(String usuarioId) {
-        this.usuarioId = usuarioId;
-    }
+    // --- MÉTODOS HELPER (LÓGICA VISUAL) ---
 
-    public Map<String, Object> getDatosPersonales() {
-        return datosPersonales;
-    }
-
-    public void setDatosPersonales(Map<String, Object> datosPersonales) {
-        this.datosPersonales = datosPersonales;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
-
-    public String getEstadoActual() {
-        return estadoActual;
-    }
-
-    public void setEstadoActual(String estadoActual) {
-        this.estadoActual = estadoActual;
-    }
-
-    public Date getFechaSolicitud() {
-        return fechaSolicitud;
-    }
-
-    public void setFechaSolicitud(Date fechaSolicitud) {
-        this.fechaSolicitud = fechaSolicitud;
-    }
-
-    public CitaAgendada getCitaAgendada() {
-        return citaAgendada;
-    }
-
-    public void setCitaAgendada(CitaAgendada citaAgendada) {
-        this.citaAgendada = citaAgendada;
-    }
-
-    public Date getFechaEntrega() {
-        return fechaEntrega;
-    }
-
-    public void setFechaEntrega(Date fechaEntrega) {
-        this.fechaEntrega = fechaEntrega;
-    }
-
-    public String getVoluntarioId() {
-        return voluntarioId;
-    }
-
-    public void setVoluntarioId(String voluntarioId) {
-        this.voluntarioId = voluntarioId;
-    }
-
-    // 🚨 GETTER Y SETTER AÑADIDOS PARA EL NUEVO CAMPO
-    public String getCitaId() {
-        return citaId;
-    }
-
-    public void setCitaId(String citaId) {
-        this.citaId = citaId;
-    }
-    // FIN GETTER Y SETTER AÑADIDOS
-
-
-    // Métodos helper
     public String getEstadoTexto() {
-        if (estado == null) return "Desconocido";
-        switch (estado) {
-            case "pendiente":
-                return "Pendiente";
-            case "en_revision":
-                return "En Revisión";
-            case "cita_agendada":
-                return "Cita Agendada";
+        if (estado == null) return "Pendiente";
+
+        // Normalizamos para evitar errores de mayúsculas/minúsculas
+        switch (estado.toLowerCase().trim()) {
+            case "pendiente": return "Solicitud Pendiente";
+            case "en_revision": return "En Revisión";
+            case "cita_agendada": return "Cita Agendada";
             case "aprobada":
-                return "Aprobada";
-            case "rechazada":
-                return "No Aprobada";
-            default:
-                return "Desconocido";
+            case "adoptado": return "¡Solicitud Aprobada!";
+            case "rechazada": return "Solicitud No Aprobada";
+            default: return estado; // Si es otro texto, lo muestra tal cual
         }
     }
 
     public int getEstadoColor() {
-        if (estado == null) return R.color.gray_light;
-        switch (estado) {
-            case "pendiente":
-                return R.color.status_pending_bg;
-            case "en_revision":
-                return R.color.status_review_bg;
-            case "cita_agendada":
-                return R.color.status_scheduled_bg;
+        if (estado == null) return Color.parseColor("#9E9E9E"); // Gris
+
+        switch (estado.toLowerCase().trim()) {
             case "aprobada":
-                return R.color.status_approved_bg;
-            case "rechazada":
-                return R.color.status_rejected_bg;
-            default:
-                return R.color.gray_light;
+            case "adoptado": return Color.parseColor("#4CAF50"); // Verde
+            case "rechazada": return Color.parseColor("#F44336"); // Rojo
+            case "cita_agendada": return Color.parseColor("#FF9800"); // Naranja
+            case "en_revision": return Color.parseColor("#2196F3"); // Azul
+            default: return Color.parseColor("#9E9E9E"); // Gris Pendiente
         }
     }
 
     public int getEstadoIcon() {
-        if (estado == null) return R.drawable.ic_help;
-        switch (estado) {
-            case "pendiente":
-                return R.drawable.ic_clock;
-            case "en_revision":
-                return R.drawable.ic_document;
-            case "cita_agendada":
-                return R.drawable.ic_calendar_check;
+        if (estado == null) return R.drawable.ic_clock;
+
+        switch (estado.toLowerCase().trim()) {
+            case "pendiente": return R.drawable.ic_clock;
+            case "en_revision": return R.drawable.ic_document;
+            case "cita_agendada": return R.drawable.ic_calendar_check;
             case "aprobada":
-                return R.drawable.ic_check_circle;
-            case "rechazada":
-                return R.drawable.ic_close_circle;
-            default:
-                return R.drawable.ic_help;
+            case "adoptado": return R.drawable.ic_check_circle;
+            case "rechazada": return R.drawable.ic_close_circle;
+            default: return R.drawable.ic_help;
         }
     }
 
     public String getFechaFormateada() {
         if (fechaSolicitud == null) return "";
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd MMM yyyy",
-                java.util.Locale.getDefault());
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd MMM yyyy", java.util.Locale.getDefault());
         return sdf.format(fechaSolicitud);
     }
-
 
     // Clase interna para citas
     public static class CitaAgendada implements Serializable {
@@ -269,42 +163,19 @@ public class AdoptionRequest implements Serializable {
             this.coordinador = coordinador;
         }
 
-        public Date getFecha() {
-            return fecha;
-        }
-
-        public void setFecha(Date fecha) {
-            this.fecha = fecha;
-        }
-
-        public String getHora() {
-            return hora;
-        }
-
-        public void setHora(String hora) {
-            this.hora = hora;
-        }
-
-        public String getLugar() {
-            return lugar;
-        }
-
-        public void setLugar(String lugar) {
-            this.lugar = lugar;
-        }
-
-        public String getCoordinador() {
-            return coordinador;
-        }
-
-        public void setCoordinador(String coordinador) {
-            this.coordinador = coordinador;
-        }
+        // Getters y Setters Cita
+        public Date getFecha() { return fecha; }
+        public void setFecha(Date fecha) { this.fecha = fecha; }
+        public String getHora() { return hora; }
+        public void setHora(String hora) { this.hora = hora; }
+        public String getLugar() { return lugar; }
+        public void setLugar(String lugar) { this.lugar = lugar; }
+        public String getCoordinador() { return coordinador; }
+        public void setCoordinador(String coordinador) { this.coordinador = coordinador; }
 
         public String getFechaHoraFormateada() {
             if (fecha == null) return hora;
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd MMM, HH:mm",
-                    java.util.Locale.getDefault());
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd MMM, HH:mm", java.util.Locale.getDefault());
             return sdf.format(fecha);
         }
     }

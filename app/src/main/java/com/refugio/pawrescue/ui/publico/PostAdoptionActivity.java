@@ -1,7 +1,7 @@
 package com.refugio.pawrescue.ui.publico;
 
 import android.content.Intent;
-import android.graphics.Color; // 🟢 Importante para los colores
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -67,7 +67,6 @@ public class PostAdoptionActivity extends AppCompatActivity {
     private List<Uri> photoUris = new ArrayList<>();
     private Uri currentPhotoUri;
 
-    private ActivityResultLauncher<Intent> cameraLauncher;
     private ActivityResultLauncher<Intent> galleryLauncher;
 
     @Override
@@ -154,34 +153,32 @@ public class PostAdoptionActivity extends AppCompatActivity {
         );
     }
 
-    // 🟢 Lógica modificada para cambiar el COLOR DE FONDO
+    // 🟢 LÓGICA DE COLORES DE ESTADO
     private void setupMoodSelector() {
         View.OnClickListener moodListener = v -> {
-            resetMoodCards(); // Primero resetea todos a blanco
+            resetMoodCards(); // 1. Resetear todos a blanco
+
             MaterialCardView selected = (MaterialCardView) v;
 
-            // Borde Naranja para indicar selección
+            // 2. Configurar el borde de selección (Naranja)
             int orangeColor = ContextCompat.getColor(this, R.color.primary_orange);
             selected.setStrokeColor(orangeColor);
-            selected.setStrokeWidth(4);
+            selected.setStrokeWidth(6);
 
             int id = v.getId();
+            // 3. Cambiar el FONDO según la emoción (Colores pastel fuertes)
             if (id == R.id.cardExcellent) {
                 selectedMood = "Excelente";
-                // Verde Claro
-                selected.setCardBackgroundColor(Color.parseColor("#C8E6C9"));
+                selected.setCardBackgroundColor(Color.parseColor("#C8E6C9")); // Verde
             } else if (id == R.id.cardGood) {
                 selectedMood = "Bien";
-                // Azul Claro
-                selected.setCardBackgroundColor(Color.parseColor("#BBDEFB"));
+                selected.setCardBackgroundColor(Color.parseColor("#BBDEFB")); // Azul
             } else if (id == R.id.cardRegular) {
                 selectedMood = "Regular";
-                // Amarillo Claro
-                selected.setCardBackgroundColor(Color.parseColor("#FFF9C4"));
+                selected.setCardBackgroundColor(Color.parseColor("#FFF9C4")); // Amarillo
             } else if (id == R.id.cardAttention) {
                 selectedMood = "Atención";
-                // Rojo Claro
-                selected.setCardBackgroundColor(Color.parseColor("#FFCDD2"));
+                selected.setCardBackgroundColor(Color.parseColor("#FFCDD2")); // Rojo
             }
         };
 
@@ -191,18 +188,17 @@ public class PostAdoptionActivity extends AppCompatActivity {
         cardAttention.setOnClickListener(moodListener);
     }
 
-    // 🟢 Lógica modificada para restaurar el fondo a BLANCO
     private void resetMoodCards() {
         int grayColor = ContextCompat.getColor(this, android.R.color.darker_gray);
         int whiteColor = Color.WHITE;
 
-        // Restaurar fondo blanco
+        // Restaurar todos a fondo BLANCO
         cardExcellent.setCardBackgroundColor(whiteColor);
         cardGood.setCardBackgroundColor(whiteColor);
         cardRegular.setCardBackgroundColor(whiteColor);
         cardAttention.setCardBackgroundColor(whiteColor);
 
-        // Restaurar bordes grises
+        // Restaurar bordes GRISES
         cardExcellent.setStrokeColor(grayColor); cardExcellent.setStrokeWidth(2);
         cardGood.setStrokeColor(grayColor); cardGood.setStrokeWidth(2);
         cardRegular.setStrokeColor(grayColor); cardRegular.setStrokeWidth(2);
@@ -242,16 +238,6 @@ public class PostAdoptionActivity extends AppCompatActivity {
 
     private void openCamera() {
         try {
-            abrirCamara();
-        } catch (Exception e) {
-            Log.e(TAG, "Error al abrir cámara: " + e.getMessage());
-            Toast.makeText(this, "Error al abrir cámara. Intentando método alternativo...", Toast.LENGTH_SHORT).show();
-            abrirCualquierCamara();
-        }
-    }
-
-    private void abrirCamara() {
-        try {
             Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
                 File photoFile = createImageFile();
@@ -265,30 +251,9 @@ public class PostAdoptionActivity extends AppCompatActivity {
                     takePictureIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                     startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
                 }
-            } else {
-                abrirCualquierCamara();
             }
         } catch (Exception e) {
-            abrirCualquierCamara();
-        }
-    }
-
-    private void abrirCualquierCamara() {
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        try {
-            File photoFile = createImageFile();
-            if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(this,
-                        getApplicationContext().getPackageName() + ".fileprovider",
-                        photoFile);
-                currentPhotoUri = photoURI;
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, currentPhotoUri);
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-            }
-            startActivityForResult(intent, REQUEST_TAKE_PHOTO);
-        } catch (Exception e) {
-            Toast.makeText(this, "No se pudo encontrar app de cámara", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Error abriendo cámara", Toast.LENGTH_SHORT).show();
         }
     }
 
