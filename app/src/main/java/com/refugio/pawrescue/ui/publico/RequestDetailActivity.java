@@ -5,6 +5,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log; // 🚨 Importación de Log
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -29,14 +30,19 @@ import com.refugio.pawrescue.model.Message;
 import com.refugio.pawrescue.ui.adapter.TimelineAdapter;
 import com.refugio.pawrescue.ui.adapter.DocumentAdapter;
 import com.refugio.pawrescue.ui.adapter.MessageAdapter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 
 
 public class RequestDetailActivity extends AppCompatActivity {
+
+    // 🚨 TAG para el Logcat
+    private static final String TAG = "RequestDetailActivity";
 
     // Vistas
     private ImageButton btnBack;
@@ -84,6 +90,7 @@ public class RequestDetailActivity extends AppCompatActivity {
                 displayRequestData();
                 loadTimeline();
                 loadDocuments();
+                loadCitaInfo();
                 listenToMessages();
             } else {
                 loadRequestData();
@@ -169,9 +176,22 @@ public class RequestDetailActivity extends AppCompatActivity {
                         request = documentSnapshot.toObject(AdoptionRequest.class);
                         if (request != null) {
                             request.setId(documentSnapshot.getId());
+
+                            // Mapear campos faltantes que no se mapean automáticamente
+                            if (documentSnapshot.contains("fechaEntrega")) {
+                                request.setFechaEntrega(documentSnapshot.getDate("fechaEntrega"));
+                            }
+                            if (documentSnapshot.contains("voluntarioId")) {
+                                request.setVoluntarioId(documentSnapshot.getString("voluntarioId"));
+                            }
+                            if (documentSnapshot.contains("citaId")) {
+                                request.setCitaId(documentSnapshot.getString("citaId"));
+                            }
+
                             displayRequestData();
                             loadTimeline();
                             loadDocuments();
+                            loadCitaInfo();
                             listenToMessages();
                         }
                     } else {
@@ -184,6 +204,8 @@ public class RequestDetailActivity extends AppCompatActivity {
     private void displayRequestData() {
         if (request == null) return;
 
+        String estado = request.getEstado();
+
         if (request.getAnimalFotoUrl() != null) {
             Glide.with(this).load(request.getAnimalFotoUrl()).into(ivAnimalPhoto);
         }
@@ -193,15 +215,19 @@ public class RequestDetailActivity extends AppCompatActivity {
         tvCurrentStatus.setText(request.getEstadoTexto());
         ivStatusIcon.setImageResource(request.getEstadoIcon());
 
-        // 🟢 LÓGICA DEL BOTÓN DE SEGUIMIENTO (CORREGIDA)
-        String estado = request.getEstado();
+        // MOSTRAR FECHA DE ENTREGA SI ESTÁ APROBADA
         if (estado != null && (estado.equalsIgnoreCase("aprobada") || estado.equalsIgnoreCase("adoptado"))) {
+            if (request.getFechaEntrega() != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy, HH:mm", new Locale("es", "MX"));
+                String fechaEntregaStr = sdf.format(request.getFechaEntrega());
+                tvAnimalDetails.setText(request.getAnimalRaza() + " - Entrega Agendada: " + fechaEntregaStr);
+            }
 
+            // LÓGICA DEL BOTÓN DE SEGUIMIENTO
             btnSeguimiento.setVisibility(View.VISIBLE);
 
             btnSeguimiento.setOnClickListener(v -> {
                 Intent intent = new Intent(RequestDetailActivity.this, PostAdoptionActivity.class);
-                // CORRECCIÓN: Usamos solo los getters que SÍ existen en tu clase AdoptionRequest
                 intent.putExtra("ANIMAL_ID", request.getAnimalId());
                 intent.putExtra("ANIMAL_NAME", request.getAnimalNombre());
                 intent.putExtra("SOLICITUD_ID", request.getId());
@@ -209,6 +235,8 @@ public class RequestDetailActivity extends AppCompatActivity {
             });
 
         } else {
+            // Si no está aprobada, mostrar detalles normales
+            tvAnimalDetails.setText(request.getAnimalRaza());
             btnSeguimiento.setVisibility(View.GONE);
         }
     }
@@ -217,13 +245,44 @@ public class RequestDetailActivity extends AppCompatActivity {
         timelineSteps.clear();
         if (request == null) return;
 
+        // Paso 1: Solicitud Recibida (Siempre completada)
         timelineSteps.add(new TimelineStep("Solicitud Recibida", request.getFechaFormateada(), "completed", "Solicitud registrada", null));
 
-        if (request.getEstado().equals("aprobada")) {
-            timelineSteps.add(new TimelineStep("Aprobada", "Reciente", "completed", "¡Felicidades!", null));
-        } else if (!request.getEstado().equals("pendiente")) {
-            timelineSteps.add(new TimelineStep("En Revisión", "En proceso", "current", "Revisando perfil", null));
+        String estado = request.getEstado();
+
+        if (estado != null) {
+
+            if (estado.equalsIgnoreCase("aprobada") || estado.equalsIgnoreCase("adoptado")) {
+                // Estado 3: APROBADA (Final)
+
+                // Paso 2: Revisión de Visita (Finalizado)
+                timelineSteps.add(new TimelineStep("Revisión de Visita", "Finalizada", "completed", "Reporte de visita completado.", null));
+
+                // Paso 3: Aprobación y Entrega (Final)
+                String dateText = request.getFechaEntrega() != null
+                        ? new SimpleDateFormat("dd/MM/yyyy HH:mm").format(request.getFechaEntrega())
+                        : "Fecha Pendiente";
+
+                timelineSteps.add(new TimelineStep("Entrega Agendada", dateText, "completed", "¡Felicidades! Adopción aprobada. Recoger el animal en la fecha indicada.", null));
+
+            } else if (estado.equalsIgnoreCase("rechazada")) {
+                // Estado: RECHAZADA
+                timelineSteps.add(new TimelineStep("Revisión de Visita", "Finalizada", "error", "La solicitud fue rechazada por el administrador.", null));
+
+            } else if (request.getVoluntarioId() != null) {
+                // Estado 2: EN REVISIÓN (Cita asignada y pendiente de reporte)
+                timelineSteps.add(new TimelineStep("Revisión de Visita", "En proceso", "current", "El voluntario revisará tu perfil y domicilio.", null));
+
+            } else if (request.getCitaId() != null) {
+                // Estado 1.5: Cita Agendada
+                timelineSteps.add(new TimelineStep("Revisión de Visita", "Cita Agendada", "current", "Esperando la asignación de voluntario.", null));
+
+            } else if (!estado.equalsIgnoreCase("pendiente")) {
+                // Estado 1: En Revisión inicial (antes de agendar cita)
+                timelineSteps.add(new TimelineStep("En Revisión", "En proceso", "current", "Revisando perfil inicial.", null));
+            }
         }
+
         timelineAdapter.notifyDataSetChanged();
     }
 
@@ -283,6 +342,12 @@ public class RequestDetailActivity extends AppCompatActivity {
     }
 
     private void loadCitaInfo() {
+        // 🚨 VERIFICACIÓN DEFENSIVA CRÍTICA
+        if (btnAgendarCita == null || sectionCita == null) {
+            Log.e(TAG, "loadCitaInfo: Elementos de la sección Cita son nulos (Revisa activity_request_detail.xml).");
+            return;
+        }
+
         if (request == null || request.getId() == null) return;
 
         String estado = request.getEstado();
@@ -317,7 +382,13 @@ public class RequestDetailActivity extends AppCompatActivity {
                             Cita cita = queryDocumentSnapshots.getDocuments().get(0).toObject(Cita.class);
                             if (cita != null) {
                                 cita.setId(queryDocumentSnapshots.getDocuments().get(0).getId());
-                                displayCitaInfo(cita);
+
+                                // 🚨 Verificación defensiva antes de llamar a displayCitaInfo
+                                if (tvEstadoCita != null && tvFechaCita != null && tvVoluntarioAsignado != null) {
+                                    displayCitaInfo(cita);
+                                } else {
+                                    Log.e(TAG, "loadCitaInfo: Elementos de displayCitaInfo son nulos.");
+                                }
                             }
                         }
                     });
