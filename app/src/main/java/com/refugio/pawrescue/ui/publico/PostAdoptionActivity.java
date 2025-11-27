@@ -1,7 +1,7 @@
 package com.refugio.pawrescue.ui.publico;
 
-// Importaciones corregidas y limpias
 import android.content.Intent;
+import android.graphics.Color; // 🟢 Importante para los colores
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -88,18 +88,15 @@ public class PostAdoptionActivity extends AppCompatActivity {
         loadAnimalData();
     }
 
-    // 🚨 Método requerido para manejar la respuesta de startActivityForResult (Cámara)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK && currentPhotoUri != null) {
             photoUris.add(currentPhotoUri);
             updatePhotoGrid();
-            // 🚨 Después de usar la URI, la reseteamos para evitar agregar la misma foto dos veces
             currentPhotoUri = null;
         }
     }
-
 
     private void initViews() {
         btnBack = findViewById(R.id.btnBack);
@@ -143,7 +140,6 @@ public class PostAdoptionActivity extends AppCompatActivity {
     }
 
     private void setupActivityLaunchers() {
-        // Se mantiene galleryLauncher para uso moderno
         galleryLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -158,19 +154,35 @@ public class PostAdoptionActivity extends AppCompatActivity {
         );
     }
 
+    // 🟢 Lógica modificada para cambiar el COLOR DE FONDO
     private void setupMoodSelector() {
         View.OnClickListener moodListener = v -> {
-            resetMoodCards();
+            resetMoodCards(); // Primero resetea todos a blanco
             MaterialCardView selected = (MaterialCardView) v;
+
+            // Borde Naranja para indicar selección
             int orangeColor = ContextCompat.getColor(this, R.color.primary_orange);
             selected.setStrokeColor(orangeColor);
             selected.setStrokeWidth(4);
 
             int id = v.getId();
-            if (id == R.id.cardExcellent) selectedMood = "Excelente";
-            else if (id == R.id.cardGood) selectedMood = "Bien";
-            else if (id == R.id.cardRegular) selectedMood = "Regular";
-            else if (id == R.id.cardAttention) selectedMood = "Atención";
+            if (id == R.id.cardExcellent) {
+                selectedMood = "Excelente";
+                // Verde Claro
+                selected.setCardBackgroundColor(Color.parseColor("#C8E6C9"));
+            } else if (id == R.id.cardGood) {
+                selectedMood = "Bien";
+                // Azul Claro
+                selected.setCardBackgroundColor(Color.parseColor("#BBDEFB"));
+            } else if (id == R.id.cardRegular) {
+                selectedMood = "Regular";
+                // Amarillo Claro
+                selected.setCardBackgroundColor(Color.parseColor("#FFF9C4"));
+            } else if (id == R.id.cardAttention) {
+                selectedMood = "Atención";
+                // Rojo Claro
+                selected.setCardBackgroundColor(Color.parseColor("#FFCDD2"));
+            }
         };
 
         cardExcellent.setOnClickListener(moodListener);
@@ -179,8 +191,18 @@ public class PostAdoptionActivity extends AppCompatActivity {
         cardAttention.setOnClickListener(moodListener);
     }
 
+    // 🟢 Lógica modificada para restaurar el fondo a BLANCO
     private void resetMoodCards() {
         int grayColor = ContextCompat.getColor(this, android.R.color.darker_gray);
+        int whiteColor = Color.WHITE;
+
+        // Restaurar fondo blanco
+        cardExcellent.setCardBackgroundColor(whiteColor);
+        cardGood.setCardBackgroundColor(whiteColor);
+        cardRegular.setCardBackgroundColor(whiteColor);
+        cardAttention.setCardBackgroundColor(whiteColor);
+
+        // Restaurar bordes grises
         cardExcellent.setStrokeColor(grayColor); cardExcellent.setStrokeWidth(2);
         cardGood.setStrokeColor(grayColor); cardGood.setStrokeWidth(2);
         cardRegular.setStrokeColor(grayColor); cardRegular.setStrokeWidth(2);
@@ -218,90 +240,55 @@ public class PostAdoptionActivity extends AppCompatActivity {
                 });
     }
 
-    // 🚨 Método de entrada original (llama al método de cámara más avanzado)
     private void openCamera() {
         try {
             abrirCamara();
         } catch (Exception e) {
-            Log.e(TAG, "Error al abrir cámara (Método 1): " + e.getMessage());
+            Log.e(TAG, "Error al abrir cámara: " + e.getMessage());
             Toast.makeText(this, "Error al abrir cámara. Intentando método alternativo...", Toast.LENGTH_SHORT).show();
             abrirCualquierCamara();
         }
     }
 
-    // 🚨 MÉTODO 1: Método avanzado (FileProvider y startActivityForResult)
     private void abrirCamara() {
         try {
             Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                File photoFile = null;
-                try {
-                    photoFile = createImageFile();
-                    Log.d(TAG, "Archivo creado: " + (photoFile != null ? photoFile.getAbsolutePath() : "null"));
-                } catch (IOException ex) {
-                    Toast.makeText(this, "Error al crear archivo temporal", Toast.LENGTH_SHORT).show();
-                    Log.e(TAG, "Error al crear archivo: " + ex.getMessage());
-                    return;
-                }
-
+                File photoFile = createImageFile();
                 if (photoFile != null) {
                     Uri photoURI = FileProvider.getUriForFile(this,
                             getApplicationContext().getPackageName() + ".fileprovider",
                             photoFile);
-
-                    // 🚨 ASIGNACIÓN CRUCIAL: Guardar la URI para onActivityResult
                     currentPhotoUri = photoURI;
-
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, currentPhotoUri);
                     takePictureIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     takePictureIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-
-                    Log.d(TAG, "Iniciando actividad de cámara con URI (Método 1): " + currentPhotoUri);
                     startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
                 }
             } else {
-                Log.d(TAG, "No se encontró app de cámara compatible con FileProvider (Método 1)");
                 abrirCualquierCamara();
             }
         } catch (Exception e) {
-            Log.e(TAG, "Error al abrir cámara (Método 1): " + e.getMessage());
-            Toast.makeText(this, "Error al abrir cámara. Intentando método alternativo...", Toast.LENGTH_SHORT).show();
             abrirCualquierCamara();
         }
     }
 
-    // 🚨 MÉTODO 2: Método alternativo (startActivityForResult)
     private void abrirCualquierCamara() {
-        Intent intent = new Intent();
-        intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
-        intent.addCategory(Intent.CATEGORY_DEFAULT);
-
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         try {
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                Log.e(TAG, "Error al crear archivo (Método 2): " + ex.getMessage());
-            }
-
+            File photoFile = createImageFile();
             if (photoFile != null) {
                 Uri photoURI = FileProvider.getUriForFile(this,
                         getApplicationContext().getPackageName() + ".fileprovider",
                         photoFile);
-
-                // 🚨 ASIGNACIÓN CRUCIAL: Guardar la URI para onActivityResult
                 currentPhotoUri = photoURI;
-
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, currentPhotoUri);
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
             }
-
-            Log.d(TAG, "Iniciando actividad de cámara (Método 2)");
             startActivityForResult(intent, REQUEST_TAKE_PHOTO);
         } catch (Exception e) {
             Toast.makeText(this, "No se pudo encontrar app de cámara", Toast.LENGTH_LONG).show();
-            Log.e(TAG, "No hay app de cámara (Método 2): " + e.getMessage());
         }
     }
 
@@ -309,9 +296,7 @@ public class PostAdoptionActivity extends AppCompatActivity {
         String timeStamp = String.valueOf(System.currentTimeMillis());
         String imageFileName = "JPEG_" + timeStamp + "_";
         File storageDir = getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES);
-
-        File photoFile = File.createTempFile(imageFileName, ".jpg", storageDir);
-        return photoFile;
+        return File.createTempFile(imageFileName, ".jpg", storageDir);
     }
 
     private void openGallery() {
