@@ -21,8 +21,9 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.refugio.pawrescue.R;
+import com.refugio.pawrescue.model.Usuario; // Importación necesaria para mapear el objeto
 import com.refugio.pawrescue.ui.admin.AdminMainActivity;
-import com.refugio.pawrescue.ui.publico.PublicRegisterActivity; // <--- NUEVO IMPORT
+import com.refugio.pawrescue.ui.publico.PublicRegisterActivity;
 import com.refugio.pawrescue.ui.volunteer.VolunteerMainActivity;
 
 /**
@@ -77,7 +78,6 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         // Listener para el botón de Registro (RF-01)
-        // --- AQUÍ ESTÁ EL CAMBIO PARA CONECTAR CON EL REGISTRO ---
         btnRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -147,14 +147,29 @@ public class LoginActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             DocumentSnapshot document = task.getResult();
                             if (document.exists()) {
-                                String rol = document.getString("rol");
-                                if (rol != null) {
-                                    redirigirSegunRol(rol);
+
+                                // 🚨 Mapeamos el documento al objeto Usuario para obtener todas las propiedades
+                                Usuario usuario = document.toObject(Usuario.class);
+
+                                if (usuario != null) {
+                                    String rol = usuario.getRol();
+
+                                    // 🚨 LÓGICA DE VALIDACIÓN DE ESTADO ACTIVO PARA VOLUNTARIOS
+                                    if ("Voluntario".equalsIgnoreCase(rol) && !usuario.isEstadoActivo()) {
+                                        mAuth.signOut();
+                                        Toast.makeText(LoginActivity.this, "Su cuenta de Voluntario está inactiva. Contacte al administrador.", Toast.LENGTH_LONG).show();
+                                        return;
+                                    }
+
+                                    if (rol != null) {
+                                        redirigirSegunRol(rol);
+                                    } else {
+                                        redirigirSegunRol("Usuario");
+                                    }
                                 } else {
-                                    // Si el usuario existe pero no tiene rol (ej. recién registrado manualmente sin rol)
-                                    // Asignamos comportamiento por defecto o mostramos error
-                                    // Para este caso, asumiremos que si no tiene rol definido es un usuario público:
-                                    redirigirSegunRol("Usuario");
+                                    // Usuario existe en Auth pero no se pudo mapear (debería ser raro)
+                                    Toast.makeText(LoginActivity.this, "Error: No se pudieron cargar los datos del usuario.", Toast.LENGTH_LONG).show();
+                                    mAuth.signOut();
                                 }
                             } else {
                                 // Usuario en Auth pero no en Firestore (casos raros)
@@ -180,11 +195,10 @@ public class LoginActivity extends AppCompatActivity {
             // El Administrador tiene acceso completo.
             intent = new Intent(LoginActivity.this, AdminMainActivity.class);
         } else if ("Voluntario".equalsIgnoreCase(rol)) {
-            // Redirige a la vista del Voluntario.
+            // Redirige a la vista del Voluntario. (Solo se llega aquí si estadoActivo es TRUE)
             intent = new Intent(LoginActivity.this, VolunteerMainActivity.class);
         } else {
-            // LÓGICA ORIGINAL EXTENDIDA: Cualquier otro rol (ej: "Usuario") va al PublicMainActivity
-            // Esto cubre el flujo del usuario público que se acaba de loguear
+            // Cualquier otro rol (ej: "Usuario") va al PublicMainActivity
             intent = new Intent(LoginActivity.this, com.refugio.pawrescue.ui.publico.PublicMainActivity.class);
         }
 

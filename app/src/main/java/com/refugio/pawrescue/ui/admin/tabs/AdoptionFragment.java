@@ -87,6 +87,7 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
         recyclerView = view.findViewById(R.id.recycler_solicitudes);
         progressBar = view.findViewById(R.id.progress_bar_adoption);
         tvEmpty = view.findViewById(R.id.tv_empty_requests);
+        // 🚨 FIX 1: Corregir llamada a findViewById en Fragment
         tvAnimalIdHint = view.findViewById(R.id.tv_animal_id_hint);
 
         if (animalId != null && tvAnimalIdHint != null) {
@@ -283,7 +284,27 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
 
         if (solicitud.getFechaCita() != null && solicitud.getVoluntarioId() == null) {
             // FASE 1: ASIGNACIÓN DE VOLUNTARIO
-            // ... (Lógica asíncrona para filtrar y asignar voluntario) ...
+            db.collection("citas").document(solicitud.getCitaId()).get()
+                    .addOnSuccessListener(citaSnapshot -> {
+                        if (citaSnapshot.exists()) {
+                            String fechaAgendada = citaSnapshot.getString("fecha");
+                            String horaAgendada = citaSnapshot.getString("hora");
+
+                            if (fechaAgendada != null && horaAgendada != null) {
+                                filtrarYMostrarDialogo(solicitud, builder, layout, fechaAgendada, horaAgendada);
+                            } else {
+                                Toast.makeText(getContext(), "Error: Cita agendada incompleta.", Toast.LENGTH_LONG).show();
+                                builder.setNeutralButton("Cerrar", null).show();
+                            }
+                        } else {
+                            Toast.makeText(getContext(), "Error: No se encontró el documento de Cita asociado.", Toast.LENGTH_LONG).show();
+                            builder.setNeutralButton("Cerrar", null).show();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(getContext(), "Error al cargar la Cita: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        builder.setNeutralButton("Cerrar", null).show();
+                    });
             return;
         }
 
@@ -561,23 +582,82 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
         tvTitulo.setTypeface(null, android.graphics.Typeface.BOLD);
         layout.addView(tvTitulo);
 
-        // ... (Mostrar campos principales) ...
+        // --- MOSTRAR CAMPOS PRINCIPALES ---
         addTextViewToLayout(layout, "Adoptante:", solicitud.getNombreCompleto());
-        // ... (otros campos) ...
+        addTextViewToLayout(layout, "Teléfono:", solicitud.getTelefono());
+        addTextViewToLayout(layout, "Email:", solicitud.getEmail());
+        addTextViewToLayout(layout, "Dirección:", solicitud.getDireccion());
+        addTextViewToLayout(layout, "Tipo Vivienda:", solicitud.getTipoVivienda());
+
+        String fechaCitaStr = solicitud.getFechaCita() != null ?
+                new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(solicitud.getFechaCita()) :
+                "PENDIENTE DE AGENDAR";
+        addTextViewToLayout(layout, "Fecha Cita Agendada:", fechaCitaStr);
+        addTextViewToLayout(layout, "Estado:", solicitud.getEstado());
+
+        String citaInfo = solicitud.getCitaId() != null ? "ID Cita: " + solicitud.getCitaId() : "Ninguna";
+        addTextViewToLayout(layout, "Cita Asignada:", citaInfo);
+
+        // Mostrar Voluntario asignado
+        String voluntarioInfo = solicitud.getVoluntarioNombre() != null ? solicitud.getVoluntarioNombre() : "Pendiente de Asignación";
+        addTextViewToLayout(layout, "Voluntario Asignado:", voluntarioInfo);
+
+        String reporteInfo = solicitud.getReporteId() != null ? "ID Reporte: " + solicitud.getReporteId() : "Ninguno";
+        addTextViewToLayout(layout, "Reporte Final:", reporteInfo);
+
+
+        // --- 2. DETALLES DE MAPS (Mapear claves/valores) ---
+        addTextViewToLayout(layout, "\n--- DATOS DEL FORMULARIO DETALLADOS ---", "");
+        displayMapData(layout, "Datos Familiares:", solicitud.getDatosFamilia());
+        displayMapData(layout, "Experiencia con Mascotas:", solicitud.getDatosExperiencia());
+        displayMapData(layout, "Compromiso:", solicitud.getDatosCompromiso());
+
+        // --- 3. SELECTOR DE VOLUNTARIO Y MENSAJES DE FASE (Condicional en el nuevo flujo) ---
+        if (solicitud.getFechaCita() != null && solicitud.getVoluntarioId() == null && solicitud.getReporteId() == null) {
+            // FASE 1: Asignar Voluntario (Muestra el Spinner)
+            TextView tvAsignar = new TextView(context);
+            tvAsignar.setText("\nCita Agendada por el Adoptante. Asigne un Voluntario:");
+            tvAsignar.setTypeface(null, android.graphics.Typeface.BOLD);
+            layout.addView(tvAsignar);
+
+            Spinner spVoluntario = new Spinner(context);
+            spVoluntario.setTag("spVoluntario");
+
+            ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
+                    getContext(),
+                    android.R.layout.simple_spinner_item,
+                    new ArrayList<>()
+            );
+            spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spVoluntario.setAdapter(spinnerAdapter);
+
+            layout.addView(spVoluntario);
+
+        } else if (solicitud.getVoluntarioId() != null && solicitud.getReporteId() == null) {
+            // FASE 2: Esperando Reporte
+            TextView tvEspera = new TextView(context);
+            String mensaje = "\nESTADO: CITA ASIGNADA A VOLUNTARIO. Esperando reporte de visita: " + voluntarioInfo;
+
+            tvEspera.setText(mensaje);
+            tvEspera.setTypeface(null, android.graphics.Typeface.BOLD);
+            tvEspera.setTextColor(context.getResources().getColor(android.R.color.holo_orange_dark));
+            layout.addView(tvEspera);
+        } else if (solicitud.getFechaCita() == null) {
+            // Solicitud en la cola, pero el usuario aún no ha agendado la cita
+            TextView tvPendiente = new TextView(context);
+            tvPendiente.setText("\nESTADO: Pendiente de que el adoptante agende fecha y hora de la visita.");
+            tvPendiente.setTypeface(null, android.graphics.Typeface.BOLD);
+            tvPendiente.setTextColor(context.getResources().getColor(android.R.color.holo_blue_dark));
+            layout.addView(tvPendiente);
+        }
+
 
         return layout;
     }
 
-    private void addTextViewToLayout(LinearLayout layout, String label, String value) {
-        TextView tv = new TextView(getContext());
-        if (value.isEmpty()) {
-            tv.setText(label);
-        } else {
-            tv.setText(label + " " + (value != null ? value : "-"));
-        }
-        layout.addView(tv);
-    }
-
+    /**
+     * Helper para mostrar los datos de los Map<String, Object> de forma legible.
+     */
     private void displayMapData(LinearLayout layout, String sectionTitle, Map<String, Object> data) {
         if (data != null && !data.isEmpty()) {
             TextView tvTitle = new TextView(getContext());
@@ -586,9 +666,30 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
             layout.addView(tvTitle);
 
             for (Map.Entry<String, Object> entry : data.entrySet()) {
-                addTextViewToLayout(layout, "  - " + entry.getKey() + ":", String.valueOf(entry.getValue()));
+                String clave = entry.getKey() != null ? entry.getKey() : "-";
+                String valor = entry.getValue() != null ? String.valueOf(entry.getValue()) : "";
+
+                // Usamos la función corregida
+                addTextViewToLayout(layout, "  - " + clave + ":", valor);
             }
         }
+    }
+
+    /**
+     * 🚨 FUNCIÓN CRÍTICA CORREGIDA: Agrega un TextView, manejando valores nulos para evitar el crash (NPE).
+     */
+    private void addTextViewToLayout(LinearLayout layout, String label, String value) {
+        TextView tv = new TextView(getContext());
+
+        // 🚨 FIX CRÍTICO: Comprobar si el valor es nulo O vacío de forma segura.
+        // Se usa String.valueOf(value) para asegurar que la variable `value` sea una cadena
+        // segura, y luego se chequea la nulidad y el vacío.
+        String displayValue = (value == null || value.trim().isEmpty()) ? "-" : value;
+
+        // Se usa el formato completo para mostrar la etiqueta y el valor/placeholder.
+        tv.setText(label + " " + displayValue);
+
+        layout.addView(tv);
     }
 
     private void marcarAnimalAdoptado(String animalId) {
