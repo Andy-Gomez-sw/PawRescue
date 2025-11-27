@@ -4,8 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     tools:context=".ui.volunteer.VolunteerCitaDetailActivity">
 
+    <!-- BANNER VERDE -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -15,14 +17,16 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:popupTheme="@style/ThemeOverlay.MaterialComponents.Light"
-            app:title="Detalle de cita" />
+            android:background="@drawable/bg_gradient_green"
+            android:titleTextColor="@android:color/white" />
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- CONTENIDO -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
+        android:background="@color/white"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -31,58 +35,127 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Sección: Datos del adoptante -->
+            <!-- DATOS DEL ADOPTANTE -->
             <TextView
-                android:id="@+id/tv_titulo_adoptante"
+                android:id="@+id/tv_label_adoptante"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Datos del adoptante"
+                android:text="👤 Adoptante"
                 android:textStyle="bold"
-                android:textSize="18sp"
-                android:paddingBottom="4dp" />
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
 
             <TextView
                 android:id="@+id/tv_adoptante"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Nombre"
+                android:layout_marginTop="4dp"
                 android:textSize="16sp"
-                tools:text="Juan Pérez" />
+                android:textColor="@color/text_primary"
+                tools:text="Joshua García" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:background="@color/black" />
+
+            <!-- CORREO -->
+            <TextView
+                android:id="@+id/tv_label_correo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="📧 Correo"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
 
             <TextView
                 android:id="@+id/tv_correo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Correo"
                 android:textSize="16sp"
-                tools:text="correo@ejemplo.com" />
+                android:textColor="@color/text_primary"
+                tools:text="joshua@example.com" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:background="@color/black" />
+
+            <!-- TELÉFONO -->
+            <TextView
+                android:id="@+id/tv_label_telefono"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="📱 Teléfono"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
 
             <TextView
                 android:id="@+id/tv_telefono"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Teléfono"
                 android:textSize="16sp"
+                android:textColor="@color/text_primary"
                 tools:text="55 1234 5678" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:background="@color/black" />
+
+            <!-- DIRECCIÓN -->
+            <TextView
+                android:id="@+id/tv_label_direccion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="🏠 Dirección"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
 
             <TextView
                 android:id="@+id/tv_direccion"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Dirección"
                 android:textSize="16sp"
+                android:textColor="@color/text_primary"
                 tools:text="Calle X, Col. Y, Ciudad Z" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:background="@color/black" />
+
+            <!-- TIPO Y PROPIEDAD DE VIVIENDA -->
+            <TextView
+                android:id="@+id/tv_label_vivienda"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="🏡 Vivienda"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
 
             <TextView
                 android:id="@+id/tv_tipo_vivienda"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Tipo de vivienda"
                 android:textSize="16sp"
+                android:textColor="@color/text_primary"
                 tools:text="Casa / Departamento" />
 
             <TextView
@@ -90,149 +163,181 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Propiedad de la vivienda"
                 android:textSize="16sp"
+                android:textColor="@color/text_primary"
                 tools:text="Propia / Rentada" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:background="@color/black" />
+
+            <!-- FECHA DE NACIMIENTO -->
+            <TextView
+                android:id="@+id/tv_label_nacimiento"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="🎂 Fecha de nacimiento"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
 
             <TextView
                 android:id="@+id/tv_fecha_nacimiento"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Fecha de nacimiento"
                 android:textSize="16sp"
+                android:textColor="@color/text_primary"
                 tools:text="01/01/1990" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginTop="16dp"
-                android:background="@android:color/darker_gray" />
+                android:layout_marginTop="8dp"
+                android:background="@color/black" />
 
-            <!-- Sección: Fechas y folio -->
+            <!-- FOLIO Y FECHAS -->
             <TextView
-                android:id="@+id/tv_titulo_solicitud"
+                android:id="@+id/tv_label_solicitud"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Solicitud y cita"
+                android:layout_marginTop="8dp"
+                android:text="🧾 Solicitud y cita"
                 android:textStyle="bold"
-                android:textSize="18sp" />
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
 
             <TextView
                 android:id="@+id/tv_folio"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Folio"
                 android:textSize="16sp"
-                tools:text="FOL-20251126-0001" />
+                android:textColor="@color/text_primary"
+                tools:text="FOL-2025-0001" />
 
             <TextView
                 android:id="@+id/tv_fecha_solicitud"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Fecha de solicitud"
                 android:textSize="16sp"
-                tools:text="25/11/2025" />
+                android:textColor="@color/text_primary"
+                tools:text="Fecha de solicitud: 20/11/2025" />
 
             <TextView
                 android:id="@+id/tv_fecha"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Fecha y hora de la cita"
                 android:textSize="16sp"
-                tools:text="26/11/2025 10:00" />
+                android:textColor="@color/text_primary"
+                tools:text="Fecha de cita: 24/11/2025 12:00" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginTop="16dp"
-                android:background="@android:color/darker_gray" />
+                android:layout_marginTop="8dp"
+                android:background="@color/black" />
 
-            <!-- Sección: Resumen del formulario (los mapas) -->
+            <!-- RESPUESTAS DEL FORMULARIO -->
             <TextView
-                android:id="@+id/tv_titulo_formulario"
+                android:id="@+id/tv_label_formulario"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Respuestas del formulario"
+                android:layout_marginTop="8dp"
+                android:text="📝 Respuestas del formulario"
                 android:textStyle="bold"
-                android:textSize="18sp" />
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
 
             <TextView
                 android:id="@+id/tv_datos_personales"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Datos personales"
+                android:layout_marginTop="4dp"
                 android:textSize="14sp"
-                tools:text="• campo1: valor1&#10;• campo2: valor2" />
+                android:textColor="@color/text_primary"
+                tools:text="• Nombre completo: ...&#10;• Ocupación: ..." />
 
             <TextView
                 android:id="@+id/tv_datos_familia"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Datos de la familia"
+                android:layout_marginTop="4dp"
                 android:textSize="14sp"
-                tools:text="• campo1: valor1" />
+                android:textColor="@color/text_primary"
+                tools:text="• Integrantes en casa: ..." />
 
             <TextView
                 android:id="@+id/tv_datos_experiencia"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Experiencia con animales"
+                android:layout_marginTop="4dp"
                 android:textSize="14sp"
-                tools:text="• campo1: valor1" />
+                android:textColor="@color/text_primary"
+                tools:text="• Ha tenido mascotas antes: Sí/No..." />
 
             <TextView
                 android:id="@+id/tv_datos_compromiso"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Compromiso"
+                android:layout_marginTop="4dp"
                 android:textSize="14sp"
-                tools:text="• campo1: valor1" />
+                android:textColor="@color/text_primary"
+                tools:text="• Tiempo que puede dedicar: ..." />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginTop="16dp"
-                android:background="@android:color/darker_gray" />
+                android:layout_marginTop="8dp"
+                android:background="@color/black" />
 
-            <!-- Sección: Estado y acciones del voluntario -->
+            <!-- ESTADO DEL ANIMAL -->
             <TextView
                 android:id="@+id/tv_label_estado"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Estado del animal en el refugio"
+                android:layout_marginTop="8dp"
+                android:text="📋 Estado del animal en el refugio"
                 android:textStyle="bold"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
 
             <Spinner
                 android:id="@+id/sp_estado"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp" />
+                android:layout_marginTop="4dp" />
 
+            <!-- BOTONES -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_guardar_estado"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Guardar estado" />
+                android:text="Guardar cambios"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@color/primary_green"
+                app:cornerRadius="8dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_reporte_visita"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Llenar reporte de visita" />
+                android:layout_marginBottom="24dp"
+                android:text="Llenar reporte de visita"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@color/primary_green"
+                app:cornerRadius="8dp" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

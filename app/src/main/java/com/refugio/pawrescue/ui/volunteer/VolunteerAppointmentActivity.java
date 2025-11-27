@@ -6,13 +6,17 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -20,6 +24,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.refugio.pawrescue.R;
 import com.refugio.pawrescue.model.Cita;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -42,6 +47,8 @@ public class VolunteerAppointmentActivity extends AppCompatActivity {
     private EditText etObservaciones, etRecomendaciones;
     private LinearLayout llDocumentosContainer;
     private MaterialButton btnSubirDocumento, btnEnviarReporte;
+
+    private ImageButton btnBack;   // <- flecha del toolbar
 
     private FirebaseFirestore db;
     private FirebaseAuth auth;
@@ -81,6 +88,23 @@ public class VolunteerAppointmentActivity extends AppCompatActivity {
         llDocumentosContainer = findViewById(R.id.llDocumentosContainer);
         btnSubirDocumento = findViewById(R.id.btnSubirDocumento);
         btnEnviarReporte = findViewById(R.id.btnEnviarReporte);
+
+        // --------- TOOLBAR Y FLECHA DE REGRESO ---------
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        if (getSupportActionBar() != null) {
+            // El título visual lo maneja el TextView del layout, por eso lo dejamos vacío aquí
+            getSupportActionBar().setTitle("");
+            // Activa la flecha de navegación del toolbar
+
+        }
+
+        // Flecha que está dentro del propio layout (ImageButton)
+        btnBack = findViewById(R.id.btnBack);
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> finish());
+        }
     }
 
     private void initFirebase() {
@@ -261,7 +285,7 @@ public class VolunteerAppointmentActivity extends AppCompatActivity {
                             .update(citaUpdates)
                             .addOnSuccessListener(aVoid -> {
                                 Toast.makeText(this, "✅ Reporte enviado con éxito", Toast.LENGTH_LONG).show();
-                                finish();
+                                finish(); // ← Al terminar, vuelve a Detalle de Cita
                             });
                 })
                 .addOnFailureListener(e -> {
@@ -269,5 +293,12 @@ public class VolunteerAppointmentActivity extends AppCompatActivity {
                     btnEnviarReporte.setEnabled(true);
                     btnEnviarReporte.setText("Enviar Reporte");
                 });
+    }
+
+    // Maneja la flecha de navegación del Toolbar (la flecha “nativa”)
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish();  // vuelve a Detalle de Cita
+        return true;
     }
 }

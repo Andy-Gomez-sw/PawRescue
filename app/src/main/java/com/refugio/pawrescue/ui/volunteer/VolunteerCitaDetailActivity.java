@@ -1,16 +1,11 @@
 package com.refugio.pawrescue.ui.volunteer;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.content.Intent;
-import com.google.android.material.button.MaterialButton;
-import java.util.Date;
-import java.util.Map;
-
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -26,6 +21,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+
 
 public class VolunteerCitaDetailActivity extends AppCompatActivity {
 
