@@ -87,7 +87,6 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
         recyclerView = view.findViewById(R.id.recycler_solicitudes);
         progressBar = view.findViewById(R.id.progress_bar_adoption);
         tvEmpty = view.findViewById(R.id.tv_empty_requests);
-        // 🚨 FIX 1: Corregir llamada a findViewById en Fragment
         tvAnimalIdHint = view.findViewById(R.id.tv_animal_id_hint);
 
         if (animalId != null && tvAnimalIdHint != null) {
@@ -115,7 +114,8 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                         try {
                             Usuario usuario = doc.toObject(Usuario.class);
-                            if (usuario != null) {
+                            // 🚨 FIX: Filtramos por estadoActivo
+                            if (usuario != null && usuario.isEstadoActivo()) {
                                 usuario.setUid(doc.getId());
                                 voluntariosDisponibles.add(usuario);
                                 voluntariosMap.put(usuario.getUid(), usuario.getNombre());
@@ -230,7 +230,7 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
     }
 
     /**
-     * 🚨 NUEVA FUNCIÓN: Busca el reporteId en la colección 'citas' y lo asigna localmente a la solicitud.
+     * Busca el reporteId en la colección 'citas' y lo asigna localmente a la solicitud.
      */
     private void sincronizarReporteId(SolicitudAdopcion solicitud, Runnable callback) {
         String citaId = solicitud.getCitaId();
@@ -254,7 +254,6 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
 
     // ========================================================================
     // --- LÓGICA CENTRAL DE GESTIÓN EN DIÁLOGO ---
-    // (MANTENIDA LA CORRECCIÓN DE FLUJO Y ANIMAL ID)
     // ========================================================================
 
     @Override
@@ -465,6 +464,7 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
 
                     List<String> availableVolunteerNames = new ArrayList<>();
 
+                    // 🚨 Iteramos sobre la lista ya filtrada por estado activo (voluntariosDisponibles)
                     for (Usuario vol : voluntariosDisponibles) {
                         if (!occupiedVolunteerIds.contains(vol.getUid())) {
                             availableVolunteerNames.add(vol.getNombre());
@@ -681,9 +681,7 @@ public class AdoptionFragment extends Fragment implements SolicitudAdopcionAdapt
     private void addTextViewToLayout(LinearLayout layout, String label, String value) {
         TextView tv = new TextView(getContext());
 
-        // 🚨 FIX CRÍTICO: Comprobar si el valor es nulo O vacío de forma segura.
-        // Se usa String.valueOf(value) para asegurar que la variable `value` sea una cadena
-        // segura, y luego se chequea la nulidad y el vacío.
+        // FIX CRÍTICO: Comprobar si el valor es nulo O vacío de forma segura.
         String displayValue = (value == null || value.trim().isEmpty()) ? "-" : value;
 
         // Se usa el formato completo para mostrar la etiqueta y el valor/placeholder.
