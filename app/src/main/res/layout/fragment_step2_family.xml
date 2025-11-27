@@ -10,94 +10,103 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:layout_marginTop="35dp"
         android:padding="24dp">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
             android:text="Entorno Familiar"
-            android:textSize="20sp"
-            android:textStyle="bold"
             android:textColor="@android:color/black"
-            android:layout_marginBottom="16dp"/>
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
         <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Número de adultos en casa"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="16dp"
+            android:hint="Número de adultos en casa">
+
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etNumAdultos"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="number"/>
+                android:textColor="@android:color/black"
+                android:inputType="number" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Número de niños"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_marginBottom="24dp">
+            android:layout_marginBottom="24dp"
+            android:hint="Número de niños">
+
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etNumNinos"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="number"/>
+                android:textColor="@android:color/black"
+                android:inputType="number" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
             android:text="¿Todos en casa están de acuerdo con la adopción?"
-            android:textSize="16sp"
             android:textColor="#555555"
-            android:layout_marginBottom="8dp"/>
+            android:textSize="16sp" />
 
         <RadioGroup
             android:id="@+id/rgAcuerdo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="24dp">
+            android:layout_marginBottom="24dp"
+            android:orientation="horizontal">
+
             <com.google.android.material.radiobutton.MaterialRadioButton
                 android:id="@+id/rbSiAcuerdo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sí"
-                android:layout_marginEnd="32dp"/>
+                android:layout_marginEnd="32dp"
+                android:text="Sí" />
+
             <com.google.android.material.radiobutton.MaterialRadioButton
                 android:id="@+id/rbNoAcuerdo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="No"/>
+                android:text="No" />
         </RadioGroup>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
             android:text="¿Alguien en la familia tiene alergias a animales?"
-            android:textSize="16sp"
             android:textColor="#555555"
-            android:layout_marginBottom="8dp"/>
+            android:textSize="16sp" />
 
         <RadioGroup
             android:id="@+id/rgAlergias"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
+
             <com.google.android.material.radiobutton.MaterialRadioButton
                 android:id="@+id/rbSiAlergia"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sí"
-                android:layout_marginEnd="32dp"/>
+                android:layout_marginEnd="32dp"
+                android:text="Sí" />
+
             <com.google.android.material.radiobutton.MaterialRadioButton
                 android:id="@+id/rbNoAlergia"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="No"/>
+                android:text="No" />
         </RadioGroup>
 
     </LinearLayout>
